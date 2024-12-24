@@ -1477,7 +1477,7 @@ module.exports = class EntitiesHelper {
           // } catch (error) {
           //     userAllowedEntities = [];
           // }
-          let entityProjections = ['entityType','metaInformation.externalId', 'metaInformation.name']
+          let entityProjections = ['entityType','metaInformation.externalId', 'metaInformation.name','groups']
 
           if( !(userAllowedEntities.length > 0) && req.query.parentEntityId ) {
               let filterData = {
@@ -1538,12 +1538,12 @@ module.exports = class EntitiesHelper {
           } else {
 
             response.result = [];
-            let filterData = {
-              "entityType":result.entityType,
-              "_id":result.entities
 
+            let filterData = {
+                "_id":req.body.state
             }
             let entitiesDetails = await entityManagementService.entityDocuments(filterData,entityProjections);
+
             if ( !entitiesDetails.success ) {
                 return resolve({
                     "message" : messageConstants.apiResponses.ENTITY_NOT_FOUND,
@@ -1553,6 +1553,17 @@ module.exports = class EntitiesHelper {
                     }]
                 })
             }
+
+
+            let groups = entitiesDetails.data[0].groups;
+
+            let targetedGroup = groups[result.entityType];
+
+            let filterDataGroups = {
+              "_id":targetedGroup
+            }
+           
+            entitiesDetails = await entityManagementService.entityDocuments(filterDataGroups,entityProjections);
 
             let entityDocuments = entitiesDetails.data;
 
