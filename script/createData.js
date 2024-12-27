@@ -2,6 +2,10 @@ const { MongoClient } = require("mongodb");
 const { ObjectId } = require("mongodb");
 require('dotenv').config({ path: '../.env' });
 
+global.config = require('../config');
+require('../config/globalVariable')();
+
+
 const url = process.env.MONGODB_URL_TO_CREATE;
 
 const entityDB = process.env.ENTITY_DB;
@@ -9,6 +13,7 @@ const surveyDB = process.env.SURVEY_DB;
 
 console.log(surveyDB,'surveyDB')
 const projectDB = process.env.PROJECT_DB;
+const entityManagementService = require('../generics/services/entity-management');
 
 let districtId = new ObjectId();
 
@@ -5013,7 +5018,7 @@ let observationData = [
     endDate: getEndDate("2025-06-15 18:50:00"),
     status: "published",
     entityType: "school",
-    entities: [null, "5fd1f497e84a88170cfa85a2"],
+    entities: ["5fd1f497e84a88170cfa85a2"],
     createdFor: ["2"],
     rootOrganisations: [],
     isAPrivateProgram: false,
@@ -6506,6 +6511,9 @@ async function insertData(collectionName, dataFile, curretDB = surveyDB) {
   }
 }
 
+
+
+
 async function main({ dataToBeInserted }) {
   // await insertData("entities", dataToBeInserted.entities, entityDB);
   // await insertData("entityTypes", dataToBeInserted.entityType, entityDB);
@@ -6569,6 +6577,36 @@ main({ dataToBeInserted: ObservationData })
 
 
   main({ dataToBeInserted: projectData })
+  .then(() => {
+    console.log("project data populated successfully.");
+  })
+  .catch(console.error);
+
+*/
+  async function main2(){
+    let filterData1 = {
+      name:{ $in: ["state","district","block","cluster","school"] }
+     };
+    
+     let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments(
+      filterData1,
+      '',
+      ''
+    );
+    
+    console.log(entityTypeDocumentsAPICall,'entityTypeDocumentsAPICall')
+    
+     let filterData = {
+      _id: solutionDocument.entityTypeId
+     };
+    
+    let entitiesDocument = await entityManagementService.entityDocuments(
+      filterData
+    );
+  
+  }
+
+  main2()
   .then(() => {
     console.log("project data populated successfully.");
   })
