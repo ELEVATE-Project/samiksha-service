@@ -389,9 +389,13 @@ async function createNewFormattedAnswer(questionInstance, questionRecordSingleEl
 
   //this change done to address multiselect response appearing in array in instance chart which is not required
   let answer = [questionInstance.value];
-  if(chartType == 'instance' && questionInstance.responseType == 'multiselect' || questionInstance.responseType == 'matrix'){
-     answer  = Array.isArray(questionInstance.value) ? questionInstance.value : [questionInstance.value];  
+  if(chartType == 'instance' && questionInstance.responseType == 'multiselect'){
+    answer  = Array.isArray(questionInstance.value) ? questionInstance.value : [questionInstance.value];  
   }
+
+  // if(chartType == 'instance' && questionInstance.responseType == 'multiselect' || questionInstance.responseType == 'matrix'){
+  //    answer  = Array.isArray(questionInstance.value) ? questionInstance.value : [questionInstance.value];  
+  // }
 
   return {
     qid: questionInstance.qid,
