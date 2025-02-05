@@ -231,6 +231,438 @@ let solutionData = [
         ],
         "entityType" : entityType[0].name
     }
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f9d"),
+    "externalId" : "dcecf7d8-da26-11ef-99e2-743af4776910-OBSERVATION-TEMPLATE_CHILD",
+    "isReusable" : false,
+    "name" : "ScoreReportFix",
+    "description" : "Observation with rubric (multiplesubmission)",
+    "author" : "261",
+    "parentSolutionId" : new ObjectId("67934491f6ae00c02d1f5f4c"),
+    "resourceType" : [
+        "Observations Framework"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Framework",
+        "Observation",
+        "Challenges",
+        " Enrollment",
+        " Parents",
+        " Courses"
+    ],
+    "concepts" : [
+
+    ],
+    "scoringSystem" : "pointsBasedScoring",
+    "levelToScoreMapping" : {
+        "L1" : {
+            "points" : (10),
+            "label" : "Level 1"
+        },
+        "L2" : {
+            "points" : (20),
+            "label" : "Level 2"
+        },
+        "L3" : {
+            "points" : (30),
+            "label" : "Level 3"
+        }
+    },
+    "themes" : [
+        {
+            "name" : "Domain 1",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D1",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f84"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D1.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            }
+        },
+        {
+            "name" : "Domain 2",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D2",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f85"),
+                    "weightage" : (1)
+                },
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f86"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D2.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            }
+        },
+        {
+            "name" : "Domain 3",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D3",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f87"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D3.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            }
+        },
+        {
+            "name" : "Domain 4",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D4",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f88"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D4.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(25<=SCORE<=50)"
+                    },
+                    "L2" : {
+                        "expression" : "(50<SCORE<=75)"
+                    },
+                    "L3" : {
+                        "expression" : "(75<SCORE<=100)"
+                    }
+                }
+            }
+        }
+    ],
+    "flattenedThemes" : [
+        {
+            "name" : "Domain 1",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D1",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f84"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D1.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            },
+            "hierarchyLevel" : (0),
+            "hierarchyTrack" : [
+
+            ]
+        },
+        {
+            "name" : "Domain 2",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D2",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f85"),
+                    "weightage" : (1)
+                },
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f86"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D2.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            },
+            "hierarchyLevel" : (0),
+            "hierarchyTrack" : [
+
+            ]
+        },
+        {
+            "name" : "Domain 3",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D3",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f87"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D3.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(20<=SCORE<=40)"
+                    },
+                    "L2" : {
+                        "expression" : "(40<SCORE<=80)"
+                    },
+                    "L3" : {
+                        "expression" : "(80<SCORE<=100)"
+                    }
+                }
+            },
+            "hierarchyLevel" : (0),
+            "hierarchyTrack" : [
+
+            ]
+        },
+        {
+            "name" : "Domain 4",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D4",
+            "weightage" : (1),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f88"),
+                    "weightage" : (1)
+                }
+            ],
+            "rubric" : {
+                "expressionVariables" : {
+                    "SCORE" : "D4.sumOfPointsOfAllChildren()"
+                },
+                "levels" : {
+                    "L1" : {
+                        "expression" : "(25<=SCORE<=50)"
+                    },
+                    "L2" : {
+                        "expression" : "(50<SCORE<=75)"
+                    },
+                    "L3" : {
+                        "expression" : "(75<SCORE<=100)"
+                    }
+                }
+            },
+            "hierarchyLevel" : (0),
+            "hierarchyTrack" : [
+
+            ]
+        }
+    ],
+    "questionSequenceByEcm" : {
+        "D1_1737704587373" : {
+            "SEC1" : [
+                "Q1_1737704587373-1737704596488",
+                "Q2_1737704587373-1737704596490"
+            ]
+        },
+        "D2_1737704587373" : {
+            "SEC2" : [
+                "Q5_1737704587373-1737704596491",
+                "Q6_1737704587373-1737704596491",
+                "Q9_1737704587373-1737704596492"
+            ]
+        },
+        "D3_1737704587373" : {
+            "SEC3" : [
+                "Q12_1737704587373-1737704596492",
+                "Q13_1737704587373-1737704596493"
+            ]
+        },
+        "D4_1737704587373" : {
+            "SEC4" : [
+                "Q14_1737704587373-1737704596494",
+                "Q15_1737704587373-1737704596494"
+            ]
+        }
+    },
+    "entityType" : "state",
+    "type" : "observation",
+    "subType" : "",
+    "entities" : [
+        entities[0]._id.toString()
+    ],
+    "startDate" : new Date("2025-01-24T07:43:16.593+0000"),
+    "endDate" : new Date("2026-01-24T07:43:16.593+0000"),
+    "status" : "active",
+    "evidenceMethods" : {
+        "D1_1737704587373" : {
+            "externalId" : "D1_1737704587373",
+            "tip" : null,
+            "name" : "Domain 1",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : "False",
+            "notApplicable" : false,
+            "canBeNotAllowed" : "False",
+            "remarks" : null,
+            "sequenceNo" : (1)
+        },
+        "D2_1737704587373" : {
+            "externalId" : "D2_1737704587373",
+            "tip" : null,
+            "name" : "Domain 2",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : "True",
+            "notApplicable" : false,
+            "canBeNotAllowed" : "True",
+            "remarks" : null,
+            "sequenceNo" : (2)
+        },
+        "D3_1737704587373" : {
+            "externalId" : "D3_1737704587373",
+            "tip" : null,
+            "name" : "Domain 3",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : "True",
+            "notApplicable" : false,
+            "canBeNotAllowed" : "True",
+            "remarks" : null,
+            "sequenceNo" : (3)
+        },
+        "D4_1737704587373" : {
+            "externalId" : "D4_1737704587373",
+            "tip" : null,
+            "name" : "Domain 4",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : "True",
+            "notApplicable" : false,
+            "canBeNotAllowed" : "True",
+            "remarks" : null,
+            "sequenceNo" : (4)
+        }
+    },
+    "sections" : {
+        "SEC1" : "Planning & Execution",
+        "SEC2" : "Data based Governance",
+        "SEC3" : "Communication",
+        "SEC4" : "Influence"
+    },
+    "registry" : [
+
+    ],
+    "frameworkId" : new ObjectId("67934491f6ae00c02d1f5f3e"),
+    "frameworkExternalId" : "dcecf7d8-da26-11ef-99e2-743af4776910",
+    "noOfRatingLevels" : (3),
+    "isRubricDriven" : true,
+    "enableQuestionReadOut" : false,
+    "updatedBy" : "261",
+    "captureGpsLocationAtQuestionLevel" : false,
+    "creator" : "Survey Support",
+    "isAPrivateProgram" : false,
+    "allowMultipleAssessemts" : false,
+    "isDeleted" : false,
+    "pageHeading" : "Domains",
+    "criteriaLevelReport" : true,
+    "minNoOfSubmissionsRequired" : (1),
+    "rootOrganisations" : [
+
+    ],
+    "createdFor" : [
+        null
+    ],
+    "updatedAt" : new Date("2025-01-24T07:43:17.293+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:16.593+0000"),
+    "deleted" : false,
+    "__v" : (0),
+    "link" : "ab1de59e7085e9c446dc719689b2bbb1",
+    "scope" : {
+        "state" : [
+            entities[0]._id.toString()
+        ],
+        "roles" : [
+            "district_education_officer",
+            "user",
+            "state_education_officer"
+        ],
+        "entityType" : entityType[0].name
+    }
 }
 ]
 
@@ -731,6 +1163,585 @@ let criteriaData = [
     "parentCriteriaId" : new ObjectId("673af2bd83466a9d854ac95a"),
     "updatedAt" : new Date("2024-11-18T07:54:40.529+0000"),
     "createdAt" : new Date("2024-11-18T07:54:36.273+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f84"),
+    "externalId" : "D1C1_1737704587373-1737704596521",
+    "timesUsed" : (12),
+    "weightage" : (20),
+    "name" : "Planning & Execution",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Planning & Execution",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [
+
+    ],
+    "rubric" : {
+        "name" : "Planning & Execution",
+        "description" : "Planning & Execution",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f84.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "D1_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC1",
+                    "questions" : [
+                        new ObjectId("67934494f6ae00c02d1f5f6e"),
+                        new ObjectId("67934494f6ae00c02d1f5f6f")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "auto",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f33"),
+    "parentCriteriaId" : new ObjectId("67934491f6ae00c02d1f5f42"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.526+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:12.727+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f85"),
+    "externalId" : "D2C1_1737704587373-1737704596522",
+    "timesUsed" : (12),
+    "weightage" : (20),
+    "name" : "Data based Governance",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Data based Governance",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [
+
+    ],
+    "rubric" : {
+        "name" : "Data based Governance",
+        "description" : "Data based Governance",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f85.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) for the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "D2_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC2",
+                    "questions" : [
+                        new ObjectId("67934494f6ae00c02d1f5f70")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "auto",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f34"),
+    "parentCriteriaId" : new ObjectId("67934491f6ae00c02d1f5f43"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.526+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:12.728+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f86"),
+    "externalId" : "D2C2_1737704587373-1737704596523",
+    "timesUsed" : (12),
+    "weightage" : (20),
+    "name" : "Communication",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Communication",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [
+
+    ],
+    "rubric" : {
+        "name" : "Communication",
+        "description" : "Communication",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f86.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "D2_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC2",
+                    "questions" : [
+                        new ObjectId("67934494f6ae00c02d1f5f71"),
+                        new ObjectId("67934494f6ae00c02d1f5f72")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "auto",
+    "frameworkCriteriaId" :new ObjectId("67934490f6ae00c02d1f5f35"),
+    "parentCriteriaId" : new ObjectId("67934491f6ae00c02d1f5f44"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.526+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:12.728+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f87"),
+    "externalId" : "D3C1_1737704587373-1737704596524",
+    "timesUsed" : (12),
+    "weightage" : (20),
+    "name" : "Influence",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Influence",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [
+
+    ],
+    "rubric" : {
+        "name" : "Influence",
+        "description" : "Influence",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f87.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "D3_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC3",
+                    "questions" : [
+                        new ObjectId("67934494f6ae00c02d1f5f73"),
+                        new ObjectId("67934494f6ae00c02d1f5f74")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "auto",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f36"),
+    "parentCriteriaId" : new ObjectId("67934491f6ae00c02d1f5f45"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.526+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:12.728+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f88"),
+    "externalId" : "D4C1_1737704587373-1737704596525",
+    "timesUsed" : (12),
+    "weightage" : (20),
+    "name" : "Collaboration",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Collaboration",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [
+
+    ],
+    "rubric" : {
+        "name" : "Collaboration",
+        "description" : "Collaboration",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f88.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "25<=SCORE<=50"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) for the teachers but no furniture for the students.",
+                "expression" : "50<SCORE<=75"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "75<SCORE<=100"
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "D4_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC4",
+                    "questions" : [
+                        new ObjectId("67934494f6ae00c02d1f5f75"),
+                        new ObjectId("67934494f6ae00c02d1f5f76")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "auto",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f37"),
+    "parentCriteriaId" : new ObjectId("67934491f6ae00c02d1f5f46"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.526+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:12.728+0000"),
     "deleted" : false,
     "__v" : (0)
 }
@@ -2883,6 +3894,1325 @@ let criteriaQuestionsData = [
     "timesUsed" : (12),
     "updatedAt" : new Date("2024-11-18T07:54:40.609+0000"),
     "weightage" : (20)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f84"),
+    "__v" : (0),
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-01-24T07:43:16.550+0000"),
+    "createdFor" : [
+
+    ],
+    "criteriaType" : "auto",
+    "deleted" : false,
+    "description" : "Planning & Execution",
+    "evidences" : [
+        {
+            "code" : "D1_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC1",
+                    "questions" : [
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f6e"),
+                            "externalId" : "Q1_1737704587373-1737704596488",
+                            "question" : [
+                                "Ms. Reeta is the education officer and has thought of working on the health of the community members through students’ engagement. How should she ensure success?",
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "text",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Planning & Execution",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "1",
+                            "weightage" : (0),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b8b"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.683+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f84")
+                        },
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f6f"),
+                            "externalId" : "Q2_1737704587373-1737704596490",
+                            "question" : [
+                                "Mr. Hira as the education officer as part of his duties has to channelize and monitor funds. He has realised that the schools do not share their expenses regularly. He may not receive further funds in case he fails to share the project progress and submit the expenses. What do you think he should do?",
+                                ""
+                            ],
+                            "tip" : "Please refer to the response level hints for some observable behaviour examples",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "L: Either does not provide students with comments/prompts about their successes OR the comments provided are simple, evaluative statements (e.g. \"that's correct\")",
+                                    "score" : (15)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Act only when there is a complaint from the senior officials or delay in receiving funds.",
+                                    "score" : (25)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Establish a system of receiving updates much before the deadlines.",
+                                    "score" : (75)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Involve group of parents and community members to collaborate with principals in monitoring the expenses and update Mr. Hira regularly.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Discuss with principals and understand the reasons behind delay. Ask seniors for suggestions.",
+                                    "score" : (50)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Planning & Execution",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "2",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b91"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.721+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f84")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "D1C1_1737704587373-1737704596521",
+    "flag" : "",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f33"),
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "language" : [
+        "English"
+    ],
+    "name" : "Planning & Execution",
+    "owner" : null,
+    "remarks" : "",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Planning & Execution",
+        "description" : "Planning & Execution",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f84.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : (12),
+    "updatedAt" : new Date("2025-01-24T07:43:16.550+0000"),
+    "weightage" : (20)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f85"),
+    "__v" : (0),
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-01-24T07:43:16.569+0000"),
+    "createdFor" : [
+
+    ],
+    "criteriaType" : "auto",
+    "deleted" : false,
+    "description" : "Data based Governance",
+    "evidences" : [
+        {
+            "code" : "D2_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC2",
+                    "questions" : [
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f70"),
+                            "externalId" : "Q5_1737704587373-1737704596491",
+                            "question" : [
+                                "One of the important goals set by Ms. Rekha is to improve the performance of the school teachers by sending them for various training workshops. How should she ensure that all teachers get trained uniformly across the district?",
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "Female",
+                                    "score" : (20)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Orient principals, teachers with data of training programs conducted and number of teachers who received training.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Maintain data for future records.",
+                                    "score" : (30)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Consult data of all training programs attended by teachers and identify gaps in line with the objectives of teacher development.",
+                                    "score" : (50)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Establish a system of conducting regular meetings with principals to analyse data of the training programs that the teachers attended",
+                                    "score" : (75)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Data based Governance",
+                            "allowAudioRecording" : false,
+                            "page" : "p2",
+                            "questionNumber" : "5",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b97"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.737+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f85")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "D2C1_1737704587373-1737704596522",
+    "flag" : "",
+    "frameworkCriteriaId" :new ObjectId("67934490f6ae00c02d1f5f34"),
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "language" : [
+        "English"
+    ],
+    "name" : "Data based Governance",
+    "owner" : null,
+    "remarks" : "",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Data based Governance",
+        "description" : "Data based Governance",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f85.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) for the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : (12),
+    "updatedAt" : new Date("2025-01-24T07:43:16.569+0000"),
+    "weightage" : (20)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f86"),
+    "__v" : (0),
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-01-24T07:43:16.589+0000"),
+    "createdFor" : [
+
+    ],
+    "criteriaType" : "auto",
+    "deleted" : false,
+    "description" : "Communication",
+    "evidences" : [
+        {
+            "code" : "D2_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC2",
+                    "questions" : [
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f71"),
+                            "externalId" : "Q6_1737704587373-1737704596491",
+                            "question" : [
+                                "There have been few changes in the syllabus. Some of the principals and teachers are anxious as they feel that the syllabus has become difficult. How do you think Mr. Babu should as the education officer handle the situation?",
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "Grade 1",
+                                    "score" : (20)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Call for a meeting with all principals and some teachers and attentively listen to their concerns. Share the maximum information in verbal and written format at the earliest.",
+                                    "score" : (40)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Share all information that he has through meetings",
+                                    "score" : (60)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Listen attentively to all principals and seek various perspectives on how the change could be implemented smoothly.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Listen to the concerns of a selected group of principals through meetings.",
+                                    "score" : (80)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+                                new ObjectId("67934494f6ae00c02d1f5f72")
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Data based Governance",
+                            "allowAudioRecording" : false,
+                            "page" : "p2",
+                            "questionNumber" : "6",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b9d"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.753+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f86")
+                        },
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f72"),
+                            "externalId" : "Q9_1737704587373-1737704596492",
+                            "question" : [
+                                "Due to the pandemic, the progress on various initiatives has been slow. Some of the school principals are not in favour because they feel the burden is already enough due to virtual classes. How would you communicate with them to implement the initiatives?",
+                                ""
+                            ],
+                            "tip" : "Please refer to the response level hints for some observable behaviour examples",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : [
+                                {
+                                    "operator" : "||",
+                                    "value" : [
+                                        "R1",
+                                        "R2"
+                                    ],
+                                    "_id" : new ObjectId("67934494f6ae00c02d1f5f71")
+                                }
+                            ],
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "L: Does not connect what is being taught to other content knowledge or students’ daily lives",
+                                    "score" : (20)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Regularly communicate with school principals to highlight the importance of these projects towards the mutual goal of district development.",
+                                    "score" : (40)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Give examples of those teachers who aren't complaining.",
+                                    "score" : (60)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Develop ownership of district development by involving principals and community members through open workshops.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Share data about the current status of projects.",
+                                    "score" : (80)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Data based Governance",
+                            "allowAudioRecording" : false,
+                            "page" : "p3",
+                            "questionNumber" : "9",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5ba3"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.767+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f86")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "D2C2_1737704587373-1737704596523",
+    "flag" : "",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f35"),
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "language" : [
+        "English"
+    ],
+    "name" : "Communication",
+    "owner" : null,
+    "remarks" : "",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Communication",
+        "description" : "Communication",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f86.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : (12),
+    "updatedAt" : new Date("2025-01-24T07:43:16.589+0000"),
+    "weightage" : (20)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f87"),
+    "__v" : (0),
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-01-24T07:43:16.576+0000"),
+    "createdFor" : [
+
+    ],
+    "criteriaType" : "auto",
+    "deleted" : false,
+    "description" : "Influence",
+    "evidences" : [
+        {
+            "code" : "D3_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC3",
+                    "questions" : [
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f73"),
+                            "externalId" : "Q12_1737704587373-1737704596492",
+                            "question" : [
+                                "The new initiatives by the education department want district education officers to implement ICDS. How would you ensure that the initiatives are implemented across the district?",
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "Ask members from ICDS and principals to volunteer towards the initiative.",
+                                    "score" : (20)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Form a committee of school principals based on their expertise to help you in this project towards implementing ICDS.",
+                                    "score" : (50)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Involve principals, other district officials, and community members with specific roles towards the implementation of the project.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Create channels for collaboration and appreciate the contribution of each principal towards the project.",
+                                    "score" : (75)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+                                new ObjectId("67934494f6ae00c02d1f5f74")
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Communication",
+                            "allowAudioRecording" : false,
+                            "page" : "p4",
+                            "questionNumber" : "12",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5baa"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.785+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f87")
+                        },
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f74"),
+                            "externalId" : "Q13_1737704587373-1737704596493",
+                            "question" : [
+                                "As the education officer, you are required to create awareness for Women and Child Welfare in the district. How would you ensure awareness is brought across the district?",
+                                ""
+                            ],
+                            "tip" : "Please refer to the response level hints for some observable behaviour examples",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : [
+                                {
+                                    "operator" : "===",
+                                    "value" : [
+                                        "R1"
+                                    ],
+                                    "_id" : new ObjectId("67934494f6ae00c02d1f5f73")
+                                }
+                            ],
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "Not Applicable",
+                                    "score" : (20)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Decide to develop the project plan yourself being the Education officer.",
+                                    "score" : (25)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Create a network of principals and other officials for sharing ideas and suggestions.",
+                                    "score" : (75)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Include other officials, politicians and influential community members to help you in developing the goals and plan for the project.",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Seek suggestions and consult a committee of only selective principals and teachers as required.",
+                                    "score" : (50)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Communication",
+                            "allowAudioRecording" : false,
+                            "page" : "p4",
+                            "questionNumber" : "13",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bb0"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.802+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f87")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "D3C1_1737704587373-1737704596524",
+    "flag" : "",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f36"),
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "language" : [
+        "English"
+    ],
+    "name" : "Influence",
+    "owner" : null,
+    "remarks" : "",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Influence",
+        "description" : "Influence",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f87.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "20<=SCORE<=40"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) fot the teachers but no furniture for the students.",
+                "expression" : "40<SCORE<=80"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "80<SCORE<=100"
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : (12),
+    "updatedAt" : new Date("2025-01-24T07:43:16.576+0000"),
+    "weightage" : (20)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f88"),
+    "__v" : (0),
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-01-24T07:43:16.583+0000"),
+    "createdFor" : [
+
+    ],
+    "criteriaType" : "auto",
+    "deleted" : false,
+    "description" : "Collaboration",
+    "evidences" : [
+        {
+            "code" : "D4_1737704587373",
+            "sections" : [
+                {
+                    "code" : "SEC4",
+                    "questions" : [
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f75"),
+                            "externalId" : "Q14_1737704587373-1737704596494",
+                            "question" : [
+                                "Mr. Raju has realised that there is an increasing issue of high drop out among girls in your district. How would you handle the situation?",
+                                ""
+                            ],
+                            "tip" : "Please refer to the response level hints for some observable behaviour examples",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "Not Applicable",
+                                    "score" : (25)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Understand the challenges and needs of the school to ensure lesser drop out among girls.",
+                                    "score" : (75)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "Engage with school principals and teachers by increasing the emphasis on sanitation as a way to retain girls",
+                                    "score" : (50)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Send them notices and charge them with penalty if they fail to improve the sanitation facilities.",
+                                    "score" : (25)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Involve community members to work along with principals to improve the sanitation and other facilities for girls for better enrolment.",
+                                    "score" : (100)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Influence",
+                            "allowAudioRecording" : false,
+                            "page" : "p4",
+                            "questionNumber" : "14",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bb7"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.820+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f88")
+                        },
+                        {
+                            "_id" : new ObjectId("67934494f6ae00c02d1f5f76"),
+                            "externalId" : "Q15_1737704587373-1737704596494",
+                            "question" : [
+                                "You are working on improving the enrolment of new students in the schools of your district. You need to establish goals for the plan. What will you do?",
+                                ""
+                            ],
+                            "tip" : "Please refer to the response level hints for some observable behaviour examples",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [
+                                {
+                                    "value" : "R1",
+                                    "label" : "L: Does not model",
+                                    "score" : (25)
+                                },
+                                {
+                                    "value" : "R2",
+                                    "label" : "Establish a system to involve parents and community members along with principals towards various initiatives of school and community development",
+                                    "score" : (75)
+                                },
+                                {
+                                    "value" : "R3",
+                                    "label" : "To improve the enrolment, support school principals to themselves collaborate with teachers and community members",
+                                    "score" : (100)
+                                },
+                                {
+                                    "value" : "R4",
+                                    "label" : "Involve principals and other teachers to help you plan the project",
+                                    "score" : (50)
+                                },
+                                {
+                                    "value" : "R5",
+                                    "label" : "Seek support from the school principals if you need it",
+                                    "score" : (25)
+                                }
+                            ],
+                            "sliderOptions" : [
+
+                            ],
+                            "children" : [
+
+                            ],
+                            "questionGroup" : [
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [
+
+                            ],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [
+
+                            ],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "Influence",
+                            "allowAudioRecording" : false,
+                            "page" : "p4",
+                            "questionNumber" : "15",
+                            "weightage" : (1),
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bbd"),
+                            "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+                            "createdAt" : new Date("2025-01-24T07:43:14.839+0000"),
+                            "deleted" : false,
+                            "__v" : (0),
+                            "criteriaId" : new ObjectId("67934494f6ae00c02d1f5f88")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "D4C1_1737704587373-1737704596525",
+    "flag" : "",
+    "frameworkCriteriaId" : new ObjectId("67934490f6ae00c02d1f5f37"),
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "language" : [
+        "English"
+    ],
+    "name" : "Collaboration",
+    "owner" : null,
+    "remarks" : "",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Collaboration",
+        "description" : "Collaboration",
+        "type" : "manual",
+        "expressionVariables" : {
+            "SCORE" : "67934494f6ae00c02d1f5f88.scoreOfAllQuestionInCriteria()"
+        },
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "For eg. There is no furniture in the classrooms for the teacher and the students",
+                "expression" : "25<=SCORE<=50"
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "There is furniture (a chair and table) for the teachers but no furniture for the students.",
+                "expression" : "50<SCORE<=75"
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "There is furniture for the most of the students and techars but needs repair.",
+                "expression" : "75<SCORE<=100"
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : (12),
+    "updatedAt" : new Date("2025-01-24T07:43:16.583+0000"),
+    "weightage" : (20)
 }
 ]
 
@@ -4613,6 +6943,741 @@ let questionsData = [
     "createdAt" : new Date("2024-11-18T07:54:38.972+0000"),
     "deleted" : false,
     "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f6e"),
+    "externalId" : "Q1_1737704587373-1737704596488",
+    "question" : [
+        "Ms. Reeta is the education officer and has thought of working on the health of the community members through students’ engagement. How should she ensure success?",
+        ""
+    ],
+    "tip" : "",
+    "hint" : "",
+    "responseType" : "text",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Planning & Execution",
+    "allowAudioRecording" : false,
+    "page" : "p1",
+    "questionNumber" : "1",
+    "weightage" : (0),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b8b"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.683+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f6f"),
+    "externalId" : "Q2_1737704587373-1737704596490",
+    "question" : [
+        "Mr. Hira as the education officer as part of his duties has to channelize and monitor funds. He has realised that the schools do not share their expenses regularly. He may not receive further funds in case he fails to share the project progress and submit the expenses. What do you think he should do?",
+        ""
+    ],
+    "tip" : "Please refer to the response level hints for some observable behaviour examples",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "L: Either does not provide students with comments/prompts about their successes OR the comments provided are simple, evaluative statements (e.g. \"that's correct\")",
+            "score" : (15)
+        },
+        {
+            "value" : "R2",
+            "label" : "Act only when there is a complaint from the senior officials or delay in receiving funds.",
+            "score" : (25)
+        },
+        {
+            "value" : "R3",
+            "label" : "Establish a system of receiving updates much before the deadlines.",
+            "score" : (75)
+        },
+        {
+            "value" : "R4",
+            "label" : "Involve group of parents and community members to collaborate with principals in monitoring the expenses and update Mr. Hira regularly.",
+            "score" : (100)
+        },
+        {
+            "value" : "R5",
+            "label" : "Discuss with principals and understand the reasons behind delay. Ask seniors for suggestions.",
+            "score" : (50)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Planning & Execution",
+    "allowAudioRecording" : false,
+    "page" : "p1",
+    "questionNumber" : "2",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b91"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.721+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f70"),
+    "externalId" : "Q5_1737704587373-1737704596491",
+    "question" : [
+        "One of the important goals set by Ms. Rekha is to improve the performance of the school teachers by sending them for various training workshops. How should she ensure that all teachers get trained uniformly across the district?",
+        ""
+    ],
+    "tip" : "",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "Female",
+            "score" : (20)
+        },
+        {
+            "value" : "R2",
+            "label" : "Orient principals, teachers with data of training programs conducted and number of teachers who received training.",
+            "score" : (100)
+        },
+        {
+            "value" : "R3",
+            "label" : "Maintain data for future records.",
+            "score" : (30)
+        },
+        {
+            "value" : "R4",
+            "label" : "Consult data of all training programs attended by teachers and identify gaps in line with the objectives of teacher development.",
+            "score" : (50)
+        },
+        {
+            "value" : "R5",
+            "label" : "Establish a system of conducting regular meetings with principals to analyse data of the training programs that the teachers attended",
+            "score" : (75)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Data based Governance",
+    "allowAudioRecording" : false,
+    "page" : "p2",
+    "questionNumber" : "5",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b97"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.737+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f71"),
+    "externalId" : "Q6_1737704587373-1737704596491",
+    "question" : [
+        "There have been few changes in the syllabus. Some of the principals and teachers are anxious as they feel that the syllabus has become difficult. How do you think Mr. Babu should as the education officer handle the situation?",
+        ""
+    ],
+    "tip" : "",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "Grade 1",
+            "score" : (20)
+        },
+        {
+            "value" : "R2",
+            "label" : "Call for a meeting with all principals and some teachers and attentively listen to their concerns. Share the maximum information in verbal and written format at the earliest.",
+            "score" : (40)
+        },
+        {
+            "value" : "R3",
+            "label" : "Share all information that he has through meetings",
+            "score" : (60)
+        },
+        {
+            "value" : "R4",
+            "label" : "Listen attentively to all principals and seek various perspectives on how the change could be implemented smoothly.",
+            "score" : (100)
+        },
+        {
+            "value" : "R5",
+            "label" : "Listen to the concerns of a selected group of principals through meetings.",
+            "score" : (80)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+        new ObjectId("67934494f6ae00c02d1f5f72")
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Data based Governance",
+    "allowAudioRecording" : false,
+    "page" : "p2",
+    "questionNumber" : "6",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5b9d"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.753+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f72"),
+    "externalId" : "Q9_1737704587373-1737704596492",
+    "question" : [
+        "Due to the pandemic, the progress on various initiatives has been slow. Some of the school principals are not in favour because they feel the burden is already enough due to virtual classes. How would you communicate with them to implement the initiatives?",
+        ""
+    ],
+    "tip" : "Please refer to the response level hints for some observable behaviour examples",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : [
+        {
+            "operator" : "||",
+            "value" : [
+                "R1",
+                "R2"
+            ],
+            "_id" : new ObjectId("67934494f6ae00c02d1f5f71")
+        }
+    ],
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "L: Does not connect what is being taught to other content knowledge or students’ daily lives",
+            "score" : (20)
+        },
+        {
+            "value" : "R2",
+            "label" : "Regularly communicate with school principals to highlight the importance of these projects towards the mutual goal of district development.",
+            "score" : (40)
+        },
+        {
+            "value" : "R3",
+            "label" : "Give examples of those teachers who aren't complaining.",
+            "score" : (60)
+        },
+        {
+            "value" : "R4",
+            "label" : "Develop ownership of district development by involving principals and community members through open workshops.",
+            "score" : (100)
+        },
+        {
+            "value" : "R5",
+            "label" : "Share data about the current status of projects.",
+            "score" : (80)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Data based Governance",
+    "allowAudioRecording" : false,
+    "page" : "p3",
+    "questionNumber" : "9",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5ba3"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.767+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f73"),
+    "externalId" : "Q12_1737704587373-1737704596492",
+    "question" : [
+        "The new initiatives by the education department want district education officers to implement ICDS. How would you ensure that the initiatives are implemented across the district?",
+        ""
+    ],
+    "tip" : "",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "Ask members from ICDS and principals to volunteer towards the initiative.",
+            "score" : (20)
+        },
+        {
+            "value" : "R2",
+            "label" : "Form a committee of school principals based on their expertise to help you in this project towards implementing ICDS.",
+            "score" : (50)
+        },
+        {
+            "value" : "R3",
+            "label" : "Involve principals, other district officials, and community members with specific roles towards the implementation of the project.",
+            "score" : (100)
+        },
+        {
+            "value" : "R4",
+            "label" : "Create channels for collaboration and appreciate the contribution of each principal towards the project.",
+            "score" : (75)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+        new ObjectId("67934494f6ae00c02d1f5f74")
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Communication",
+    "allowAudioRecording" : false,
+    "page" : "p4",
+    "questionNumber" : "12",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" :new ObjectId("67934492e09dcbb0bd5e5baa"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.785+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f74"),
+    "externalId" : "Q13_1737704587373-1737704596493",
+    "question" : [
+        "As the education officer, you are required to create awareness for Women and Child Welfare in the district. How would you ensure awareness is brought across the district?",
+        ""
+    ],
+    "tip" : "Please refer to the response level hints for some observable behaviour examples",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : [
+        {
+            "operator" : "===",
+            "value" : [
+                "R1"
+            ],
+            "_id" :new ObjectId("67934494f6ae00c02d1f5f73")
+        }
+    ],
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "Not Applicable",
+            "score" : (20)
+        },
+        {
+            "value" : "R2",
+            "label" : "Decide to develop the project plan yourself being the Education officer.",
+            "score" : (25)
+        },
+        {
+            "value" : "R3",
+            "label" : "Create a network of principals and other officials for sharing ideas and suggestions.",
+            "score" : (75)
+        },
+        {
+            "value" : "R4",
+            "label" : "Include other officials, politicians and influential community members to help you in developing the goals and plan for the project.",
+            "score" : (100)
+        },
+        {
+            "value" : "R5",
+            "label" : "Seek suggestions and consult a committee of only selective principals and teachers as required.",
+            "score" : (50)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Communication",
+    "allowAudioRecording" : false,
+    "page" : "p4",
+    "questionNumber" : "13",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bb0"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.802+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f75"),
+    "externalId" : "Q14_1737704587373-1737704596494",
+    "question" : [
+        "Mr. Raju has realised that there is an increasing issue of high drop out among girls in your district. How would you handle the situation?",
+        ""
+    ],
+    "tip" : "Please refer to the response level hints for some observable behaviour examples",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "Not Applicable",
+            "score" : (25)
+        },
+        {
+            "value" : "R2",
+            "label" : "Understand the challenges and needs of the school to ensure lesser drop out among girls.",
+            "score" : (75)
+        },
+        {
+            "value" : "R3",
+            "label" : "Engage with school principals and teachers by increasing the emphasis on sanitation as a way to retain girls",
+            "score" : (50)
+        },
+        {
+            "value" : "R4",
+            "label" : "Send them notices and charge them with penalty if they fail to improve the sanitation facilities.",
+            "score" : (25)
+        },
+        {
+            "value" : "R5",
+            "label" : "Involve community members to work along with principals to improve the sanitation and other facilities for girls for better enrolment.",
+            "score" : (100)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Influence",
+    "allowAudioRecording" : false,
+    "page" : "p4",
+    "questionNumber" : "14",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bb7"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.820+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934494f6ae00c02d1f5f76"),
+    "externalId" : "Q15_1737704587373-1737704596494",
+    "question" : [
+        "You are working on improving the enrolment of new students in the schools of your district. You need to establish goals for the plan. What will you do?",
+        ""
+    ],
+    "tip" : "Please refer to the response level hints for some observable behaviour examples",
+    "hint" : "",
+    "responseType" : "radio",
+    "value" : "",
+    "isCompleted" : false,
+    "showRemarks" : false,
+    "remarks" : "",
+    "visibleIf" : "",
+    "options" : [
+        {
+            "value" : "R1",
+            "label" : "L: Does not model",
+            "score" : (25)
+        },
+        {
+            "value" : "R2",
+            "label" : "Establish a system to involve parents and community members along with principals towards various initiatives of school and community development",
+            "score" : (75)
+        },
+        {
+            "value" : "R3",
+            "label" : "To improve the enrolment, support school principals to themselves collaborate with teachers and community members",
+            "score" : (100)
+        },
+        {
+            "value" : "R4",
+            "label" : "Involve principals and other teachers to help you plan the project",
+            "score" : (50)
+        },
+        {
+            "value" : "R5",
+            "label" : "Seek support from the school principals if you need it",
+            "score" : (25)
+        }
+    ],
+    "sliderOptions" : [
+
+    ],
+    "children" : [
+
+    ],
+    "questionGroup" : [
+        "A1"
+    ],
+    "questionType" : "auto",
+    "modeOfCollection" : "onfield",
+    "usedForScoring" : "",
+    "fileName" : [
+
+    ],
+    "validation" : {
+        "required" : true
+    },
+    "accessibility" : "No",
+    "canBeNotApplicable" : "false",
+    "instanceQuestions" : [
+
+    ],
+    "isAGeneralQuestion" : false,
+    "autoCapture" : false,
+    "rubricLevel" : "",
+    "sectionHeader" : "Influence",
+    "allowAudioRecording" : false,
+    "page" : "p4",
+    "questionNumber" : "15",
+    "weightage" : (1),
+    "prefillFromEntityProfile" : false,
+    "entityFieldName" : "",
+    "isEditable" : true,
+    "showQuestionInPreview" : false,
+    "createdFromQuestionId" : new ObjectId("67934492e09dcbb0bd5e5bbd"),
+    "updatedAt" : new Date("2025-01-24T07:43:16.495+0000"),
+    "createdAt" : new Date("2025-01-24T07:43:14.839+0000"),
+    "deleted" : false,
+    "__v" : (0)
 }
 ]
 
@@ -4725,6 +7790,120 @@ let frameworkData = [
     ],
     "updatedAt" : new Date("2024-11-18T07:54:37.192+0000"),
     "createdAt" : new Date("2024-11-18T13:24:36.705+0000"),
+    "deleted" : false,
+    "__v" : (0)
+},
+{
+    "_id" : new ObjectId("67934491f6ae00c02d1f5f3e"),
+    "externalId" : "dcecf7d8-da26-11ef-99e2-743af4776910",
+    "name" : "ScoreReportFix",
+    "description" : "Observation with rubric (multiplesubmission)",
+    "author" : null,
+    "parentId" : null,
+    "resourceType" : [
+        "Observations Framework"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Framework",
+        "Observation",
+        "Challenges",
+        " Enrollment",
+        " Parents",
+        " Courses"
+    ],
+    "concepts" : [
+
+    ],
+    "createdFor" : [
+        null
+    ],
+    "scoringSystem" : "pointsBasedScoring",
+    "levelToScoreMapping" : {
+        "L1" : {
+            "points" : (10),
+            "label" : "Level 1"
+        },
+        "L2" : {
+            "points" : (20),
+            "label" : "Level 2"
+        },
+        "L3" : {
+            "points" : (30),
+            "label" : "Level 3"
+        }
+    },
+    "themes" : [
+        {
+            "name" : "Domain 1",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D1",
+            "weightage" : (40),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934490f6ae00c02d1f5f33"),
+                    "weightage" : (40)
+                }
+            ]
+        },
+        {
+            "name" : "Domain 2",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D2",
+            "weightage" : (40),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934490f6ae00c02d1f5f34"),
+                    "weightage" : (40)
+                },
+                {
+                    "criteriaId" : new ObjectId("67934490f6ae00c02d1f5f35"),
+                    "weightage" : (40)
+                }
+            ]
+        },
+        {
+            "name" : "Domain 3",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D3",
+            "weightage" : (40),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934490f6ae00c02d1f5f36"),
+                    "weightage" : (40)
+                }
+            ]
+        },
+        {
+            "name" : "Domain 4",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "D4",
+            "weightage" : (40),
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("67934490f6ae00c02d1f5f37"),
+                    "weightage" : (40)
+                }
+            ]
+        }
+    ],
+    "noOfRatingLevels" : (3),
+    "isRubricDriven" : true,
+    "updatedBy" : "INITIALIZE",
+    "isDeleted" : false,
+    "entityTypeId" : null,
+    "entityType" : "school",
+    "rootOrganisations" : [
+
+    ],
+    "updatedAt" : new Date("2025-01-24T07:43:13.349+0000"),
+    "createdAt" : new Date("2025-01-24T13:13:12.190+0000"),
     "deleted" : false,
     "__v" : (0)
 }
