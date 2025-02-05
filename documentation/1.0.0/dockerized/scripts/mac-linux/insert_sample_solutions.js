@@ -1,7 +1,8 @@
 const { MongoClient } = require('mongodb');
-console.log(process.env.MONGODB_URL ,"this is mongoURL")
 
 const url = process.env.MONGODB_URL // MongoDB URL
+
+ // MongoDB URL
 const dbName = 'elevate-samiksha';
 const dbName2 = 'elevate-entity1';
 const surveyData = require('./survey_sampleData.js');
@@ -10,7 +11,6 @@ const observationData = require('./observation_sampleData.js');
 
 async function insertData(collectionName, dataFile,curretDB = dbName) {
     const client = new MongoClient(url);
-
     try {
         // Connect to MongoDB
         await client.connect();
@@ -48,8 +48,8 @@ async function main({dataToBeInserted}) {
     await insertData('criteriaQuestions',dataToBeInserted.criteriaQuestionsData);
     await insertData('questions',dataToBeInserted.questionsData);
     await insertData('frameworks',dataToBeInserted.frameworkData);
-    await insertData('observationSubmissions',dataToBeInserted.observationSubmissionData);
-    await insertData('observations',dataToBeInserted.observationData);
+    // await insertData('observationSubmissions',dataToBeInserted.observationSubmissionData);
+    // await insertData('observations',dataToBeInserted.observationData);
 
 }
 
