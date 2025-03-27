@@ -33,15 +33,15 @@ We have ```dev ``` and ``` development ``` as environment.
 
 i. For programTemplate :
 for QA  python3 main.py --env QA --programFile ProgramTemplate.xlsx
-This command will upload the program data from ProgramTemplate.xlsx to the QA environment. -for DEV  python3 main.py --env dev --programFile ProgramTemplate.xlsx
-This command will upload the program data from ProgramTemplate.xlsx to the development environment. -for LOCAL  python3 main.py --env local --programFile ProgramTemplate.xlsx
-This command will upload the program data from ProgramTemplate.xlsx to the local environment. ii. For projectTemplate : -for QA  python3 main.py --QA --project ProjectTemplate.xlsx
+This command will upload the program data from ProgramTemplate.xlsx to the QA environment. -for DEV  ``` python3 main.py --env dev --programFile ProgramTemplate.xlsx ```
+This command will upload the program data from ProgramTemplate.xlsx to the development environment. -for LOCAL  ``` python3 main.py --env local --programFile ProgramTemplate.xlsx ```
+This command will upload the program data from ProgramTemplate.xlsx to the local environment. ii. For projectTemplate : -for QA ``` python3 main.py --QA --project ProjectTemplate.xlsx ```
 
 ii. For ResourceTemplate :
 
-for QA  python3 main.py --env QA --resourceFile surveyTemplate.xlsx
+for QA  ``` python3 main.py --env QA --resourceFile surveyTemplate.xlsx ```
 This command will upload the resource (Survey, Observation) from surveyTemplate.xlsx to the QA environment.
- -for DEV  python3 main.py --env dev --resourceFile surveyTemplate.xlsx
+ -for DEV  ``` python3 main.py --env dev --resourceFile surveyTemplate.xlsx ```
 This command will upload the resource (Survey, Observation) from surveyTemplate.xlsx to the development environment.
- -for LOCAL  python3 main.py --env local --resourceFile surveyTemplate.xlsx
+ -for LOCAL  ``` python3 main.py --env local --resourceFile surveyTemplate.xlsx ```
 This command will upload the (Survey, Observation) data from surveyTemplate.xlsx to the local environment. 
