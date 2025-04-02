@@ -66,3 +66,6 @@ generics/helpers/credentials/*
 
 public/reports/*
 tmp/*
+
+implementation-script-Sunbird-Service/InputFiles
+implementation-script-Sunbird-Service/programFiles
