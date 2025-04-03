@@ -2987,7 +2987,7 @@
         "service": "scheduler"
       },
       {
-        "sourceRoute": "/entity-management/v1/entityTypes/bulkCreate",
+        "sourceRoute": "/entity/v1/entityTypes/bulkCreate",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3001,7 +3001,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entityTypes/bulkUpdate",
+        "sourceRoute": "/entity/v1/entityTypes/bulkUpdate",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3015,204 +3015,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entityTypes/find",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "requiresCustomHandling": true,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entityTypes/list",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entityTypes/create",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entityTypes/update",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entityTypes/update/:id",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/bulkCreate",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/targetedRoles/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/entityListBasedOnEntityType",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/bulkUpdate",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/add",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/update",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/update/:id",
-        "type": "POST",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/list",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/list/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/find",
+        "sourceRoute": "/entity/v1/entityTypes/find",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3227,7 +3030,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/details",
+        "sourceRoute": "/entity/v1/entityTypes/list",
         "type": "GET",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3241,77 +3044,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/details/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/listByEntityType",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/listByEntityType/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/subEntityList",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/subEntityList/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/listByIds",
+        "sourceRoute": "/entity/v1/entityTypes/create",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3325,63 +3058,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/subEntityListBasedOnRoleAndLocation",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/subEntityListBasedOnRoleAndLocation/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/relatedEntities",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/entities/relatedEntities/:id",
-        "type": "GET",
-        "priority": "MUST_HAVE",
-        "inSequence": false,
-        "orchestrated": false,
-        "targetPackages": [
-          {
-            "basePackageName": "survey",
-            "packageName": "sunbird-survey-observation"
-          }
-        ],
-        "service": "entity"
-      },
-      {
-        "sourceRoute": "/entity-management/v1/userRoleExtension/create",
+        "sourceRoute": "/entity/v1/entityTypes/update",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3395,7 +3072,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/userRoleExtension/update/:id",
+        "sourceRoute": "/entity/v1/entityTypes/update/:id",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3409,7 +3086,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/userRoleExtension/find",
+        "sourceRoute": "/entity/v1/entities/bulkCreate",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3423,7 +3100,330 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/userRoleExtension/delete/:id",
+        "sourceRoute": "/entity/v1/entities/targetedRoles/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/entityListBasedOnEntityType",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/bulkUpdate",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/add",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/update",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/update/:id",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/list",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/list/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/find",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "requiresCustomHandling": true,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/details",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/details/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/listByEntityType",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/listByEntityType/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/subEntityList",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/subEntityList/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/listByIds",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/subEntityListBasedOnRoleAndLocation",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/subEntityListBasedOnRoleAndLocation/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/relatedEntities",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/entities/relatedEntities/:id",
+        "type": "GET",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/userRoleExtension/create",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/userRoleExtension/update/:id",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/userRoleExtension/find",
+        "type": "POST",
+        "priority": "MUST_HAVE",
+        "inSequence": false,
+        "orchestrated": false,
+        "targetPackages": [
+          {
+            "basePackageName": "survey",
+            "packageName": "sunbird-survey-observation"
+          }
+        ],
+        "service": "entity"
+      },
+      {
+        "sourceRoute": "/entity/v1/userRoleExtension/delete/:id",
         "type": "DELETE",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3437,7 +3437,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/mappingUpload",
+        "sourceRoute": "/entity/v1/entities/mappingUpload",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3451,7 +3451,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/createMappingCsv",
+        "sourceRoute": "/entity/v1/entities/createMappingCsv",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
@@ -3465,7 +3465,7 @@
         "service": "entity"
       },
       {
-        "sourceRoute": "/entity-management/v1/entities/listByLocationIds",
+        "sourceRoute": "/entity/v1/entities/listByLocationIds",
         "type": "POST",
         "priority": "MUST_HAVE",
         "inSequence": false,
