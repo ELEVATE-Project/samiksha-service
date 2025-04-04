@@ -39,5 +39,6 @@ module.exports = {
       default: false,
       type: Boolean,
     },
+    programInformation: Object
   },
 };
