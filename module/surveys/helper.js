@@ -520,6 +520,41 @@ module.exports = class SurveysHelper {
           if (solution.programExternalId) {
             survey["programExternalId"] = solution.programExternalId;
           }
+
+          let programInformation = null;
+
+          if(solution.programId){
+    
+          let programQueryObject = {
+            _id: solution.programId,
+            status: messageConstants.common.ACTIVE_STATUS
+          };
+    
+          let programDocument = await programsHelper.list(programQueryObject, [
+             "externalId",
+             "name",
+             "description",
+             "imageCompression",
+             "isAPrivateProgram",
+           ]);
+    
+           programDocument = programDocument.data.data
+           
+           if (!programDocument[0]._id) {
+             throw messageConstants.apiResponses.PROGRAM_NOT_FOUND;
+           }
+    
+           programInformation =  {
+               ..._.omit(programDocument[0], [
+                 "_id",
+                 "components",
+                 "isAPrivateProgram",
+               ]),
+             }
+
+             survey["programInformation"] = programInformation;
+    
+          }
         // Create a survey with solution and program details
           surveyDocument = await this.create(survey);
 
@@ -973,6 +1008,14 @@ module.exports = class SurveysHelper {
           if (programDocument.length > 0) {
             submissionDocument.programId = programDocument[0]._id;
             submissionDocument.programExternalId = programDocument[0].externalId;
+            let programInformation =  {
+              ..._.omit(programDocument[0], [
+                "_id",
+                "components",
+                "isAPrivateProgram",
+              ]),
+            }
+            submissionDocument.programInformation = programInformation;
           }
 
           let submissionDoc = await database.models.surveySubmissions.create(submissionDocument);
