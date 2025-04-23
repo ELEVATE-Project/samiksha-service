@@ -88,7 +88,8 @@ module.exports = class ObservationsHelper {
     data,
     userId,
     requestingUserAuthToken = '',
-    userRoleAndProfileInformation
+    userRoleAndProfileInformation,
+    tenantData
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -165,7 +166,7 @@ module.exports = class ObservationsHelper {
           userProfileData = {}
         }
 
-        let observationData = await this.createObservation(data, userId, solutionData,userProfileData);
+        let observationData = await this.createObservation(data, userId, solutionData,userProfileData,tenantData);
 
         return resolve(_.pick(observationData, ['_id', 'name', 'description']));
       } catch (error) {
@@ -186,12 +187,12 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation creation data.
    */
 
-  static createObservation(data, userId, solution,userProfileInformation = {}) {
+  static createObservation(data, userId, solution,userProfileInformation = {},tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (validateEntities == 'ON') {
           if (data.entities) {
-            let entitiesToAdd = await entityManagementService.validateEntities(data.entities, solution.entityTypeId);
+            let entitiesToAdd = await entityManagementService.validateEntities(data.entities, solution.entityTypeId,tenantData);
             data.entities = entitiesToAdd.entityIds;
           }
         }
@@ -214,7 +215,9 @@ module.exports = class ObservationsHelper {
           createdBy: userId,
           createdFor: userId,
           isAPrivateProgram: solution.isAPrivateProgram,
-          "userProfile" : userProfileInformation ? userProfileInformation : {}
+          "userProfile" : userProfileInformation ? userProfileInformation : {},
+          tenantId: tenantData.tenantId,
+          orgId: tenantData.orgId,
         });
 
         let observationDataEntry = await database.models.observations.create(
@@ -971,7 +974,7 @@ module.exports = class ObservationsHelper {
   //     }
   //   });
   // }
-  static details(observationId = "", solutionId = "", userId = "") {
+  static details(observationId = "", solutionId = "", userId = "",tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         //Check for observation or soultion ID
@@ -1003,6 +1006,8 @@ module.exports = class ObservationsHelper {
         if (observationDocument[0].entities.length > 0) {
           let filterData = {
            _id: {$in:observationDocument[0].entities},
+           tenantId:tenantData.tenantId,
+           orgId:tenantData.orgId
           };
         
          //Retrieving the entity from the Entity Management Service
@@ -1635,7 +1640,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} List of user assigned observations.
    */
 
-  static userAssigned(userId, pageNo, pageSize, search, filter = '') {
+  static userAssigned(userId, pageNo, pageSize, search, filter = '',tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         //Constructing the match query for assigned solutions
@@ -1644,6 +1649,10 @@ module.exports = class ObservationsHelper {
             createdBy: userId,
             deleted: false,
             referenceFrom: { $ne: messageConstants.common.PROJECT },
+            tenantId:tenantFilter.tenantId,
+            orgId:{
+              "$in": ["ALL", tenantFilter.orgId] 
+            }
           },
         };
 
@@ -1865,7 +1874,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} list of entities in observation
    */
 
-  static entities(userId, token, observationId, solutionId, bodyData) {
+  static entities(userId, token, observationId, solutionId, bodyData,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (observationId === '') {
@@ -1903,8 +1912,11 @@ module.exports = class ObservationsHelper {
                 let filterData = {
                   _id:bodyData[solutionData.data.entityType],
                   entityType: solutionData.data.entityType,
+                  tenantId:tenantData.tenantId,
+                  orgId:tenantData.orgId
                 };
-          
+                
+                console.log(filterData,'filterData')
                 let entitiesDocument = await entityManagementService.entityDocuments(
                   filterData
                 );
@@ -1939,11 +1951,11 @@ module.exports = class ObservationsHelper {
               }
            }
             
-            let observation = await this.create(solutionId, solutionData.data, userId, token,bodyData);
+            let observation = await this.create(solutionId, solutionData.data, userId, token,bodyData,tenantData);
             observationId = observation._id;
           }
         }    
-        let entitiesList = await this.listEntities(observationId); 
+        let entitiesList = await this.listEntities(observationId,tenantData); 
         let observationData = await this.observationDocuments(
           {
             _id: observationId,
@@ -1986,10 +1998,11 @@ module.exports = class ObservationsHelper {
    * @method
    * @name listEntities
    * @param {String} observationId - Observation id.
+   * @param {Object} tenantData -tenantData.
    * @returns {Object} List of observation entities.
    */
 
-  static listEntities(observationId) {
+  static listEntities(observationId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let observationDocument = await this.observationDocuments(
@@ -2019,6 +2032,8 @@ module.exports = class ObservationsHelper {
              entitiesData = await entityManagementService.entityDocuments(
               {
                 _id: { $in: observationDocument[0].entities },
+                tenantId:tenantData.tenantId,
+                orgId:tenantData.orgId
               },
               ['metaInformation.externalId', 'metaInformation.name'],
             );
@@ -2087,10 +2102,11 @@ module.exports = class ObservationsHelper {
    * @param {String} observationId - observation id.
    * @param {Object} requestedData - requested data.
    * @param {String} userId - logged in user id.
+   * @param {Object} tenantData -tenantData.
    * @returns {JSON} message - regarding either entity is added to observation or not.
    */
 
-  static addEntityToObservation(observationId, requestedData, userId) {
+  static addEntityToObservation(observationId, requestedData, userId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let responseMessage = 'Updated successfully.';
@@ -2118,7 +2134,7 @@ module.exports = class ObservationsHelper {
           });
         }
 
-        let entitiesToAdd =  await entityManagementService.validateEntities(requestedData,observationDocument[0].entityTypeId);
+        let entitiesToAdd =  await entityManagementService.validateEntities(requestedData,observationDocument[0].entityTypeId,tenantData);
 
         if (entitiesToAdd.entityIds.length > 0) {
           await database.models.observations.updateOne(
@@ -2226,6 +2242,8 @@ module.exports = class ObservationsHelper {
         let filterData = {
           _id: req.query.entityId,
           entityType: observationDocument.entityType,
+          tenantId: req.userDetails.tenantData.tenantId,
+          orgId: req.userDetails.tenantData.orgId
          };
   
          let entitiesDocument = await entityManagementService.entityDocuments(
@@ -2385,7 +2403,9 @@ module.exports = class ObservationsHelper {
         isRubricDriven: solutionDocument.isRubricDriven,
         userProfile: observationDocument?.userProfile ?? {},
         themes: solutionDocument.themes,
-        programInformation:programInformation
+        programInformation:programInformation,
+        tenantId: observationDocument.tenantId,
+        orgId: observationDocument.orgId
       };
   
       if (solutionDocument.hasOwnProperty('criteriaLevelReport')) {
@@ -2506,7 +2526,7 @@ module.exports = class ObservationsHelper {
 
   }
 
-  static async targetedEntityHelper(solutionId,requestedData){
+  static async targetedEntityHelper(solutionId,requestedData,tenantData){
 
     let solutionData = await solutionsQueries.solutionDocuments(
       {
@@ -2548,7 +2568,9 @@ module.exports = class ObservationsHelper {
     if (solutionData[0].entityType === targetedEntityType) {
 
       let filterQuery = {
-        "_id": requestedData[targetedEntityType]
+        "_id": requestedData[targetedEntityType],
+        "tenantId": tenantData.tenantId,
+        "orgId": tenantData.orgId
       };
 
       // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2580,7 +2602,9 @@ module.exports = class ObservationsHelper {
       }
     }
     let filterData = {
-      "_id": requestedData[targetedEntityType]
+      "_id": requestedData[targetedEntityType],
+      "tenantId": tenantData.tenantId,
+      "orgId": tenantData.orgId
     };
 
     // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2622,10 +2646,11 @@ module.exports = class ObservationsHelper {
    * @method
    * @name getHighestTargetedEntity
    * @param {Object} requestedData - requested data
+   * @param {Object} tenantData - tenantData data
    * @returns {Object} - Entity.
    */
 
-  static getHighestTargetedEntity( roleWiseTargetedEntities ) {
+  static getHighestTargetedEntity( roleWiseTargetedEntities,tenantData ) {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -2647,7 +2672,9 @@ module.exports = class ObservationsHelper {
           }
 
           let entitiesDocument = await entityManagementService.entityDocuments({
-              _id: currentEntity._id
+              _id: currentEntity._id,
+              tenantId:tenantData.tenantId,
+              orgId:tenantData.orgId
           }, ["groups"]);
 
           if (!entitiesDocument.success || entitiesDocument.data.length == 0 ) {
@@ -2698,12 +2725,14 @@ module.exports = class ObservationsHelper {
       try{
         let roleArray = req.body.role.split(",");
         let targetedEntities = {};
+        let tenantData = req.userDetails.tenantData;
         if ( roleArray.length === 1 ) {
           
           const detailEntity = 
           await this.targetedEntityHelper(
               req.params._id,
-              req.body
+              req.body,
+              tenantData
           );
           detailEntity["result"] = detailEntity.data;
           return resolve(detailEntity);
@@ -2719,7 +2748,8 @@ module.exports = class ObservationsHelper {
               const detailEntity = 
               await this.targetedEntityHelper(
                   req.params._id,
-                  bodyData
+                  bodyData,
+                  tenantData
               );       
               if ( detailEntity.data && Object.keys(detailEntity.data).length > 0 ) {              
                   roleWiseTargetedEntities.push(detailEntity.data);
@@ -2740,7 +2770,7 @@ module.exports = class ObservationsHelper {
           // multiple targeted entity
           else if (roleWiseTargetedEntities && roleWiseTargetedEntities.length > 1) {
             // request body contain role and entity information
-            let targetedEntity = await this.getHighestTargetedEntity(roleWiseTargetedEntities, req.body);
+            let targetedEntity = await this.getHighestTargetedEntity(roleWiseTargetedEntities, tenantData);
 
             if (!targetedEntity.data) {
               throw {
@@ -2816,7 +2846,9 @@ module.exports = class ObservationsHelper {
           let filterData = {
             _id:topLevelEntityId,
             entityType: topLevelEntityType,
-            deleted:false
+            deleted:false,
+            tenantId:solutionDocument[0].tenantId,
+            orgId:solutionDocument[0].orgId
            };
          
           //Retrieving the entity from the Entity Management Service

@@ -87,11 +87,12 @@ module.exports = class SurveysHelper {
    * @name createSolutionTemplate
    * @param {String} solutionData - survey solution details
    * @param {String} userId - logged in userId
+   * @param {Object} tenantData - tenantData
    * @param {String} appName - name of the app
    * @returns {JSON} - solutionId.
    */
 
-  static createSolutionTemplate(solutionData, userId = '') {
+  static createSolutionTemplate(solutionData, userId = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!solutionData.name) {
@@ -144,6 +145,8 @@ module.exports = class SurveysHelper {
             isActive: true,
           },
         };
+        newSolutionDocument.tenantId = tenantData.tenantId;
+        newSolutionDocument.orgId = tenantData.orgId
 
         let themes = [
           {
@@ -470,11 +473,12 @@ module.exports = class SurveysHelper {
    * @name createSurveyDocument
    * @param {String} userId =  - logged in user id.
    * @param {Object} solution - solution document .
+   * @param {Object} tenantData - tenantData data .
    * @param {Array} userOrganisations - User organisations
    * @returns {Object} status and survey id.
    */
 
-  static createSurveyDocument(userId = '', solution = {}, userOrganisations) {
+  static createSurveyDocument(userId = '', solution = {}, userOrganisations,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let status;
@@ -520,6 +524,10 @@ module.exports = class SurveysHelper {
           if (solution.programExternalId) {
             survey["programExternalId"] = solution.programExternalId;
           }
+
+          survey['tenantId'] = tenantData.tenantId;
+          survey['orgId'] = tenantData.orgId;
+
         // Create a survey with solution and program details
           surveyDocument = await this.create(survey);
 
@@ -975,6 +983,8 @@ module.exports = class SurveysHelper {
             submissionDocument.programExternalId = programDocument[0].externalId;
           }
 
+          submissionDocument.orgId = roleInformation.orgId;
+          submissionDocument.tenantId = roleInformation.tenantId;
           let submissionDoc = await database.models.surveySubmissions.create(submissionDocument);
 
           if (submissionDoc._id) {
@@ -1489,7 +1499,7 @@ module.exports = class SurveysHelper {
             //   );
             // }
 
-            let createSurveyDocument = await this.createSurveyDocument(userId, solutionData.data, userId);
+            let createSurveyDocument = await this.createSurveyDocument(userId, solutionData.data, userId,{tenantId:bodyData.tenantId,orgId:bodyData.orgId});
 
             if (!createSurveyDocument.success) {
               throw new Error(messageConstants.apiResponses.SURVEY_CREATION_FAILED);
@@ -1521,13 +1531,16 @@ module.exports = class SurveysHelper {
    * @param  {String} surveyId - surveyId.
    * @param {String} solutionId - solutionId
    * @param {String} userId - logged in userId
-   * @param {String} token - logged in user token
+   * @param {String} token - logged in user token'
+   * @param {Object} tenantData - tenantData of user
    * @returns {JSON} - returns survey solution, program and questions.
    */
 
-  static detailsV3(bodyData, surveyId = '', solutionId = '', userId = '', token = '') {
+  static detailsV3(bodyData, surveyId = '', solutionId = '', userId = '', token = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
+        bodyData.tenantId = tenantData.tenantId;
+        bodyData.orgId = tenantData.orgId;
         let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token);
 
         if (!surveyData.success) {
@@ -1573,7 +1586,7 @@ module.exports = class SurveysHelper {
    * @returns {Object}
    */
 
-  static userAssigned(userId, pageSize, pageNo, search = '', filter, surveyReportPage = '') {
+  static userAssigned(userId, pageSize, pageNo, search = '', filter, surveyReportPage = '',tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         let surveySolutions = {
@@ -1582,7 +1595,7 @@ module.exports = class SurveysHelper {
 
         if (surveyReportPage === '' || gen.utils.convertStringToBoolean(surveyReportPage)) {
           // List of created survey solutions by user.
-          surveySolutions = await surveySubmissionsHelper.surveySolutions(userId, pageNo, pageSize, search, filter);
+          surveySolutions = await surveySubmissionsHelper.surveySolutions(userId, pageNo, pageSize, search, filter,tenantFilter);
         }
 
         let totalCount = 0;
@@ -1606,6 +1619,7 @@ module.exports = class SurveysHelper {
           search,
           filter,
           surveyReportPage,
+          tenantFilter
         );
 
         if (surveySubmissions.success && surveySubmissions.data.data.length > 0) {

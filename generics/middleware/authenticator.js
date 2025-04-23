@@ -151,6 +151,9 @@ module.exports = async function (req, res, next) {
     'frameworks/delete/',
     'questions/delete/',
     'observationSubmissions/disable/',
+    'programs/create',
+    'observations/importFromFramework',
+    'surveys/createSolutionTemplate'
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -161,6 +164,7 @@ module.exports = async function (req, res, next) {
       }
     })
   );
+
 
   if (performInternalAccessTokenCheck) {
     if (req.headers['internal-access-token'] !== process.env.INTERNAL_ACCESS_TOKEN) {
@@ -403,6 +407,10 @@ module.exports = async function (req, res, next) {
       userName: decodedToken.data.name,
       firstName: decodedToken.data.name,
       organizationId: decodedToken.data.organization_id,
+      tenantData:{
+        orgId:decodedToken.data.organization_id.toString(),
+        tenantId:decodedToken.data.tenant_id && decodedToken.data.tenant_id.toString(),
+      }
     };
   } else {
     // Iterate through each key in the config object
@@ -417,8 +425,30 @@ module.exports = async function (req, res, next) {
       }
     }
   }
+
+    const isAdmin = req.get('admin_access_token') === process.env.ADMIN_ACCESS_TOKEN;
+
+    if (isAdmin) {
+
+    // Validate the presence of required headers
+    const adminOrgId = req.get('admin_org_id');
+    const adminTenantId = req.get('admin_tenant_id');
+
+    if (!adminOrgId || !adminTenantId) {
+      rspObj.errCode = reqMsg.ADMIN_TOKEN.MISSING_CODE;
+      rspObj.errMsg = reqMsg.ADMIN_TOKEN.MISSING_MESSAGE;
+      rspObj.responseCode = responseCode.unauthorized.status;
+      return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
+    }
+
+    // If the user is an admin, override tenantId and orgId with values from the headers
+    userInformation.tenantData.orgId = req.get('admin_org_id').toString().split(',');
+    userInformation.tenantData.tenantId = (req.get('admin_tenant_id') && req.get('admin_tenant_id').toString());
+    }
+
   // Update user details object
   req.userDetails = userInformation;
+
   // Helper function to access nested properties
   function getNestedValue(obj, path) {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
