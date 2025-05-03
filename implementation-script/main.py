@@ -540,10 +540,6 @@ def programsFileCheck(filePathAddPgm, accessToken, parentFolder, MainFilePath):
                     global startDateOfProgram, endDateOfProgram
                     startDateOfProgram = dictDetailsEnv['Start date of program']
                     endDateOfProgram = dictDetailsEnv['End date of program']
-                    # global tenantID 
-                    # tenantID = clean_single_value(dictDetailsEnv['Tenant ID'])
-                    # global orgIDFromTemplate 
-                    # orgIDFromTemplate = clean_single_value(dictDetailsEnv['Org ID'])
                     # taking the start date of program from program template and converting YYYY-MM-DD 00:00:00 format
                     
                     startDateArr = str(startDateOfProgram).split("-")
@@ -2277,7 +2273,6 @@ def createSolutionFromFramework(solutionName_for_folder_path, accessToken, frame
                   "Response : " + str(responseCreateSolutionApi.text)]
     createAPILog(solutionName_for_folder_path, messageArr)
     messageArr = []
-    print(responseCreateSolutionApi.text,'responseCreateSolutionApi')
     if responseCreateSolutionApi.status_code == 200:
         responseCreateSolutionApi = responseCreateSolutionApi.json()
         solutionId = responseCreateSolutionApi['result']['templateId']
@@ -5443,7 +5438,6 @@ def validateTenantAndOrgIdsFromProgramSheet(programFileContent):
         assignTenantOrgValuesToGlobalVariables(tenantIdFromProgramFile, orgIdsFromProgramFile)
 
 def validateTenantAndOrgIdsFromResourceSheet(resourceFileContent):
-        print('validating resourceFileconetnt .....')
         tenantIdFromresourceFile = None
         orgIdsFromresourceFile = None
                     
