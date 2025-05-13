@@ -385,6 +385,9 @@ module.exports = async function (req, res, next) {
     defaultTokenExtraction = true;
   }
 
+
+	let organizationKey = 'organization_id'
+
   let userInformation = {};
   // Create user details to request
   req.userDetails = {
@@ -392,11 +395,18 @@ module.exports = async function (req, res, next) {
   };
   // performing default token data extraction
   if (defaultTokenExtraction) {
-    if (!decodedToken.data.organization_id || !decodedToken.data.tenant_id) {
+    if (!decodedToken.data.organization_ids || !decodedToken.data.tenant_id) {
       rspObj.errCode = reqMsg.TENANT_ORG_MISSING.MISSING_CODE;
       rspObj.errMsg = reqMsg.TENANT_ORG_MISSING.MISSING_MESSAGE;
       rspObj.responseCode = responseCode.unauthorized.status;
       return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
+    }
+
+    //here assuming that req.headers['orgid'] will be a single value it multiple passed first element of the array will be taken
+    let fetchSingleOrgIdFunc = await fetchSingleOrgIdFromProvidedData(decodedToken.data.tenant_id.toString(),decodedToken.data.organization_ids,req.headers['orgid'])
+
+    if(!fetchSingleOrgIdFunc.success){
+      return res.status(responseCode.unauthorized.status).send(respUtil(fetchSingleOrgIdFunc.errorObj));
     }
 
     userInformation = {
@@ -404,26 +414,48 @@ module.exports = async function (req, res, next) {
       userId: typeof decodedToken.data.id == 'string' ? decodedToken.data.id : JSON.stringify(decodedToken.data.id),
       userName: decodedToken.data.name,
       firstName: decodedToken.data.name,
-      organizationId: decodedToken.data.organization_id.toString(),
+      organizationId:fetchSingleOrgIdFunc.orgId,
       tenantId: decodedToken.data.tenant_id && decodedToken.data.tenant_id.toString(),
       roles: decodedToken.data.roles,
     };
   } else {
-    // Iterate through each key in the config object
-    let stringTypeKeys = ['userId', 'tenantId', 'organizationId'];
     for (let key in configData) {
       if (configData.hasOwnProperty(key)) {
-        let keyValue = getNestedValue(decodedToken, configData[key]);
-
-        if (stringTypeKeys.includes(key)) {
-          keyValue = keyValue.toString();
+        let keyValue = getNestedValue(decodedToken, configData[key])
+        if(key == 'userId'){
+          keyValue = keyValue?.toString()
         }
+        if (key === organizationKey) {
+          let value = getOrgId(req.headers, decodedToken, configData[key])
+          userInformation[`organizationId`] = value.toString()
+          decodedToken.data[key] = value
+          continue
+        }
+        if (key === 'roles') {
+          let orgId = getOrgId(req.headers, decodedToken, configData[organizationKey])
+          // Now extract roles using fully dynamic path
+          const rolePathTemplate = configData['roles']
+          decodedToken.data[organizationKey] = orgId
+          const resolvedRolePath = resolvePathTemplate(rolePathTemplate, decodedToken.data)
+          const roles = getNestedValue(decodedToken, resolvedRolePath) || []
+          userInformation[`${key}`] = roles
+          decodedToken.data[key] = roles
+          continue
+        }
+
         // For each key in config, assign the corresponding value from decodedToken
-        userInformation[key] = keyValue;
+        decodedToken.data[key] = keyValue
+        if (key == 'tenant_id') {
+          userInformation[`tenantId`] = keyValue.toString()
+        } else {
+          userInformation[`${key}`] = keyValue
+        }
       }
     }
+    if (userInformation.roles && Array.isArray(userInformation.roles) && userInformation.roles.length) {
+      userInformation.roles = userInformation.roles.map((role) => role.title)
+    }
   }
-
   if (!userInformation.organizationId || !userInformation.tenantId) {
     rspObj.errCode = reqMsg.TENANT_ORG_MISSING.MISSING_CODE;
     rspObj.errMsg = reqMsg.TENANT_ORG_MISSING.MISSING_MESSAGE;
@@ -440,7 +472,7 @@ module.exports = async function (req, res, next) {
    * @returns {Object} - Success with validOrgIds array or failure with error object
    */
   async function validateIfOrgsBelongsToTenant(tenantId, orgId) {
-    let orgIdArr = orgId?.split(',') || [];
+    let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
     let orgDetails = await userService.fetchDefaultOrgDetails(tenantId);
     let validOrgIds = null;
 
@@ -481,6 +513,57 @@ module.exports = async function (req, res, next) {
 
     return { success: true, validOrgIds: validOrgIds };
   }
+
+/**
+ * Fetches a valid orgId from the provided data, checking if it's valid for the given tenant.
+ *
+ * @param {String} tenantId - ID of the tenant
+ * @param {String[]} orgIdArr - Array of orgIds to choose from
+ * @param {String} orgIdFromHeader - The orgId provided in the request headers
+ * @returns {Promise<Object>} - Returns a promise resolving to an object containing the success status, orgId, or error details
+ */
+  async function fetchSingleOrgIdFromProvidedData(tenantId, orgIdArr, orgIdFromHeader) {
+    try {
+      // Check if orgIdFromHeader is provided and valid
+      if (orgIdFromHeader && orgIdFromHeader != '') {
+        if (!orgIdArr.includes(orgIdFromHeader)) {
+          throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
+        }
+  
+        let validateOrgsResult = await validateIfOrgsBelongsToTenant(tenantId, orgIdFromHeader);
+  
+        if (!validateOrgsResult.success) {
+          throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
+        }
+  
+        return { success: true, orgId: orgIdFromHeader };
+      }
+  
+      // If orgIdFromHeader is not provided, check orgIdArr
+      if (orgIdArr.length > 0) {
+        return { success: true, orgId: orgIdArr[0] };
+      }
+  
+      // If no orgId is found, throw error
+      throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
+  
+    } catch (err) {
+      // Handle error when no valid orgId is found
+      if (orgIdArr.length > 0) {
+        return { success: true, orgId: orgIdArr[0] };
+      }
+  
+      let rspObj = {
+        errCode: reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE,
+        errMsg: reqMsg.ORG_ID_FETCH_ERROR.MISSING_MESSAGE,
+        responseCode: responseCode.unauthorized.status
+      };
+  
+      return { success: false, errorObj: rspObj };
+    }
+  }
+  
+
   /**
    * Extract tenantId and orgId from incoming request or decoded token.
    *
@@ -582,10 +665,57 @@ module.exports = async function (req, res, next) {
 
   // Update user details object
   req.userDetails = userInformation;
+
   // Helper function to access nested properties
-  function getNestedValue(obj, path) {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-  }
+	function getOrgId(headers, decodedToken, orgConfigData) {
+		if (headers['organization_id']) {
+			return (orgId = headers['organization_id'].toString())
+		} else {
+			const orgIdPath = orgConfigData
+			return (orgId = getNestedValue(decodedToken, orgIdPath)?.toString())
+		}
+	}
+
+	function getNestedValue(obj, path) {
+		const parts = path.split('.')
+		let current = obj
+
+		for (const part of parts) {
+			if (!current) return undefined
+
+			// Conditional match: key[?field=value]
+			const conditionalMatch = part.match(/^(\w+)\[\?(\w+)=([^\]]+)\]$/)
+			if (conditionalMatch) {
+				const [, arrayKey, field, expected] = conditionalMatch
+				const array = current[arrayKey]
+				if (!Array.isArray(array)) return undefined
+				const found = array.find((item) => String(item[field]) === String(expected))
+				if (!found) return undefined
+				current = found
+				continue
+			}
+
+			// Index match: key[0]
+			const indexMatch = part.match(/^(\w+)\[(\d+)\]$/)
+			if (indexMatch) {
+				const [, key, index] = indexMatch
+				const array = current[key]
+				if (!Array.isArray(array)) return undefined
+				current = array[parseInt(index, 10)]
+				continue
+			}
+
+			current = current[part]
+		}
+		return current
+	}
+
+	function resolvePathTemplate(template, contextObject) {
+		return template.replace(/\{\{(.*?)\}\}/g, (_, path) => {
+			const value = getNestedValue(contextObject, path.trim())
+			return value?.toString?.() ?? ''
+		})
+	}
 
   next();
 };

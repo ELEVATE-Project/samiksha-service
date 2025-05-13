@@ -2547,6 +2547,8 @@ module.exports = class ObservationsHelper {
     
     let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
       code: requestedData.role,
+      "tenantId": tenantData.tenantId,
+      "orgIds": {$in:['ALL',tenantData.orgId]}
     },
     ["entityTypes.entityType"])
     if (!rolesDocumentAPICall.success) {
@@ -2830,6 +2832,8 @@ module.exports = class ObservationsHelper {
 
           let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
             code: roles[roleIndex],
+            tenantId:solutionDocument[0].tenantId,
+            orgIds:{$in:['ALL',...solutionDocument[0].orgIds]}
           },
           ["entityTypes.entityType"])
 
