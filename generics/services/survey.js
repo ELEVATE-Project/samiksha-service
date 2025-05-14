@@ -23,7 +23,7 @@ const profileRead = function (userToken) {
 		try {
 			// Construct the URL for the user service
 			let url = `${surveyServiceUrl}/${process.env.SERVICE_NAME}${messageConstants.endpoints.PROFILE_READ}`
-
+			console.log(url,'profile read url')
 			// Set the options for the HTTP GET request
 			const options = {
 				headers: {
@@ -34,10 +34,14 @@ const profileRead = function (userToken) {
 			let result = {
 				success: true,
 			}
+			console.log(options,'options*')
 			request.get(url, options, userReadCallback)
 			
 			// Handle callback fucntion
 			function userReadCallback(err, data) {
+
+				console.log(err,data,'err & data')
+
 				if (err) {
 					result.success = false
 				} else {

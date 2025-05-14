@@ -986,6 +986,7 @@ module.exports = class SurveysHelper {
           };
           submissionDocument.surveyInformation.startDate = new Date();
 
+          console.log(userToken,'userToken')
           let userProfileData = await surveyService.profileRead(userToken)
 
           if (userProfileData.success && userProfileData.data) {

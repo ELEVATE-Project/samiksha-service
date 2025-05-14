@@ -189,11 +189,14 @@ module.exports = class profile {
 		// Return a new Promise, as the function is asynchronous
 		return new Promise(async (resolve, reject) => {
 			try {
+				console.log(req.userDetails,'req.userDetails')
 				// Call the read function from profileHelper with the user's details
 				let tenantData = gen.utils.returnTenantDataFromToken(req.userDetails);
 				const userId = req.userDetails.userId
 				const profileData = await profileHelper.read(userId,req.userDetails.userToken,tenantData)
-
+				console.log(tenantData,'tenantData')
+				console.log(userId,'userID')
+				console.log(profileData,'profileData')
 				// If successful, resolve the Promise with a success message and the fetched data
 				return resolve({
 					success: true,
@@ -201,6 +204,7 @@ module.exports = class profile {
 					result: profileData,
 				})
 			} catch (error) {
+				console.log(error,'read controller error...')
 				// If an error occurs, return an error response with status, message, and the error object
 				return reject({
 					status: error.status || httpStatusCode.internal_server_error.status,

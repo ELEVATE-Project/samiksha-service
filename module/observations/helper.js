@@ -160,6 +160,7 @@ module.exports = class ObservationsHelper {
           }
         }
 
+        console.log(requestingUserAuthToken,'requestingUserAuthToken')
         let userProfileData = await surveyService.profileRead(requestingUserAuthToken)
         if (userProfileData.success && userProfileData.data) {
           userProfileData = userProfileData.data;

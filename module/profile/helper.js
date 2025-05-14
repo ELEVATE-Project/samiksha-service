@@ -18,7 +18,7 @@ module.exports = class ProfileHelper {
 			try {
 				// Fetch user profile details using userService.profile function
 				const userResponse = await userService.profile(userId,userToken)
-
+				console.log(userResponse,'userResponse')
 				// Check if the user profile fetch was successful
 				if (!userResponse.success) {
 					throw {
@@ -28,11 +28,11 @@ module.exports = class ProfileHelper {
 				}
 				// Store the fetched user details
 				const userDetails = userResponse.data
-
+				console.log(userDetails,'userDetails line 31')
 				// Check if meta is present and not empty
 				if (userDetails.meta && Object.keys(userDetails.meta).length > 0) {
 					const locationIds = await this.extractLocationIdsFromMeta(userDetails.meta)
-
+					console.log(locationIds,'locationIds')
 					if (locationIds.length < 0) {
 						throw {
 							message: messageConstants.common.STATUS_FAILURE,
@@ -51,7 +51,7 @@ module.exports = class ProfileHelper {
 					const projection = ['_id', 'metaInformation.name', 'metaInformation.externalId']
 					// Use the entityDocuments function to fetch entity details
 					const response = await entityManagementService.entityDocuments(filterData, projection)
-
+					console.log(response,'response')
 					// Check if the response is successful and has data
 					const entityDetails = response.data
 					if (!entityDetails || entityDetails.length < 0) {
@@ -63,13 +63,14 @@ module.exports = class ProfileHelper {
 
 					// Process the user details to replace meta data with entity details
 					const processedResponse = await this.processUserDetailsResponse(userDetails, entityDetails)
-
+					console.log(processedResponse,'processedResponse')
 					return resolve(processedResponse)
 				} else {
 					delete userDetails.location // Remove location key from userDetails
 					return resolve(userDetails)
 				}
 			} catch (error) {
+				console.log(error,'profile helper read error')
 				return resolve({
 					status: error.status ? error.status : httpStatusCode.internal_server_error.status,
 					success: false,
