@@ -503,6 +503,10 @@ module.exports = class SolutionsHelper {
           };
           */
           // filterQuery['scope.entities'] = { $in: entities };
+          
+
+
+
           filterQuery.$or = [];
           Object.keys(_.omit(data, ['filter', 'role', 'factors', 'type','tenantId','orgId'])).forEach((key) => {
             filterQuery.$or.push({
@@ -510,6 +514,25 @@ module.exports = class SolutionsHelper {
             });
           });
           filterQuery['scope.entityType'] = { $in: entityTypes };
+          let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type','tenantId','orgId']);
+
+          if (data.hasOwnProperty('factors') && data.factors.length > 0) {
+            let factors = data.factors;
+            let queryFilter = [];
+
+            // Build query based on each key
+            factors.forEach((factor) => {
+              let scope = 'scope.' + factor;
+              let values = userRoleInfo[factor];
+              if (!Array.isArray(values)) {
+                queryFilter.push({ [scope]: { $in: values.split(',') } });
+              } else {
+                queryFilter.push({ [scope]: { $in: [...values] } });
+              }
+            });
+            // append query filter
+            filterQuery['$and'] = queryFilter;
+          }
         } else {
           // let userRoleInfo = _.omit(data, ['filter', , 'factors', 'role','type']);
           // let userRoleKeys = Object.keys(userRoleInfo);
