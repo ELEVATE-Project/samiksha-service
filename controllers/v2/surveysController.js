@@ -230,6 +230,7 @@ module.exports = class Surveys extends v1Survey {
             req.query.solutionId,
             req.userDetails.userId,
             req.rspObj.userToken,
+            req.headers.origin ? req.headers.origin : ''
           );
         } else {
           let bodyData = req.body ? req.body : {};

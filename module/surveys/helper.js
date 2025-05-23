@@ -1411,10 +1411,10 @@ module.exports = class SurveysHelper {
    * @returns {JSON} - returns survey solution, program and questions.
    */
 
-  static detailsV2(bodyData, surveyId = '', solutionId = '', userId = '', token = '') {
+  static detailsV2(bodyData, surveyId = '', solutionId = '', userId = '', token = '',origin) {
     return new Promise(async (resolve, reject) => {
       try {
-        let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token);
+        let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token,origin);
 
         if (!surveyData.success) {
           return resolve(surveyData);
@@ -1459,7 +1459,7 @@ module.exports = class SurveysHelper {
    * @returns {JSON} - returns survey solution, program and questions.
    */
 
-  static findOrCreateSurvey(bodyData, surveyId = '', solutionId = '', userId = '', token = '') {
+  static findOrCreateSurvey(bodyData, surveyId = '', solutionId = '', userId = '', token = '',origin) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -1498,7 +1498,8 @@ module.exports = class SurveysHelper {
                 solutionId,
                 bodyData,
                 messageConstants.common.SURVEY,
-                tenantData
+                tenantData,
+                origin
               );
             if (!solutionData.success) {
               throw new Error(
@@ -1569,12 +1570,12 @@ module.exports = class SurveysHelper {
    * @returns {JSON} - returns survey solution, program and questions.
    */
 
-  static detailsV3(bodyData, surveyId = '', solutionId = '', userId = '', token = '',tenantData) {
+  static detailsV3(bodyData, surveyId = '', solutionId = '', userId = '', token = '',tenantData,origin) {
     return new Promise(async (resolve, reject) => {
       try {
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
-        let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token);
+        let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token,origin);
 
         if (!surveyData.success) {
           return resolve(surveyData);

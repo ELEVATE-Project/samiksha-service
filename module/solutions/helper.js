@@ -516,7 +516,7 @@ module.exports = class SolutionsHelper {
           let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type','tenantId','orgId']);
 
           let tenantDetails = await userService.tenantDetails(origin);
-          if (!tenantDetails.data && !tenantDetails.data.meta) {
+          if (!tenantDetails.success && !tenantDetails.data && !tenantDetails.data.meta ) {
             return resolve({
               success: false,
               message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
@@ -1871,7 +1871,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static details(solutionId, bodyData = {}, userId = '',tenantFilter) {
+  static details(solutionId, bodyData = {}, userId = '',tenantFilter,origin) {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -1894,7 +1894,7 @@ module.exports = class SolutionsHelper {
         solutionData = solutionData[0];
         let templateOrQuestionDetails;
         //this will get wether user is targeted to the solution or not based on user Role Information
-        const isSolutionTargeted = await this.isTargetedBasedOnUserProfile(solutionId, bodyData);
+        const isSolutionTargeted = await this.isTargetedBasedOnUserProfile(solutionId, bodyData,tenantData,origin);
 
         // if (solutionData.type === messageConstants.common.IMPROVEMENT_PROJECT) {
         //   if (!solutionData.projectTemplateId) {
@@ -2339,14 +2339,14 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static verifyLink(link = '', bodyData = {}, userId = '', userToken = '', createProject = true,tenantData) {
+  static verifyLink(link = '', bodyData = {}, userId = '', userToken = '', createProject = true,tenantData,origin) {
     return new Promise(async (resolve, reject) => {
       try {
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken,tenantData);
 
         // Check targeted solution based on role and location
-        let checkForTargetedSolution = await this.checkForTargetedSolution(link, bodyData, userId, userToken,tenantData);
+        let checkForTargetedSolution = await this.checkForTargetedSolution(link, bodyData, userId, userToken,tenantData,origin);
 
         if (!checkForTargetedSolution || Object.keys(checkForTargetedSolution.result).length <= 0) {
           return resolve(checkForTargetedSolution);
@@ -2361,7 +2361,8 @@ module.exports = class SolutionsHelper {
               '',
               solutionData.solutionId,
               userId,
-              userToken
+              userToken,
+              origin
             );
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
@@ -2573,7 +2574,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static checkForTargetedSolution(link = '', bodyData = {}, userId = '', userToken = '',tenantData) {
+  static checkForTargetedSolution(link = '', bodyData = {}, userId = '', userToken = '',tenantData,origin) {
     return new Promise(async (resolve, reject) => {
       try {
         let response = {
@@ -2595,7 +2596,7 @@ module.exports = class SolutionsHelper {
 
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
-        let queryData = await this.queryBasedOnRoleAndLocation(bodyData);
+        let queryData = await this.queryBasedOnRoleAndLocation(bodyData,'',origin);
         if (!queryData.success) {
           return resolve(queryData);
         }
@@ -3031,7 +3032,7 @@ module.exports = class SolutionsHelper {
   }
    */
 
-  static isTargetedBasedOnUserProfile(solutionId = '', bodyData = {},tenantData) {
+  static isTargetedBasedOnUserProfile(solutionId = '', bodyData = {},tenantData,origin) {
     return new Promise(async (resolve, reject) => {
       try {
         let response = {
@@ -3041,7 +3042,7 @@ module.exports = class SolutionsHelper {
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
         //get the query based on the roles and locations
-        let queryData = await this.queryBasedOnRoleAndLocation(bodyData);
+        let queryData = await this.queryBasedOnRoleAndLocation(bodyData,'',origin);
         if (!queryData.success) {
           return resolve(queryData);
         }
@@ -3729,13 +3730,13 @@ module.exports = class SolutionsHelper {
    * @returns {JSON} - Details of solution based on role and location.
    */
 
-  static detailsBasedOnRoleAndLocation(solutionId, bodyData, type = '',tenantData) {
+  static detailsBasedOnRoleAndLocation(solutionId, bodyData, type = '',tenantData,origin) {
     
     return new Promise(async (resolve, reject) => {
       try {
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
-        let queryData = await this.queryBasedOnRoleAndLocation(bodyData, type);
+        let queryData = await this.queryBasedOnRoleAndLocation(bodyData, type,origin);
         if (!queryData.success) {
           return resolve(queryData);
         }
