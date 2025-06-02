@@ -992,8 +992,7 @@ module.exports = class ObservationsHelper {
         if (observationDocument[0].entities.length > 0) {
           let filterData = {
            _id: {$in:observationDocument[0].entities},
-           tenantId:tenantData.tenantId,
-           orgId: {$in:['ALL',tenantData.orgId]}
+           tenantId:tenantData.tenantId
           };
         
          //Retrieving the entity from the Entity Management Service
@@ -2025,8 +2024,7 @@ module.exports = class ObservationsHelper {
              entitiesData = await entityManagementService.entityDocuments(
               {
                 _id: { $in: observationDocument[0].entities },
-                tenantId:tenantData.tenantId,
-                orgIds: {$in:['ALL',tenantData.orgId]}
+                tenantId:tenantData.tenantId
               },
               ['metaInformation.externalId', 'metaInformation.name'],
             );
@@ -2237,8 +2235,7 @@ module.exports = class ObservationsHelper {
         let filterData = {
           _id: req.query.entityId,
           entityType: observationDocument.entityType,
-          tenantId: req.userDetails.tenantData.tenantId,
-          orgIds: {$in:['ALL',req.userDetails.tenantData.orgId]}
+          tenantId: req.userDetails.tenantData.tenantId
          };
   
          let entitiesDocument = await entityManagementService.entityDocuments(
@@ -2544,8 +2541,7 @@ module.exports = class ObservationsHelper {
     
     let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
       code: requestedData.role,
-      "tenantId": tenantData.tenantId,
-      "orgIds": {$in:['ALL',tenantData.orgId]}
+      "tenantId": tenantData.tenantId
     },
     ["entityTypes.entityType"])
     if (!rolesDocumentAPICall.success) {
@@ -2570,8 +2566,7 @@ module.exports = class ObservationsHelper {
 
       let filterQuery = {
         "_id": requestedData[targetedEntityType],
-        "tenantId": tenantData.tenantId,
-        "orgIds": {$in:['ALL',tenantData.orgId]}
+        "tenantId": tenantData.tenantId
       };
 
       // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2604,8 +2599,7 @@ module.exports = class ObservationsHelper {
     }
     let filterData = {
       "_id": requestedData[targetedEntityType],
-      "tenantId": tenantData.tenantId,
-      "orgIds": {$in:['ALL',tenantData.orgId]}
+      "tenantId": tenantData.tenantId
     };
 
     // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2674,8 +2668,7 @@ module.exports = class ObservationsHelper {
 
           let entitiesDocument = await entityManagementService.entityDocuments({
               _id: currentEntity._id,
-              tenantId:tenantData.tenantId,
-              orgIds:{$in:['ALL',tenantData.orgId]}
+              tenantId:tenantData.tenantId
           }, ["groups"]);
 
           if (!entitiesDocument.success || entitiesDocument.data.length == 0 ) {
@@ -2856,8 +2849,7 @@ module.exports = class ObservationsHelper {
             let rolesDocumentAPICall = await entityManagementService.entityDocuments(
               {
                 _id: roles[roleIndex],
-                tenantId: solutionDocument[0].tenantId,
-                orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
+                tenantId: solutionDocument[0].tenantId
               },
               ['metaInformation.targetedEntityTypes']
             );

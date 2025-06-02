@@ -75,8 +75,7 @@ module.exports = class SolutionsHelper {
           if (locationData.ids.length > 0) {
             let bodyData = {
               _id: { $in: locationData.codes },
-              tenantId: tenantData.tenantId,
-              orgIds:{$in:['ALL',tenantData.orgId]}
+              tenantId: tenantData.tenantId
             };
             let entityData = await entityManagementService.entityDocuments(bodyData);
             if (entityData.success) {
@@ -3964,8 +3963,7 @@ module.exports = class SolutionsHelper {
               {
                 _id: programData[0].scope.entities,
                 [`groups.${solutionData[0].scope.entityType}`]: entities,
-                tenantId: tenantData.tenantId,
-                orgIds: {$in:['ALL',tenantData.orgId ]}
+                tenantId: tenantData.tenantId
               },
               ['_id']
             );
@@ -3982,8 +3980,7 @@ module.exports = class SolutionsHelper {
           {
             _id: { $in: entities },
             entityType: solutionData[0].scope.entityType,
-            tenantId: tenantData.tenantId,
-            orgIds:{$in:['ALL',tenantData.orgId]}
+            tenantId: tenantData.tenantId
           },
           ['_id']
         );

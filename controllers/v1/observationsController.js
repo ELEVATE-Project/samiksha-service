@@ -744,8 +744,7 @@ module.exports = class Observations extends Abstract {
           let entityQueryObject = {
             _id: req.query.entityId,
             entityType: observationDocument.entityType,
-            tenantId:req.userDetails.tenantData.tenantId,
-            "orgIds": {$in:['ALL',req.userDetails.tenantData.orgId]}
+            tenantId:req.userDetails.tenantData.tenantId
           };
         let entitiesDetails = await entityManagementService.entityDocuments(
           entityQueryObject,

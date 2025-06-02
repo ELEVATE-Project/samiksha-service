@@ -127,8 +127,7 @@ module.exports = class ObservationSubmissionsHelper {
 
               let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments({
                 name: observationSubmissionsDocument.entityType,
-                tenantId: observationSubmissionsDocument.tenantId,
-                orgIds: {$in:['ALL',observationSubmissionsDocument.orgId]}
+                tenantId: observationSubmissionsDocument.tenantId
               });
 
               if (entityTypeDocumentsAPICall?.success && Array.isArray(entityTypeDocumentsAPICall?.data) && entityTypeDocumentsAPICall.data.length > 0) {
@@ -1108,8 +1107,7 @@ module.exports = class ObservationSubmissionsHelper {
         let entitiesDetails = await entityManagementService.entityDocuments(
           {
             _id: { $in: entityIds },
-            tenantId: tenantData.tenantId,
-            orgIds: {$in:['ALL',tenantData.orgId ]}
+            tenantId: tenantData.tenantId
           },
           ['metaInformation.externalId', 'metaInformation.name'],
         );

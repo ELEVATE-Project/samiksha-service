@@ -44,8 +44,7 @@ module.exports = class ProfileHelper {
 						_id: {
 							$in: locationIds,
 						},
-						tenantId: tenantData.tenantId,
-						orgIds: {$in:['ALL',tenantData.orgId]}
+						tenantId: tenantData.tenantId
 					}
 					// Define the fields to be projected in the entity documents
 					const projection = ['_id', 'metaInformation.name', 'metaInformation.externalId']
