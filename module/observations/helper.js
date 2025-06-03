@@ -2857,7 +2857,7 @@ module.exports = class ObservationsHelper {
               {
                 _id: roles[roleIndex],
                 tenantId: solutionDocument[0].tenantId,
-              //  orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
+                orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
               },
               ['metaInformation.targetedEntityTypes']
             );
