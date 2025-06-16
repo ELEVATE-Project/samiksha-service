@@ -2412,7 +2412,7 @@ module.exports = class SolutionsHelper {
               '',
               solutionData.solutionId,
               userId,
-              userToken
+              tenantData
             );
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
@@ -2722,6 +2722,7 @@ module.exports = class SolutionsHelper {
             author: userId,
             type: solutionData.type,
             isAPrivateProgram: true,
+            tenantId: tenantData.tenantId
           },
           ['_id', 'programId', 'programName']
         );
@@ -2807,6 +2808,8 @@ module.exports = class SolutionsHelper {
             filterQuery.createdBy = userId;
           }
 
+          filterQuery.tenantId = tenantData.tenantId;
+
           let checkforProgramExist = await programsQueries.programDocuments(filterQuery, 'all', ['__v']);
 
           if (!(checkforProgramExist.length > 0)) {
@@ -2842,7 +2845,7 @@ module.exports = class SolutionsHelper {
 
             duplicateProgram.tenantData = {}
             duplicateProgram.tenantData.tenantId = tenantData.tenantId;
-            duplicateProgram.tenantData.orgId = tenantData.orgId;
+            duplicateProgram.tenantData.orgId = [tenantData.orgId];
 
             userPrivateProgram = await programsHelper.create(_.omit(duplicateProgram, ['_id', 'components', 'scope']));
             console.log(userPrivateProgram,'userPrivateProgram')
@@ -2874,7 +2877,8 @@ module.exports = class SolutionsHelper {
 
           programData.tenantData = {}
           programData.tenantData.tenantId = tenantData.tenantId;
-          programData.tenantData.orgId = tenantData.orgId;
+          programData.tenantData.orgId = [tenantData.orgId];
+
           userPrivateProgram = await programsHelper.create(programData);
         }
 
@@ -2949,6 +2953,7 @@ module.exports = class SolutionsHelper {
           let solutionData = await solutionsQueries.solutionDocuments(
             {
               _id: data.solutionId,
+              tenantId: tenantData.tenantId
             },
             [
               'name',
@@ -2992,12 +2997,12 @@ module.exports = class SolutionsHelper {
               duplicateSolution.projectTemplateId,
               duplicateSolution.themes,
               duplicateSolution.evidenceMethods,
-              duplicateSolution.sections,
-              duplicateSolution.tenantId
+              duplicateSolution.sections
             );
             _.merge(duplicateSolution, solutionCreationData);
             _.merge(duplicateSolution, solutionDataToBeUpdated);
-
+            duplicateSolution.tenantId = tenantData.tenantId;
+            duplicateSolution.orgId = tenantData.orgId;
             solution = await this.create(_.omit(duplicateSolution, ['_id', 'link']));
             parentSolutionInformation.solutionId = duplicateSolution._id;
             parentSolutionInformation.link = duplicateSolution.link;
@@ -3023,7 +3028,6 @@ module.exports = class SolutionsHelper {
             );
           }
         } else {
-          console.log('line 3024')
           let externalId, description;
           if (data.solutionName) {
             externalId = data.solutionExternalId ? data.solutionExternalId : data.solutionName + '-' + dateFormat;
@@ -3050,8 +3054,9 @@ module.exports = class SolutionsHelper {
             data.evidenceMethods,
             data.sections
           );
-          console.log(createSolutionData,'createSolutionData')
           _.merge(solutionDataToBeUpdated, createSolutionData);
+          solutionDataToBeUpdated.tenantId = tenantData.tenantId;
+          solutionDataToBeUpdated.orgId = tenantData.orgId;
           solution = await this.create(solutionDataToBeUpdated);
         }
 
