@@ -519,7 +519,7 @@ module.exports = class SolutionsHelper {
               message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
             });
           }
-
+          let optional_factors = [];
           // factors = [ 'professional_role', 'professional_subroles' ]
           let factors
           if (tenantDetails.data.meta.hasOwnProperty('factors') && tenantDetails.data.meta.factors.length > 0) {
@@ -527,6 +527,11 @@ module.exports = class SolutionsHelper {
             let queryFilter = gen.utils.factorQuery(factors,userRoleInfo);
             filterQuery['$and'] = queryFilter;
           }
+
+          if(tenantDetails.data.meta.hasOwnProperty('optional_factors') && tenantDetails.data.meta.optional_factors.length > 0){
+            optional_factors = tenantDetails.data.meta.optional_factors;
+          }
+
           let dataToOmit = ['filter', 'role', 'factors', 'type','tenantId','orgId']
           // factors.append(dataToOmit)
 
@@ -534,17 +539,15 @@ module.exports = class SolutionsHelper {
 
           let locationData = []
 
-          Object.keys(_.omit(data, finalKeysToRemove)).forEach((key) => {
-            locationData.push({
-              [`scope.${key}`]: { $in: data[key] },
-            });
-          });
-          
-          if(filterQuery['$and']){
+          if(optional_factors && optional_factors.length > 0){
+            locationData = gen.utils.factorQuery(optional_factors,data);
+          }
+
+          if(filterQuery['$and'] && locationData.length > 0){
             filterQuery['$and'].push({
               $or: locationData,
             });
-          }else{
+          }else if(locationData.length > 0){
             filterQuery['$or'].push({
               $or: locationData,
             });
@@ -2426,9 +2429,11 @@ module.exports = class SolutionsHelper {
             let privateProgramAndSolutionDetails = await this.privateProgramAndSolutionDetails(
               solutionData, //solution data
               userId, //User Id
-              userToken,
               tenantData
             );
+
+            console.log(privateProgramAndSolutionDetails,'privateProgramAndSolutionDetails')
+
             if (!privateProgramAndSolutionDetails.success) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -2495,8 +2500,12 @@ module.exports = class SolutionsHelper {
 
             let privateProgramAndSolutionDetails = await this.privateProgramAndSolutionDetails(
               solutionData,
-              userId
+              userId,
+              tenantData
             );
+
+            console.log(privateProgramAndSolutionDetails,'  privateProgramAndSolutionDetails');
+
             if (!privateProgramAndSolutionDetails.success) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -2717,6 +2726,8 @@ module.exports = class SolutionsHelper {
           ['_id', 'programId', 'programName']
         );
 
+        console.log(privateSolutionDetails,'privateSolutionDetails');
+
         if (!(privateSolutionDetails.length > 0)) {
           // Data for program and solution creation
           let programAndSolutionData = {
@@ -2737,6 +2748,8 @@ module.exports = class SolutionsHelper {
             'true', // create duplicate solution
             tenantData
           );
+
+          console.log(solutionAndProgramCreation,'solutionAndProgramCreation');
 
           if (!solutionAndProgramCreation.success) {
             throw {
@@ -2826,7 +2839,13 @@ module.exports = class SolutionsHelper {
             if (checkforProgramExist[0].hasOwnProperty('requestForPIIConsent')) {
               duplicateProgram.requestForPIIConsent = checkforProgramExist[0].requestForPIIConsent;
             }
+
+            duplicateProgram.tenantData = {}
+            duplicateProgram.tenantData.tenantId = tenantData.tenantId;
+            duplicateProgram.tenantData.orgId = tenantData.orgId;
+
             userPrivateProgram = await programsHelper.create(_.omit(duplicateProgram, ['_id', 'components', 'scope']));
+            console.log(userPrivateProgram,'userPrivateProgram')
           } else {
             userPrivateProgram = checkforProgramExist[0];
           }
@@ -2924,7 +2943,9 @@ module.exports = class SolutionsHelper {
 
         //solution part
         let solution = '';
+        console.log(data.solutionId,'data.solutionId')
         if (data.solutionId && data.solutionId !== '') {
+          console.log('line 2948')
           let solutionData = await solutionsQueries.solutionDocuments(
             {
               _id: data.solutionId,
@@ -2971,7 +2992,8 @@ module.exports = class SolutionsHelper {
               duplicateSolution.projectTemplateId,
               duplicateSolution.themes,
               duplicateSolution.evidenceMethods,
-              duplicateSolution.sections
+              duplicateSolution.sections,
+              duplicateSolution.tenantId
             );
             _.merge(duplicateSolution, solutionCreationData);
             _.merge(duplicateSolution, solutionDataToBeUpdated);
@@ -3001,6 +3023,7 @@ module.exports = class SolutionsHelper {
             );
           }
         } else {
+          console.log('line 3024')
           let externalId, description;
           if (data.solutionName) {
             externalId = data.solutionExternalId ? data.solutionExternalId : data.solutionName + '-' + dateFormat;
@@ -3027,6 +3050,7 @@ module.exports = class SolutionsHelper {
             data.evidenceMethods,
             data.sections
           );
+          console.log(createSolutionData,'createSolutionData')
           _.merge(solutionDataToBeUpdated, createSolutionData);
           solution = await this.create(solutionDataToBeUpdated);
         }
