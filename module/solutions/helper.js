@@ -2432,8 +2432,6 @@ module.exports = class SolutionsHelper {
               tenantData
             );
 
-            console.log(privateProgramAndSolutionDetails,'privateProgramAndSolutionDetails')
-
             if (!privateProgramAndSolutionDetails.success) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -2503,8 +2501,6 @@ module.exports = class SolutionsHelper {
               userId,
               tenantData
             );
-
-            console.log(privateProgramAndSolutionDetails,'  privateProgramAndSolutionDetails');
 
             if (!privateProgramAndSolutionDetails.success) {
               throw {
@@ -2727,8 +2723,6 @@ module.exports = class SolutionsHelper {
           ['_id', 'programId', 'programName']
         );
 
-        console.log(privateSolutionDetails,'privateSolutionDetails');
-
         if (!(privateSolutionDetails.length > 0)) {
           // Data for program and solution creation
           let programAndSolutionData = {
@@ -2749,8 +2743,6 @@ module.exports = class SolutionsHelper {
             'true', // create duplicate solution
             tenantData
           );
-
-          console.log(solutionAndProgramCreation,'solutionAndProgramCreation');
 
           if (!solutionAndProgramCreation.success) {
             throw {
@@ -2947,7 +2939,6 @@ module.exports = class SolutionsHelper {
 
         //solution part
         let solution = '';
-        console.log(data.solutionId,'data.solutionId')
         if (data.solutionId && data.solutionId !== '') {
           console.log('line 2948')
           let solutionData = await solutionsQueries.solutionDocuments(
