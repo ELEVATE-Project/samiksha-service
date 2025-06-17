@@ -8,6 +8,7 @@
 let healthCheckService = require('./healthCheckService');
 
 module.exports = function (app) {
-  app.get('/healthCheckStatus', healthCheckService.healthCheckStatus);
-  app.get('/health', healthCheckService.health_check);
+  const servicePath = `/${process.env.SERVICE_NAME}`
+  app.get(`${servicePath}/health`, healthCheckService.health_check)
+  app.get(`${servicePath}/healthCheckStatus`, healthCheckService.healthCheckStatus)
 };
