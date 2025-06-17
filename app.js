@@ -6,8 +6,7 @@ const express = require('express');
 let app = express();
 const { elevateLog } = require("elevate-logger");
 const logger = elevateLog.init();
-// Health check
-require('@healthCheck')(app);
+
 
 //config and routes
 global.config = require('@config');
@@ -17,6 +16,9 @@ if (!environmentData.success) {
   logger.error('Server could not start . Not all environment variable is provided');
   process.exit();
 }
+
+// Health check
+require('@healthCheck')(app);
 
 let router = require('@routes');
 
