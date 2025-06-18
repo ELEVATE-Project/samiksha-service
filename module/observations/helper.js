@@ -981,7 +981,7 @@ module.exports = class ObservationsHelper {
           filterQuery.solutionId = ObjectId(solutionId);
           filterQuery.createdBy = userId;
         }
-        
+        filterQuery.tenantId = tenantData.tenantId;
         //find the Obserations documents from the observation collections
         let observationDocument = await this.observationDocuments(filterQuery);
 
