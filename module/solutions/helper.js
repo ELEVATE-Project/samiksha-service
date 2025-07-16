@@ -72,6 +72,7 @@ module.exports = class SolutionsHelper {
               'scope',
               'endDate',
               'startDate',
+              "externalId"
             ]);
             if (!programData.length) {
               throw {
@@ -84,6 +85,7 @@ module.exports = class SolutionsHelper {
           solutionData.programId = programData[0]._id;
           solutionData.programName = programData[0].name;
           solutionData.programDescription = programData[0].description;
+          solutionData.programExternalId = programData[0].externalId;
         }
 
         if (solutionData.type == messageConstants.common.COURSE && !solutionData.link) {
@@ -248,16 +250,6 @@ module.exports = class SolutionsHelper {
         let mergedData = [];
         let solutionIds = [];
         if (assignedSolutions.success && assignedSolutions.data) {
-          // Remove observation solutions which for project tasks.
-
-          _.remove(assignedSolutions.data.data, function (solution) {
-            return (
-              solution.referenceFrom == messageConstants.common.PROJECT &&
-              solution.type == messageConstants.common.OBSERVATION && 
-              solution.type == messageConstants.common.SURVEY
-            );
-          });
-
           totalCount =
             assignedSolutions.data.data && assignedSolutions.data.data.length > 0
               ? assignedSolutions.data.data.length
@@ -699,13 +691,7 @@ module.exports = class SolutionsHelper {
         } else {
           if (type !== '') {
             matchQuery['type'] = type;
-            if (type === messageConstants.common.SURVEY) {
-              const currentDate = new Date();
-              currentDate.setDate(currentDate.getDate() - 15);
-              matchQuery['endDate'] = { $gte: currentDate };
-            } else {
-              matchQuery['endDate'] = { $gte: new Date() };
-            }
+            matchQuery['endDate'] = { $gte: new Date() };
           }
 
           if (subType !== '') {
@@ -716,7 +702,7 @@ module.exports = class SolutionsHelper {
         if (programId !== '') {
           matchQuery['programId'] = new ObjectId(programId);
         }
-        //matchQuery['startDate'] = { $lte: new Date() };
+        matchQuery['startDate'] = { $lte: new Date() };
         //listing the solution based on type and query
         let targetedSolutions = await this.list(type, subType, matchQuery, pageNo, pageSize, searchText, [
           'name',
@@ -758,23 +744,38 @@ module.exports = class SolutionsHelper {
    * @param {String} solutionId - solution id.
    * @param {Object} scopeData - scope data.
 	 * @param {Object} userDetails - loggedin user info
+   * @param {Object} solutionDocument - solutionDetails
    * @returns {JSON} - scope in solution.
    */
 
-  static setScope(programId, solutionId, scopeData, userDetails) {
+  static setScope(programId, solutionId, scopeData, userDetails,solutionDocument) {
     return new Promise(async (resolve, reject) => {
       try {
         // Getting program documents
         let programData;
         if (programId) {
-          programData = await programsQueries.programDocuments({ _id: programId }, ['_id', 'scope']);
+           if(solutionDocument.isExternalProgram){
+            programData = await projectService.programDetails(userDetails.userToken, programId, userDetails,userDetails.tenantAndOrgInfo);
+            if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+            }
+            programData = [programData.result];
 
-          if (!(programData.length > 0)) {
-            return resolve({
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-            });
-          }
+           }else{
+             
+            programData = await programsQueries.programDocuments({ _id: programId }, ['_id', 'scope']);
+
+            if (!(programData.length > 0)) {
+              return resolve({
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              });
+            }
+           }
+        
         }
         // Getting solution document to set the scope
         let solutionData = await solutionsQueries.solutionDocuments({ _id: solutionId }, ['_id']);
@@ -1045,7 +1046,7 @@ module.exports = class SolutionsHelper {
         }
 
         // Getting solution document to update based on solution id
-        let solutionDocument = await solutionsQueries.solutionDocuments(queryObject, ['_id', 'programId']);
+        let solutionDocument = await solutionsQueries.solutionDocuments(queryObject, ['_id', 'programId',"isExternalProgram"]);
         if (!(solutionDocument.length > 0)) {
           return resolve({
             status: httpStatusCode.bad_request.status,
@@ -1059,19 +1060,32 @@ module.exports = class SolutionsHelper {
           checkDate &&
           (solutionData.hasOwnProperty('endDate') || solutionData.hasOwnProperty('endDate'))
         ) {
-          // getting program document to update start and end date
-          let programData = await programsQueries.programDocuments(
-            {
+          let programData;
+           if( solutionDocument[0].isExternalProgram ){
+             
+            programData = await projectService.programDetails(userDetails.userToken, solutionDocument[0].programId, userDetails,tenantData);
+            if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+            }
+            programData = [programData.result];
+           }else{
+             // getting program document to update start and end date
+             programData = await programsQueries.programDocuments(
+             {
               _id: solutionDocument[0].programId,
               tenantId: tenantData.tenantId,
-            },
-            ['_id', 'endDate', 'startDate']
-          );
-          if (!(programData.length > 0)) {
-            throw {
-              message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-            };
-          }
+             },
+             ['_id', 'endDate', 'startDate']
+            );
+            if (!(programData.length > 0)) {
+              throw {
+               message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+           }
+         }
           if (solutionData.hasOwnProperty('endDate')) {
             solutionData.endDate = gen.utils.getEndDate(solutionData.endDate, timeZoneDifference);
             if (solutionData.endDate > programData[0].endDate) {
@@ -1105,7 +1119,9 @@ module.exports = class SolutionsHelper {
           updateObject['$set'][updationData] = solutionUpdateData[updationData];
         });
         updateObject['$set']['updatedBy'] = userId;
-        updateObject['$set']['status'] = 'active';
+        if(!solutionUpdateData['status']){
+          updateObject['$set']['status'] = messageConstants.common.ACTIVE_STATUS;
+        }
         //updating solution document
         let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
           {
@@ -1128,7 +1144,8 @@ module.exports = class SolutionsHelper {
             solutionUpdatedData.programId,
             solutionUpdatedData._id,
             solutionData.scope,
-            userDetails
+            userDetails,
+            solutionUpdatedData
           );
 
           if (!solutionScope.success) {
@@ -2265,6 +2282,14 @@ module.exports = class SolutionsHelper {
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
 
+				if (!verifySolution.success) {
+					throw {
+						satus: httpStatusCode.bad_request.status,
+						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
+					}
+				}
+
+
         // Check targeted solution based on role and location
         let checkForTargetedSolution = await this.checkForTargetedSolution(
           link,
@@ -2294,7 +2319,7 @@ module.exports = class SolutionsHelper {
             } else if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
-          } else {
+          } else if(checkForTargetedSolution.result.availableForPrivateConsumption) {
             if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
@@ -2315,6 +2340,12 @@ module.exports = class SolutionsHelper {
             if (privateProgramAndSolutionDetails.result != '') {
               checkForTargetedSolution.result['solutionId'] = privateProgramAndSolutionDetails.result;
             }
+          } else {
+            // Not targeted solution and not available for private consumption
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+            };
           }
         } else if (solutionData.type === messageConstants.common.SURVEY) {
           // Get survey submissions of user
@@ -2356,7 +2387,7 @@ module.exports = class SolutionsHelper {
             } else if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
-          } else {
+          } else  if(checkForTargetedSolution.result.availableForPrivateConsumption) {
             if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
@@ -2384,6 +2415,12 @@ module.exports = class SolutionsHelper {
             if (privateProgramAndSolutionDetails.result != '') {
               checkForTargetedSolution.result['solutionId'] = privateProgramAndSolutionDetails.result;
             }
+          } else {
+            // Not targeted solution and not available for private consumption
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+            };
           }
         }
 
@@ -2454,7 +2491,7 @@ module.exports = class SolutionsHelper {
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
           if (solutionData[0].status === messageConstants.common.ACTIVE_STATUS) {
             let updateSolution = await this.update(
-              solutionData[0]._id,
+              solutionData[0]._id.toString(),
               {
                 status: messageConstants.common.INACTIVE_STATUS,
               },
@@ -2474,6 +2511,7 @@ module.exports = class SolutionsHelper {
         return resolve({
           message: messageConstants.apiResponses.LINK_VERIFIED,
           result: response,
+          success:true
         });
       } catch (error) {
         return resolve({
@@ -2514,6 +2552,7 @@ module.exports = class SolutionsHelper {
           'projectTemplateId',
           'programName',
           'status',
+          'availableForPrivateConsumption'
         ]);
 
         bodyData.tenantId = tenantData.tenantId;
@@ -2530,7 +2569,7 @@ module.exports = class SolutionsHelper {
           'type',
           'programId',
           'name',
-          'projectTemplateId',
+          'projectTemplateId'
         ]);
         // Check the user is targeted to the solution or not
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
@@ -2540,6 +2579,7 @@ module.exports = class SolutionsHelper {
           response.programId = solutionDetails[0].programId;
           response.programName = solutionDetails[0].programName;
           response.status = solutionDetails[0].status;
+					response.availableForPrivateConsumption = solutionDetails[0].availableForPrivateConsumption ?? false //obs/survey will not be available for private consumption by default
 
           return resolve({
             success: true,
@@ -2823,6 +2863,10 @@ module.exports = class SolutionsHelper {
               'themes',
               'evidenceMethods',
               'sections',
+              'startDate',
+              'endDate',
+              'isReusable',
+              'entityType'
             ]
           );
 

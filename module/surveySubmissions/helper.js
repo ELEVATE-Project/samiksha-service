@@ -369,6 +369,7 @@ module.exports = class SurveySubmissionsHelper {
           $match: {
             createdBy: userId,
             tenantId: tenantFilter.tenantId,
+            referenceFrom: { $ne: messageConstants.common.PROJECT },
             orgId: {
               $in: ['ALL', tenantFilter.orgId],
             },
@@ -451,7 +452,6 @@ module.exports = class SurveySubmissionsHelper {
                 result.data.push(surveySubmission);
               } else {
                 let currentDate = new Date();
-                currentDate.setDate(currentDate.getDate() - 15);
                 if (new Date(surveySubmission.endDate) > currentDate) {
                   result.data.push(surveySubmission);
                 }
@@ -502,6 +502,7 @@ module.exports = class SurveySubmissionsHelper {
           $match: {
             author: userId,
             type: messageConstants.common.SURVEY,
+            referenceFrom: { $ne: messageConstants.common.PROJECT },
             isReusable: false,
             isDeleted: false,
             tenantId: tenantFilter.tenantId,

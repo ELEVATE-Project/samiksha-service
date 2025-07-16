@@ -1187,6 +1187,10 @@ module.exports = class Observations extends Abstract {
         ) {
           throw messageConstants.apiResponses.INVALID_PARAMETER;
         }
+       
+        if (req?.query?.isExternalProgram) {
+          req.query.isExternalProgram = gen.utils.convertStringToBoolean(req.query.isExternalProgram);
+        }
 
         let frameworkDocument = await database.models.frameworks
           .findOne({
@@ -1270,7 +1274,7 @@ module.exports = class Observations extends Abstract {
         newSolutionDocument.isReusable = true;  
         newSolutionDocument.tenantId = tenantFilter.tenantId;
         newSolutionDocument.orgId = tenantFilter.orgId[0];
-
+        newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false
         let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
 
         if (newBaseSolution._id) {

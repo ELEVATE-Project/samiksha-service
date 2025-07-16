@@ -128,6 +128,7 @@ module.exports = class SurveysHelper {
         newSolutionDocument.keywords = ['Survey'];
         newSolutionDocument.isReusable = true;
         newSolutionDocument.status = messageConstants.common.ACTIVE_STATUS;
+        newSolutionDocument.isExternalProgram = solutionData?.isExternalProgram ?? false;
         let date = new Date();
         newSolutionDocument.startDate = solutionData.startDate ? new Date(solutionData.startDate) : new Date();
         newSolutionDocument.endDate = solutionData.endDate
@@ -1533,6 +1534,7 @@ module.exports = class SurveysHelper {
 
         let solutionDocument = await solutionsQueries.solutionDocuments({
           _id: solutionId,
+          tenantId: bodyData.tenantId
           // author: userId,
         });
         if (surveyId == '') {
@@ -1540,6 +1542,7 @@ module.exports = class SurveysHelper {
             {
               solutionId: solutionId,
               createdBy: userId,
+              tenantId: bodyData.tenantId
             },
             ['_id'],
           );
@@ -1547,7 +1550,11 @@ module.exports = class SurveysHelper {
             surveyId = surveyDocument[0]._id;
           } else {
             // let solutionData = solutionDocument[0];
-            solutionDocument[0].referenceFrom="project"
+            const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
+            if(solutionDocument[0].isAPrivateProgram){
+              solutionDocument[0].referenceFrom = messageConstants.common.PRIVATE;
+            }
+
            let solutionData=await solutionsHelper.detailsBasedOnRoleAndLocation(
                 new ObjectId(solutionDocument[0]._id),
                 bodyData,
@@ -1560,7 +1567,6 @@ module.exports = class SurveysHelper {
               );
             }
             let currentDate =new Date()
-            currentDate.setDate(currentDate.getDate()-15)
             if (
               solutionData.data.hasOwnProperty("endDate") &&
               new Date(solutionData.data.endDate) <  currentDate
