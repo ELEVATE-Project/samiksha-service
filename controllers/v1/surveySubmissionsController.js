@@ -7,7 +7,7 @@
 
 // Dependencies
 const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
-const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
 
 /**
  * SurveySubmissions
@@ -434,7 +434,7 @@ module.exports = class SurveySubmissions extends Abstract {
     return new Promise(async (resolve, reject) => {
       try {
         let pushSurveySubmissionToKafka =
-          await surveySubmissionsHelper.pushInCompleteSurveySubmissionForReporting(req.params._id);
+          await surveySubmissionsHelperUtils.pushInCompleteSurveySubmissionForReporting(req.params._id);
 
         if (pushSurveySubmissionToKafka.status != 'success') {
           throw pushSurveySubmissionToKafka.message;

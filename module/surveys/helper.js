@@ -27,6 +27,8 @@ const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveyService = require(ROOT_PATH + "/generics/services/survey");
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
+
 /**
  * SurveysHelper
  * @class
@@ -247,7 +249,6 @@ module.exports = class SurveysHelper {
         let solutionExternalId =
           solutionDocument[0].externalId.split(surveySolutionTemplate)[0] + '-' + gen.utils.epochTime();
         let criteriaId = await gen.utils.getCriteriaIds(newSolutionDocument.themes);
-
         let solutionCriteria = await criteriaHelper.criteriaDocument({
           _id: criteriaId[0],
           tenantId: tenantAndOrgInfo.tenantId
@@ -326,8 +327,6 @@ module.exports = class SurveysHelper {
         if(newSolutionDocument.isExternalProgram){
           newSolutionDocument.programExternalId = programId;
         }
-        const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
-
         let newSolution = await solutionsHelper.createSolution(newSolutionDocument,false,tenantAndOrgInfo,userToken,userDetails);
         
       // If the new solution is created successfully, generate a link for the solution
@@ -1071,10 +1070,9 @@ module.exports = class SurveysHelper {
             assessment.submissionId = submissionDoc._id;
             assessment.status = submissionDoc.status
              //add report infromation to survey solution code
-             surveySubmissionsHelper.pushInCompleteSurveySubmissionForReporting(submissionDoc._id);
+             surveySubmissionsHelperUtils.pushInCompleteSurveySubmissionForReporting(submissionDoc._id);
           }
         }
-        let assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
 
         const parsedAssessment = await assessmentsHelper.parseQuestionsV2(
           Object.values(evidenceMethodArray),
@@ -1549,7 +1547,7 @@ module.exports = class SurveysHelper {
             surveyId = surveyDocument[0]._id;
           } else {
             // let solutionData = solutionDocument[0];
-            const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
+            solutionDocument[0].referenceFrom="project"
            let solutionData=await solutionsHelper.detailsBasedOnRoleAndLocation(
                 new ObjectId(solutionDocument[0]._id),
                 bodyData,
@@ -1632,7 +1630,7 @@ module.exports = class SurveysHelper {
     return new Promise(async (resolve, reject) => {
       try {
         bodyData.tenantId = tenantData.tenantId;
-        bodyData.orgId = tenantData.orgId;
+            bodyData.orgId = tenantData.orgId;
         let surveyData = await this.findOrCreateSurvey(bodyData, surveyId, solutionId, userId, token);
         if (!surveyData.success) {
           return resolve(surveyData);
