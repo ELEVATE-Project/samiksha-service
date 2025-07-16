@@ -1570,9 +1570,9 @@ module.exports = class SurveysHelper {
             }
             let currentDate =new Date()
             if (
-              solutionData.data.hasOwnProperty("endDate") &&
-              new Date(solutionData.data.endDate) <  currentDate
-
+              solutionData.data.hasOwnProperty('endDate') &&
+              new Date(solutionData.data.endDate) < currentDate &&
+              solutionData.data.referenceFrom !== messageConstants.common.PROJECT
             ) {
               throw new Error(messageConstants.apiResponses.SOLUTION_EXPIRED);
             }
