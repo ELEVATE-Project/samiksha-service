@@ -608,9 +608,6 @@ module.exports = class SolutionsHelper {
           filterQuery['status'] = {
             $in: [messageConstants.common.ACTIVE_STATUS, messageConstants.common.INACTIVE_STATUS],
           };
-          let validDate = new Date();
-          validDate.setDate(validDate.getDate() - messageConstants.common.DEFAULT_SURVEY_REMOVED_DAY);
-          filterQuery['endDate'] = { $gte: validDate };
         } else {
           filterQuery.status = messageConstants.common.ACTIVE_STATUS;
         }
