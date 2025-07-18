@@ -1,3 +1,17 @@
+/**
+ * name : solutionUtils.js
+ * author : Praveen Dass
+ * Date : 18-July-2025
+ * Description:
+ * This file contains solutions helper functions that were extracted
+ * from solutions module to resolve circular dependency issues.
+ *
+ * Only use this file for shared logic that leads to
+ * circular dependencies when placed in the solutions module.
+ */
+
+
+
 
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const projectService = require(ROOT_PATH + '/generics/services/project');

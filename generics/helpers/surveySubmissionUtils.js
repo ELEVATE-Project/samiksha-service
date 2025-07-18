@@ -1,11 +1,20 @@
 
-
+/**
+ * name : surveySubmissionUtils.js
+ * author : Praveen Dass
+ * Date : 18-July-2025
+ * Description:
+ * This file contains surveySubmission helper functions that were extracted
+ * from surveySubmission module to resolve circular dependency issues.
+ *
+ * Only use this file for shared logic that leads to
+ * circular dependencies when placed in the surveySubmission module.
+ */
 
 const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const projectService = require(ROOT_PATH + '/generics/services/project');
 const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
-const slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
 
 
   // /**
@@ -71,7 +80,6 @@ const slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications')
               message: kafkaMessage.message,
             },
           };
-          slackClient.kafkaErrorAlert(errorObject);
         }
 
         return resolve(kafkaMessage);

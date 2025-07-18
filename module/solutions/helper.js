@@ -5,12 +5,9 @@
  * Description : Solution related helper functionality.
  */
 
-const solutionsUtils = require("../../generics/helpers/solutionsUtils");
 
 //Dependencies
-const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 const userExtensionHelper = require(MODULES_BASE_PATH + '/userExtension/helper');
-const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const timeZoneDifference = process.env.TIMEZONE_DIFFRENECE_BETWEEN_LOCAL_TIME_AND_UTC;
 const observationHelper = require(MODULES_BASE_PATH + '/observations/helper');
@@ -23,8 +20,10 @@ const entityManagementService = require(ROOT_PATH + '/generics/services/entity-m
 const userService = require(ROOT_PATH + '/generics/services/users');
 const projectService = require(ROOT_PATH + '/generics/services/project');
 const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSolutionUtilities')
-const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyHelperUtils');
+const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
+const solutionsUtils = require("../../generics/helpers/solutionsUtils");
+
 
 
 /**

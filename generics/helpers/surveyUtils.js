@@ -1,6 +1,14 @@
-
-
-
+/**
+ * name : surveyUtils.js
+ * author : Praveen Dass
+ * Date : 18-July-2025
+ * Description:
+ * This file contains survey helper functions that were extracted
+ * from survey module to resolve circular dependency issues.
+ *
+ * Only use this file for shared logic that leads to
+ * circular dependencies when placed in the survey module.
+ */
 
 const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
 

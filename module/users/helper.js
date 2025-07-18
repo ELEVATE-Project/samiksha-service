@@ -21,7 +21,7 @@ const defaultUserProfileConfig = require('@config/defaultUserProfileDeleteConfig
 const configFilePath = process.env.AUTH_CONFIG_FILE_PATH;
 const path = require('path');
 const fs = require('fs');
-const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyHelperUtils');
+const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
 
@@ -39,7 +39,7 @@ module.exports = class UserHelper {
    * @returns {Object} consists of observation,solutions,entities,programs and assessorData,submissions and observation submissions data.
    * associated to the user.
    */
-
+  // Commenting this function as it is not used anywhere.But may be in future use.
   // static userDetailsInformation(userId) {
   //   return new Promise(async (resolve, reject) => {
   //     try {

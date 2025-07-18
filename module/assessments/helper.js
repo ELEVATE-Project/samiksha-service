@@ -560,7 +560,7 @@ module.exports = class AssessmentsHelper {
       }
     });
   }
-
+  // Commenting this function as it is not used anywhere.But may be in future use.
   /**
    * Create solution and program from assessment template.
    * @method
@@ -678,6 +678,7 @@ module.exports = class AssessmentsHelper {
   //   });
   // }
 
+  // Commenting this function as it is not used anywhere.But may be in future use.
   /**
    * Assessment templates details
    * @method
