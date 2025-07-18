@@ -13,8 +13,9 @@ const shikshalokamHelper = require(MODULES_BASE_PATH + '/shikshalokam/helper');
 const slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
 const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const chunkOfObservationSubmissionsLength = 500;
-const solutionHelper = require(MODULES_BASE_PATH +'/solutions/helper');
 const kendraService = require(ROOT_PATH + '/generics/services/kendra');
+const solutionHelperUtils = require(ROOT_PATH + '/generics/helpers/solutionsUtils');
+
 const moment = require('moment-timezone');
 const { ObjectId } = require('mongodb');
 const appsPortalBaseUrl =
@@ -136,9 +137,8 @@ module.exports = class ObservationsHelper {
         }
   
         if (solutionData[0].isReusable) {
-          const solutionHelper = require(MODULES_BASE_PATH + "/solutions/helper");
           solutionData =
-            await solutionHelper.createProgramAndSolutionFromTemplate(
+            await solutionHelperUtils.createProgramAndSolutionFromTemplate(
               solutionId,
               {
                 _id: programId,
@@ -1158,7 +1158,7 @@ module.exports = class ObservationsHelper {
           solutionInformation['referenceFrom'] = messageConstants.common.PROJECT;
         }
 
-        let createdSolutionAndProgram = await solutionHelper.createProgramAndSolutionFromTemplate(
+        let createdSolutionAndProgram = await solutionHelperUtils.createProgramAndSolutionFromTemplate(
           templateId,
           requestedData.program,
           userId,

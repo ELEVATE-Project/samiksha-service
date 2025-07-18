@@ -11,12 +11,9 @@ const entityAssessorsHelper = require(MODULES_BASE_PATH + '/entityAssessors/help
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const observationsHelper = require(MODULES_BASE_PATH + '/observations/helper');
-const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
 const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 const observationSubmissionsHelper = require(MODULES_BASE_PATH + '/observationSubmissions/helper');
-const surveysHelper = require(MODULES_BASE_PATH + '/surveys/helper');
 const userExtensionsHelper = require(MODULES_BASE_PATH + '/userExtension/helper');
-const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
 const shikshalokamHelper = require(MODULES_BASE_PATH + '/shikshalokam/helper');
 const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
@@ -24,6 +21,10 @@ const defaultUserProfileConfig = require('@config/defaultUserProfileDeleteConfig
 const configFilePath = process.env.AUTH_CONFIG_FILE_PATH;
 const path = require('path');
 const fs = require('fs');
+const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
+const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
+const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
+
 
 /**
  * UserHelper
@@ -38,284 +39,284 @@ module.exports = class UserHelper {
    * @returns {Object} consists of observation,solutions,entities,programs and assessorData,submissions and observation submissions data.
    * associated to the user.
    */
+  // Commenting this function as it is not used anywhere.But may be in future use.
+  // static userDetailsInformation(userId) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       let assessorsData = await entityAssessorsHelper.assessorsDocument(
+  //         {
+  //           userId: userId,
+  //         },
+  //         ['programId', 'solutionId', 'entities', 'createdAt']
+  //       );
 
-  static userDetailsInformation(userId) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let assessorsData = await entityAssessorsHelper.assessorsDocument(
-          {
-            userId: userId,
-          },
-          ['programId', 'solutionId', 'entities', 'createdAt']
-        );
+  //       let programIds = [];
+  //       let solutionIds = [];
+  //       let entityIds = [];
 
-        let programIds = [];
-        let solutionIds = [];
-        let entityIds = [];
+  //       if (assessorsData.length > 0) {
+  //         assessorsData.forEach((assessor) => {
+  //           programIds.push(assessor.programId);
+  //           solutionIds.push(assessor.solutionId);
+  //           entityIds = entityIds.concat(assessor.entities);
+  //         });
+  //       }
 
-        if (assessorsData.length > 0) {
-          assessorsData.forEach((assessor) => {
-            programIds.push(assessor.programId);
-            solutionIds.push(assessor.solutionId);
-            entityIds = entityIds.concat(assessor.entities);
-          });
-        }
+  //       let submissions = await submissionsHelper.submissionDocuments(
+  //         {
+  //           solutionId: { $in: solutionIds },
+  //           entityId: { $in: entityIds },
+  //         },
+  //         [
+  //           'status',
+  //           '_id',
+  //           'entityId',
+  //           'solutionId',
+  //           'title',
+  //           'submissionNumber',
+  //           'completedDate',
+  //           'createdAt',
+  //           'updatedAt',
+  //         ],
+  //         'none',
+  //         {
+  //           createdAt: -1,
+  //         }
+  //       );
 
-        let submissions = await submissionsHelper.submissionDocuments(
-          {
-            solutionId: { $in: solutionIds },
-            entityId: { $in: entityIds },
-          },
-          [
-            'status',
-            '_id',
-            'entityId',
-            'solutionId',
-            'title',
-            'submissionNumber',
-            'completedDate',
-            'createdAt',
-            'updatedAt',
-          ],
-          'none',
-          {
-            createdAt: -1,
-          }
-        );
+  //       let observationsData = await observationsHelper.observationDocuments(
+  //         {
+  //           createdBy: userId,
+  //           status: messageConstants.common.PUBLISHED,
+  //         },
+  //         [
+  //           'entities',
+  //           'solutionId',
+  //           'programId',
+  //           'entityId',
+  //           'name',
+  //           'description',
+  //           'status',
+  //           'observationId',
+  //           'createdAt',
+  //           'updatedAt',
+  //         ]
+  //       );
 
-        let observationsData = await observationsHelper.observationDocuments(
-          {
-            createdBy: userId,
-            status: messageConstants.common.PUBLISHED,
-          },
-          [
-            'entities',
-            'solutionId',
-            'programId',
-            'entityId',
-            'name',
-            'description',
-            'status',
-            'observationId',
-            'createdAt',
-            'updatedAt',
-          ]
-        );
+  //       let observationIds = [];
+  //       let observationSolutions = [];
+  //       let observationEntities = [];
 
-        let observationIds = [];
-        let observationSolutions = [];
-        let observationEntities = [];
+  //       if (observationsData.length > 0) {
+  //         observationsData.forEach((observation) => {
+  //           observationIds.push(observation._id);
+  //           observation['isObservation'] = true;
+  //           programIds.push(observation.programId);
+  //           observationSolutions.push(observation.solutionId);
+  //           observationEntities = observationEntities.concat(observation.entities);
+  //         });
+  //       }
 
-        if (observationsData.length > 0) {
-          observationsData.forEach((observation) => {
-            observationIds.push(observation._id);
-            observation['isObservation'] = true;
-            programIds.push(observation.programId);
-            observationSolutions.push(observation.solutionId);
-            observationEntities = observationEntities.concat(observation.entities);
-          });
-        }
+  //       let observationSubmissions = await observationSubmissionsHelper.observationSubmissionsDocument(
+  //         {
+  //           observationId: { $in: observationIds },
+  //           entityId: { $in: observationEntities },
+  //         },
+  //         [
+  //           'status',
+  //           'submissionNumber',
+  //           'entityId',
+  //           'createdAt',
+  //           'updatedAt',
+  //           'observationInformation.name',
+  //           'observationId',
+  //           'title',
+  //           'completedDate',
+  //           'ratingCompletedAt',
+  //         ],
+  //         {
+  //           createdAt: -1,
+  //         }
+  //       );
 
-        let observationSubmissions = await observationSubmissionsHelper.observationSubmissionsDocument(
-          {
-            observationId: { $in: observationIds },
-            entityId: { $in: observationEntities },
-          },
-          [
-            'status',
-            'submissionNumber',
-            'entityId',
-            'createdAt',
-            'updatedAt',
-            'observationInformation.name',
-            'observationId',
-            'title',
-            'completedDate',
-            'ratingCompletedAt',
-          ],
-          {
-            createdAt: -1,
-          }
-        );
+  //       solutionIds = solutionIds.concat(observationSolutions);
+  //       entityIds = entityIds.concat(observationEntities);
 
-        solutionIds = solutionIds.concat(observationSolutions);
-        entityIds = entityIds.concat(observationEntities);
+  //       let surveysData = await surveyQueries.surveyDocuments(
+  //         {
+  //           createdBy: userId,
+  //           status: messageConstants.common.PUBLISHED,
+  //           programId: { $exists: true },
+  //         },
+  //         ['solutionId', 'programId', 'name', 'description', 'status', 'endDate', 'createdAt', 'updatedAt']
+  //       );
 
-        let surveysData = await surveysHelper.surveyDocuments(
-          {
-            createdBy: userId,
-            status: messageConstants.common.PUBLISHED,
-            programId: { $exists: true },
-          },
-          ['solutionId', 'programId', 'name', 'description', 'status', 'endDate', 'createdAt', 'updatedAt']
-        );
+  //       let surveyIds = [];
+  //       let surveySolutions = [];
 
-        let surveyIds = [];
-        let surveySolutions = [];
+  //       if (surveysData.length > 0) {
+  //         surveysData.forEach((survey) => {
+  //           surveyIds.push(survey._id);
+  //           survey['isSurvey'] = true;
+  //           programIds.push(survey.programId);
+  //           surveySolutions.push(survey.solutionId);
+  //         });
+  //       }
 
-        if (surveysData.length > 0) {
-          surveysData.forEach((survey) => {
-            surveyIds.push(survey._id);
-            survey['isSurvey'] = true;
-            programIds.push(survey.programId);
-            surveySolutions.push(survey.solutionId);
-          });
-        }
+  //       let surveySubmissions = await surveySubmissionsQueries.surveySubmissionDocuments(
+  //         {
+  //           surveyId: { $in: surveyIds },
+  //         },
+  //         ['status', 'createdAt', 'updatedAt', 'name', 'surveyId', 'completedDate', 'endDate'],
+  //         {
+  //           createdAt: -1,
+  //         }
+  //       );
 
-        let surveySubmissions = await surveySubmissionsHelper.surveySubmissionDocuments(
-          {
-            surveyId: { $in: surveyIds },
-          },
-          ['status', 'createdAt', 'updatedAt', 'name', 'surveyId', 'completedDate', 'endDate'],
-          {
-            createdAt: -1,
-          }
-        );
+  //       solutionIds = solutionIds.concat(surveySolutions);
 
-        solutionIds = solutionIds.concat(surveySolutions);
+  //       if (!programIds.length > 0) {
+  //         throw {
+  //           status: httpStatusCode.ok.status,
+  //           message: messageConstants.apiResponses.PROGRAM_NOT_MAPPED_TO_USER,
+  //         };
+  //       }
 
-        if (!programIds.length > 0) {
-          throw {
-            status: httpStatusCode.ok.status,
-            message: messageConstants.apiResponses.PROGRAM_NOT_MAPPED_TO_USER,
-          };
-        }
+  //       if (!solutionIds.length > 0) {
+  //         throw {
+  //           status: httpStatusCode.ok.status,
+  //           message: messageConstants.apiResponses.SOLUTION_NOT_MAPPED_TO_USER,
+  //         };
+  //       }
 
-        if (!solutionIds.length > 0) {
-          throw {
-            status: httpStatusCode.ok.status,
-            message: messageConstants.apiResponses.SOLUTION_NOT_MAPPED_TO_USER,
-          };
-        }
+  //       let programs = await programsHelper.programDocument(programIds, ['name', 'externalId', 'description']);
 
-        let programs = await programsHelper.programDocument(programIds, ['name', 'externalId', 'description']);
+  //       if (!programs.length > 0) {
+  //         throw {
+  //           status: httpStatusCode.ok.status,
+  //           message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+  //         };
+  //       }
 
-        if (!programs.length > 0) {
-          throw {
-            status: httpStatusCode.ok.status,
-            message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-          };
-        }
+  //       let programsData = programs.reduce(
+  //         (ac, program) => ({
+  //           ...ac,
+  //           [program._id.toString()]: program,
+  //         }),
+  //         {}
+  //       );
 
-        let programsData = programs.reduce(
-          (ac, program) => ({
-            ...ac,
-            [program._id.toString()]: program,
-          }),
-          {}
-        );
+  //       let solutions = await solutionsQueries.solutionDocuments(
+  //         {
+  //           _id: { $in: solutionIds },
+  //           status: messageConstants.common.ACTIVE_STATUS,
+  //           isDeleted: false,
+  //         },
+  //         [
+  //           'name',
+  //           'description',
+  //           'externalId',
+  //           'type',
+  //           'subType',
+  //           'solutionId',
+  //           'allowMultipleAssessemts',
+  //           'isAPrivateProgram',
+  //           'entityType',
+  //           'entityTypeId',
+  //         ]
+  //       );
 
-        let solutions = await solutionsQueries.solutionDocuments(
-          {
-            _id: { $in: solutionIds },
-            status: messageConstants.common.ACTIVE_STATUS,
-            isDeleted: false,
-          },
-          [
-            'name',
-            'description',
-            'externalId',
-            'type',
-            'subType',
-            'solutionId',
-            'allowMultipleAssessemts',
-            'isAPrivateProgram',
-            'entityType',
-            'entityTypeId',
-          ]
-        );
+  //       if (!solutions.length > 0) {
+  //         throw {
+  //           status: httpStatusCode.ok.status,
+  //           message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+  //         };
+  //       }
 
-        if (!solutions.length > 0) {
-          throw {
-            status: httpStatusCode.ok.status,
-            message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
-          };
-        }
+  //       // let solutionsData = solutions.reduce(
+  //       //     (ac, solution) => ({
+  //       //         ...ac,
+  //       //         [solution._id.toString()]: solution
+  //       //     }), {});
 
-        // let solutionsData = solutions.reduce(
-        //     (ac, solution) => ({
-        //         ...ac,
-        //         [solution._id.toString()]: solution
-        //     }), {});
+  //       let removedSolutions = await userExtensionsHelper.userExtensionDocuments(
+  //         {
+  //           userId: userId,
+  //         },
+  //         ['removedFromHomeScreen']
+  //       );
 
-        let removedSolutions = await userExtensionsHelper.userExtensionDocuments(
-          {
-            userId: userId,
-          },
-          ['removedFromHomeScreen']
-        );
+  //       let userRemovedSolutionsFromHomeScreen = new Array();
 
-        let userRemovedSolutionsFromHomeScreen = new Array();
+  //       if (
+  //         Array.isArray(removedSolutions) &&
+  //         removedSolutions.length > 0 &&
+  //         Array.isArray(removedSolutions[0].removedFromHomeScreen) &&
+  //         removedSolutions[0].removedFromHomeScreen.length > 0
+  //       ) {
+  //         removedSolutions[0].removedFromHomeScreen.forEach((solutionId) => {
+  //           userRemovedSolutionsFromHomeScreen.push(solutionId.toString());
+  //         });
+  //       }
 
-        if (
-          Array.isArray(removedSolutions) &&
-          removedSolutions.length > 0 &&
-          Array.isArray(removedSolutions[0].removedFromHomeScreen) &&
-          removedSolutions[0].removedFromHomeScreen.length > 0
-        ) {
-          removedSolutions[0].removedFromHomeScreen.forEach((solutionId) => {
-            userRemovedSolutionsFromHomeScreen.push(solutionId.toString());
-          });
-        }
+  //       let solutionsData = {};
 
-        let solutionsData = {};
+  //       for (let pointerToSolutionsArray = 0; pointerToSolutionsArray < solutions.length; pointerToSolutionsArray++) {
+  //         let solution = solutions[pointerToSolutionsArray];
+  //         solution.showInHomeScreen = true;
+  //         if (
+  //           userRemovedSolutionsFromHomeScreen.length > 0 &&
+  //           userRemovedSolutionsFromHomeScreen.indexOf(solution._id.toString()) > -1
+  //         ) {
+  //           solution.showInHomeScreen = false;
+  //         }
 
-        for (let pointerToSolutionsArray = 0; pointerToSolutionsArray < solutions.length; pointerToSolutionsArray++) {
-          let solution = solutions[pointerToSolutionsArray];
-          solution.showInHomeScreen = true;
-          if (
-            userRemovedSolutionsFromHomeScreen.length > 0 &&
-            userRemovedSolutionsFromHomeScreen.indexOf(solution._id.toString()) > -1
-          ) {
-            solution.showInHomeScreen = false;
-          }
+  //         solutionsData[solution._id.toString()] = solution;
+  //       }
 
-          solutionsData[solution._id.toString()] = solution;
-        }
+  //       let entitiesData = {};
+  //       if (entityIds.length > 0) {
+  //         let entities = await entitiesHelper.entityDocuments(
+  //           {
+  //             _id: { $in: entityIds },
+  //           },
+  //           [
+  //             '_id',
+  //             'metaInformation.externalId',
+  //             'metaInformation.name',
+  //             'metaInformation.city',
+  //             'metaInformation.state',
+  //             'entityType',
+  //           ]
+  //         );
 
-        let entitiesData = {};
-        if (entityIds.length > 0) {
-          let entities = await entitiesHelper.entityDocuments(
-            {
-              _id: { $in: entityIds },
-            },
-            [
-              '_id',
-              'metaInformation.externalId',
-              'metaInformation.name',
-              'metaInformation.city',
-              'metaInformation.state',
-              'entityType',
-            ]
-          );
+  //         if (entities.length > 0) {
+  //           entitiesData = entities.reduce(
+  //             (ac, entity) => ({
+  //               ...ac,
+  //               [entity._id.toString()]: entity,
+  //             }),
+  //             {}
+  //           );
+  //         }
+  //       }
 
-          if (entities.length > 0) {
-            entitiesData = entities.reduce(
-              (ac, entity) => ({
-                ...ac,
-                [entity._id.toString()]: entity,
-              }),
-              {}
-            );
-          }
-        }
-
-        return resolve({
-          entityAssessors: assessorsData,
-          observations: observationsData,
-          surveys: surveysData,
-          programsData: programsData,
-          solutionsData: solutionsData,
-          entitiesData: entitiesData,
-          submissions: submissions,
-          observationSubmissions: observationSubmissions,
-          surveySubmissions: surveySubmissions,
-        });
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
+  //       return resolve({
+  //         entityAssessors: assessorsData,
+  //         observations: observationsData,
+  //         surveys: surveysData,
+  //         programsData: programsData,
+  //         solutionsData: solutionsData,
+  //         entitiesData: entitiesData,
+  //         submissions: submissions,
+  //         observationSubmissions: observationSubmissions,
+  //         surveySubmissions: surveySubmissions,
+  //       });
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // }
 
   /**
    * list user programs.
@@ -582,7 +583,7 @@ module.exports = class UserHelper {
         });
 
         if (surveySolutionIds.length > 0) {
-          let userSurveySubmission = await surveysHelper.userAssigned(
+          let userSurveySubmission = await surveyHelperUtils.userAssigned(
             userId, //userToken
             '', //search text
             '', //filter
@@ -768,7 +769,7 @@ module.exports = class UserHelper {
   static surveySubmissions(userId, solutionId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let surveySubmission = await surveySubmissionsHelper.surveySubmissionDocuments(
+        let surveySubmission = await surveySubmissionsQueries.surveySubmissionDocuments(
           {
             createdBy: userId,
             solutionId: solutionId,
@@ -1077,7 +1078,7 @@ module.exports = class UserHelper {
 
         //update in db
         let updateDataStatus = await Promise.all([
-          surveySubmissionsHelper.updateMany(filter, userProfileOps),
+          surveySubmissionsQueries.updateMany(filter, userProfileOps),
           observationsHelper.updateMany(filter, userProfileOps),
           observationSubmissionsHelper.updateMany(filter, observationUpdateOperations),
         ]);

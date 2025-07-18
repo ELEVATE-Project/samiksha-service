@@ -13,13 +13,10 @@ const emailClient = require(ROOT_PATH + '/generics/helpers/emailCommunications')
 const scoringHelper = require(MODULES_BASE_PATH + '/scoring/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
-const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
-const solutionHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const validateEntities = process.env.VALIDATE_ENTITIES ? process.env.VALIDATE_ENTITIES : 'OFF';
 const criteriaQuestionHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper')
-const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const projectService = require(ROOT_PATH + '/generics/services/project')
 
 /**
