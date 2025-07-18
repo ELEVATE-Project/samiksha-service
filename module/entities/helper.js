@@ -1582,10 +1582,10 @@ module.exports = class EntitiesHelper {
             response.result = [];
             let filterData = {
               "entityType":result.entityType,
-              "_id":result.entities,
-              "tenantId":req.userDetails.tenantData.tenantId,
-              "orgIds": {$in:['ALL',req.userDetails.tenantData.orgId]}
-
+              "tenantId":req.userDetails.tenantData.tenantId
+            }
+            if(result.entities.length > 0){
+              filterData['_id'] = result.entities
             }
             let entitiesDetails = await entityManagementService.entityDocuments(filterData,entityProjections,req.pageNo,req.pageSize,req.searchText);
             console.log(entitiesDetails,"<--entitiesDetails line 1598")
