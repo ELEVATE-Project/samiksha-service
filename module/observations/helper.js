@@ -2007,7 +2007,7 @@ module.exports = class ObservationsHelper {
               _id: observationData[0].solutionId,
               tenantId:tenantData.tenantId
             },
-            ['allowMultipleAssessemts'],
+            ['allowMultipleAssessemts', 'parentEntityKey'],
           );
         }
 
@@ -2019,6 +2019,7 @@ module.exports = class ObservationsHelper {
             _id: observationId,
             entities: entitiesList.data.entities,
             entityType: entitiesList.data.entityType,
+            parentEntityKey: solutionData[0].parentEntityKey
           },
         });
       } catch (error) {
