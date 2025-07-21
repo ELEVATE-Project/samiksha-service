@@ -9,7 +9,6 @@
 // Dependencies
 let moment = require('moment');
 const filesHelper = require(MODULES_BASE_PATH + '/files/helper');
-const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const helperFunc = require('../../helper/chart_data');
@@ -17,6 +16,7 @@ const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const observationSubmissionsHelper = require(MODULES_BASE_PATH + '/observationSubmissions/helper');
 const pdfHelper = require('../../helper/pdfGeneration');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
+const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
 
 /**
  * ReportsHelper
@@ -80,7 +80,7 @@ module.exports = class ReportsHelper {
     } else {
       let submissionId = req.query.submissionId;
 
-      let surveySubmissionsDocumentArray = await surveySubmissionsHelper.surveySubmissionDocuments({
+      let surveySubmissionsDocumentArray = await surveySubmissionsQueries.surveySubmissionDocuments({
         _id: submissionId,
         status: 'completed',
         tenantId: req.userDetails.tenantData.tenantId,

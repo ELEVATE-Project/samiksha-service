@@ -120,6 +120,10 @@ module.exports = {
     isExternalProgram:{
       default : false,
       type : Boolean
+    },
+    parentEntityKey: {
+      type : String,
+      default: null
     }
   },
   compoundIndex: [
