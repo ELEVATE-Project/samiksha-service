@@ -13,13 +13,10 @@ const emailClient = require(ROOT_PATH + '/generics/helpers/emailCommunications')
 const scoringHelper = require(MODULES_BASE_PATH + '/scoring/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
-const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
-const solutionHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const validateEntities = process.env.VALIDATE_ENTITIES ? process.env.VALIDATE_ENTITIES : 'OFF';
 const criteriaQuestionHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper')
-const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const projectService = require(ROOT_PATH + '/generics/services/project')
 
 /**
@@ -1429,6 +1426,16 @@ module.exports = class ObservationSubmissionsHelper {
         if (entityDetailResponse?.success && entityDetailResponse.data?.length > 0) {
           observationSubmissionsDocument.entityInformation.parentInformation =
             entityDetailResponse.data[0].parentInformation;
+        }
+        // Set entityId, entityType, and typeId if they exist in the document, to inside entity information for data team
+        if (observationSubmissionsDocument.entityId) {
+          observationSubmissionsDocument.entityInformation._id = observationSubmissionsDocument.entityId;
+        }
+        if (observationSubmissionsDocument.entityType) {
+          observationSubmissionsDocument.entityInformation.type = observationSubmissionsDocument.entityType;
+        }
+        if (observationSubmissionsDocument.entityTypeId) {
+          observationSubmissionsDocument.entityInformation.typeId = observationSubmissionsDocument.entityTypeId;
         }
       }
     } catch (err) {}

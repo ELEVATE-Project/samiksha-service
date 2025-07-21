@@ -8,7 +8,6 @@
 // Dependencies
 let slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
-const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const emailClient = require(ROOT_PATH + '/generics/helpers/emailCommunications');
@@ -21,6 +20,9 @@ const criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/
 const filesHelper = require(MODULES_BASE_PATH + '/cloud-services/files/helper');
 const path = require('path');
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
+const solutionsHelperUtils = require(ROOT_PATH + '/generics/helpers/solutionsUtils')
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 
 
 /**
@@ -237,9 +239,7 @@ module.exports = class SubmissionsHelper {
   static isSubmissionToBeAutoRated(submissionSolutionId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
-
-        let solutionDocument = await solutionsHelper.checkIfSolutionIsRubricDriven(submissionSolutionId);
+        let solutionDocument = await solutionsHelperUtils.checkIfSolutionIsRubricDriven(submissionSolutionId);
 
         let submissionToBeAutoRated =
           solutionDocument[0] && solutionDocument[0].scoringSystem && solutionDocument[0].scoringSystem != ''
@@ -507,9 +507,7 @@ module.exports = class SubmissionsHelper {
             observationSubmissionsHelper.pushInCompleteObservationSubmissionForReporting(updatedSubmissionDocument._id);
           } else if (modelName == messageConstants.common.SURVEY_SUBMISSIONS) {
             // Push updated submission to kafka for reporting/tracking."
-            const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
-
-            surveySubmissionsHelper.pushInCompleteSurveySubmissionForReporting(updatedSubmissionDocument._id);
+            surveySubmissionsHelperUtils.pushInCompleteSurveySubmissionForReporting(updatedSubmissionDocument._id);
           }
 
           let canRatingsBeEnabled = await this.canEnableRatingQuestionsOfSubmission(updatedSubmissionDocument);
@@ -1058,7 +1056,7 @@ module.exports = class SubmissionsHelper {
   static create(solutionId, entityId, userAgent, userId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let solutionDocument = await solutionsHelper.solutionDocuments(
+        let solutionDocument = await solutionsQueries.solutionDocuments(
           {
             _id: solutionId,
           },
@@ -1602,7 +1600,7 @@ module.exports = class SubmissionsHelper {
           result.criteriaQuestions = Object.values(criteriaQuestionObject);
           result.levelToScoreMapping = [];
 
-          let solutionDocument = await solutionsHelper.solutionDocuments({ _id: submissionDocument[0].solutionId }, [
+          let solutionDocument = await solutionsQueries.solutionDocuments({ _id: submissionDocument[0].solutionId }, [
             'levelToScoreMapping',
           ]);
 

@@ -6,14 +6,9 @@
  */
 
 // Dependencies.
-const entityAssessorsHelper = require(MODULES_BASE_PATH + '/entityAssessors/helper');
 const formsHelper = require(MODULES_BASE_PATH + '/forms/helper');
-const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
-const criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
-let entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
-const shikshalokamHelper = require(MODULES_BASE_PATH + '/shikshalokam/helper');
 const filesHelper = require(MODULES_BASE_PATH + '/cloud-services/files/helper');
-
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 /**
  * AssessmentsHelper
  * @class
@@ -513,7 +508,7 @@ module.exports = class AssessmentsHelper {
   static metaForm(solutionId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let solutionsData = await solutionsHelper.solutionDocuments(
+        let solutionsData = await solutionsQueries.solutionDocuments(
           {
             _id: solutionId,
             isReusable: true,
@@ -565,7 +560,7 @@ module.exports = class AssessmentsHelper {
       }
     });
   }
-
+  // Commenting this function as it is not used anywhere.But may be in future use.
   /**
    * Create solution and program from assessment template.
    * @method
@@ -576,113 +571,114 @@ module.exports = class AssessmentsHelper {
    * @returns {Object} - Create solution from assessment template.
    */
 
-  static create(templateId, userDetails, requestedData) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let solutionData = await solutionsHelper.solutionDocuments(
-          {
-            _id: templateId,
-          },
-          ['subType', 'entityType', 'entityTypeId'],
-        );
+  // static create(templateId, userDetails, requestedData) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       let solutionData = await solutionsQueries.solutionDocuments(
+  //         {
+  //           _id: templateId,
+  //         },
+  //         ['subType', 'entityType', 'entityTypeId'],
+  //       );
 
-        if (solutionData[0].subType === messageConstants.common.INDIVIDUAL) {
-          let entity = await entitiesHelper.entityDocuments(
-            {
-              userId: userDetails.userId,
-              entityType: solutionData[0].entityType,
-            },
-            ['_id'],
-          );
+  //       if (solutionData[0].subType === messageConstants.common.INDIVIDUAL) {
+  //         let entity = await entitiesHelper.entityDocuments(
+  //           {
+  //             userId: userDetails.userId,
+  //             entityType: solutionData[0].entityType,
+  //           },
+  //           ['_id'],
+  //         );
 
-          let entityId;
+  //         let entityId;
 
-          if (!entity[0]) {
-            let individualEntity = await entitiesHelper.add(
-              {
-                type: solutionData[0].entityType,
-              },
-              [
-                {
-                  externalId: userDetails.userId,
-                  name: userDetails.firstName + userDetails.lastName,
-                  userName: userDetails.userName,
-                  email: userDetails.email,
-                  rootOrgId: userDetails.rootOrgId,
-                },
-              ],
-              userDetails,
-            );
+  //         if (!entity[0]) {
+  //           let individualEntity = await entitiesHelper.add(
+  //             {
+  //               type: solutionData[0].entityType,
+  //             },
+  //             [
+  //               {
+  //                 externalId: userDetails.userId,
+  //                 name: userDetails.firstName + userDetails.lastName,
+  //                 userName: userDetails.userName,
+  //                 email: userDetails.email,
+  //                 rootOrgId: userDetails.rootOrgId,
+  //               },
+  //             ],
+  //             userDetails,
+  //           );
 
-            entityId = individualEntity._id;
-          } else {
-            entityId = entity[0]._id;
-          }
+  //           entityId = individualEntity._id;
+  //         } else {
+  //           entityId = entity[0]._id;
+  //         }
 
-          requestedData.entities = [entityId];
-        }
+  //         requestedData.entities = [entityId];
+  //       }
 
-        let solutionInformation = {
-          name: requestedData.name,
-          description: requestedData.description,
-          entities: requestedData.entities ? requestedData.entities : [],
-        };
+  //       let solutionInformation = {
+  //         name: requestedData.name,
+  //         description: requestedData.description,
+  //         entities: requestedData.entities ? requestedData.entities : [],
+  //       };
 
-        if (requestedData?.project) {
-          solutionInformation['project'] = requestedData.project;
-          solutionInformation['referenceFrom'] = messageConstants.common.PROJECT;
-        }
+  //       if (requestedData?.project) {
+  //         solutionInformation['project'] = requestedData.project;
+  //         solutionInformation['referenceFrom'] = messageConstants.common.PROJECT;
+  //       }
 
-        let organisationAndRootOrganisation = await shikshalokamHelper.getOrganisationsAndRootOrganisations(
-          userDetails.userToken,
-          userDetails.userId,
-        );
+  //       let organisationAndRootOrganisation = await shikshalokamHelper.getOrganisationsAndRootOrganisations(
+  //         userDetails.userToken,
+  //         userDetails.userId,
+  //       );
 
-        let createdFor = organisationAndRootOrganisation.createdFor;
-        let rootOrganisations = organisationAndRootOrganisation.rootOrganisations;
+  //       let createdFor = organisationAndRootOrganisation.createdFor;
+  //       let rootOrganisations = organisationAndRootOrganisation.rootOrganisations;
 
-        let createdSolutionAndProgram = await solutionsHelper.createProgramAndSolutionFromTemplate(
-          templateId,
-          requestedData.program,
-          userDetails.userId,
-          solutionInformation,
-          true,
-          createdFor,
-          rootOrganisations,
-        );
+  //       let createdSolutionAndProgram = await solutionsHelper.createProgramAndSolutionFromTemplate(
+  //         templateId,
+  //         requestedData.program,
+  //         userDetails.userId,
+  //         solutionInformation,
+  //         true,
+  //         createdFor,
+  //         rootOrganisations,
+  //       );
 
-        await entityAssessorsHelper.update(
-          createdSolutionAndProgram.programId,
-          createdSolutionAndProgram._id,
-          userDetails.userId,
-          {
-            userId: userDetails.userId,
-            email: userDetails.email,
-            name: userDetails.firstName + userDetails.lastName,
-            externalId: userDetails.userName,
-            programId: createdSolutionAndProgram.programId,
-            solutionId: createdSolutionAndProgram._id,
-            entityTypeId: createdSolutionAndProgram.entityTypeId,
-            entityType: createdSolutionAndProgram.entityType,
-            role: messageConstants.common.LEAD_ASSESSOR,
-            createdBy: userDetails.userId,
-            updatedBy: userDetails.userId,
-            entities: createdSolutionAndProgram.entities,
-          },
-        );
+  //       await entityAssessorsHelper.update(
+  //         createdSolutionAndProgram.programId,
+  //         createdSolutionAndProgram._id,
+  //         userDetails.userId,
+  //         {
+  //           userId: userDetails.userId,
+  //           email: userDetails.email,
+  //           name: userDetails.firstName + userDetails.lastName,
+  //           externalId: userDetails.userName,
+  //           programId: createdSolutionAndProgram.programId,
+  //           solutionId: createdSolutionAndProgram._id,
+  //           entityTypeId: createdSolutionAndProgram.entityTypeId,
+  //           entityType: createdSolutionAndProgram.entityType,
+  //           role: messageConstants.common.LEAD_ASSESSOR,
+  //           createdBy: userDetails.userId,
+  //           updatedBy: userDetails.userId,
+  //           entities: createdSolutionAndProgram.entities,
+  //         },
+  //       );
 
-        await solutionsHelper.addDefaultACL(createdSolutionAndProgram._id, [messageConstants.common.LEAD_ASSESSOR]);
+  //       await solutionsHelper.addDefaultACL(createdSolutionAndProgram._id, [messageConstants.common.LEAD_ASSESSOR]);
 
-        return resolve({
-          message: messageConstants.apiResponses.CREATED_SOLUTION,
-          result: createdSolutionAndProgram,
-        });
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
+  //       return resolve({
+  //         message: messageConstants.apiResponses.CREATED_SOLUTION,
+  //         result: createdSolutionAndProgram,
+  //       });
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // }
 
+  // Commenting this function as it is not used anywhere.But may be in future use.
   /**
    * Assessment templates details
    * @method
@@ -693,91 +689,91 @@ module.exports = class AssessmentsHelper {
    * @returns {Object} returns creator,about and list of questions.
    */
 
-  static templateDetails(templateId, showEcmwiseQuestions = true, filterPreviewQuestions = false) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let solutionDetails = await solutionsHelper.details(templateId);
+  // static templateDetails(templateId, showEcmwiseQuestions = true, filterPreviewQuestions = false) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       let solutionDetails = await solutionsHelper.details(templateId);
 
-        let criteriaIds = gen.utils.getCriteriaIds(solutionDetails.themes);
+  //       let criteriaIds = gen.utils.getCriteriaIds(solutionDetails.themes);
 
-        let applyPreviewQuestionsOnlyFilter = false;
+  //       let applyPreviewQuestionsOnlyFilter = false;
 
-        if (filterPreviewQuestions) {
-          applyPreviewQuestionsOnlyFilter = { 'evidences.sections.questions.showQuestionInPreview': true };
-        }
+  //       if (filterPreviewQuestions) {
+  //         applyPreviewQuestionsOnlyFilter = { 'evidences.sections.questions.showQuestionInPreview': true };
+  //       }
 
-        let questionDetails = await criteriaQuestionsHelper.details(
-          criteriaIds,
-          {
-            $project: {
-              ecm: '$evidences.code',
-              question: '$evidences.sections.questions.question',
-            },
-          },
-          applyPreviewQuestionsOnlyFilter,
-        );
+  //       let questionDetails = await criteriaQuestionsHelper.details(
+  //         criteriaIds,
+  //         {
+  //           $project: {
+  //             ecm: '$evidences.code',
+  //             question: '$evidences.sections.questions.question',
+  //           },
+  //         },
+  //         applyPreviewQuestionsOnlyFilter,
+  //       );
 
-        let templateQuestions = [];
+  //       let templateQuestions = [];
 
-        if (showEcmwiseQuestions) {
-          if (questionDetails.length > 0) {
-            questionDetails.forEach((questionData) => {
-              let ecmIndex = templateQuestions.findIndex((ecmQuestion) => ecmQuestion.ecm === questionData.ecm);
+  //       if (showEcmwiseQuestions) {
+  //         if (questionDetails.length > 0) {
+  //           questionDetails.forEach((questionData) => {
+  //             let ecmIndex = templateQuestions.findIndex((ecmQuestion) => ecmQuestion.ecm === questionData.ecm);
 
-              if (ecmIndex < 0) {
-                let ecmQuestion = {
-                  ecm: questionData.ecm,
-                  name: solutionDetails.evidenceMethods[questionData.ecm].name,
-                  questions: [],
-                };
+  //             if (ecmIndex < 0) {
+  //               let ecmQuestion = {
+  //                 ecm: questionData.ecm,
+  //                 name: solutionDetails.evidenceMethods[questionData.ecm].name,
+  //                 questions: [],
+  //               };
 
-                templateQuestions.push(ecmQuestion);
-                ecmIndex = templateQuestions.length - 1;
-              }
+  //               templateQuestions.push(ecmQuestion);
+  //               ecmIndex = templateQuestions.length - 1;
+  //             }
 
-              let questionIndex = templateQuestions[ecmIndex].questions.findIndex(
-                (question) => question === questionData.question[0],
-              );
+  //             let questionIndex = templateQuestions[ecmIndex].questions.findIndex(
+  //               (question) => question === questionData.question[0],
+  //             );
 
-              if (questionIndex < 0) {
-                templateQuestions[ecmIndex].questions.push(questionData.question[0]);
-              }
-            });
-          } else {
-            Object.keys(solutionDetails.evidenceMethods).forEach((evidenceMethodCode) => {
-              templateQuestions.push({
-                ecm: solutionDetails.evidenceMethods[evidenceMethodCode].externalId,
-                name: solutionDetails.evidenceMethods[evidenceMethodCode].name,
-                questions: [],
-              });
-            });
-          }
-        } else {
-          templateQuestions = questionDetails.map((questionData) => {
-            return questionData.question[0];
-          });
+  //             if (questionIndex < 0) {
+  //               templateQuestions[ecmIndex].questions.push(questionData.question[0]);
+  //             }
+  //           });
+  //         } else {
+  //           Object.keys(solutionDetails.evidenceMethods).forEach((evidenceMethodCode) => {
+  //             templateQuestions.push({
+  //               ecm: solutionDetails.evidenceMethods[evidenceMethodCode].externalId,
+  //               name: solutionDetails.evidenceMethods[evidenceMethodCode].name,
+  //               questions: [],
+  //             });
+  //           });
+  //         }
+  //       } else {
+  //         templateQuestions = questionDetails.map((questionData) => {
+  //           return questionData.question[0];
+  //         });
 
-          templateQuestions = [...new Set(templateQuestions)];
-        }
+  //         templateQuestions = [...new Set(templateQuestions)];
+  //       }
 
-        let result = {
-          name: solutionDetails.name,
-          creator: solutionDetails.creator ? solutionDetails.creator : '',
-          entityType: solutionDetails.entityType,
-          description: solutionDetails.description,
-          linkTitle: solutionDetails.linkTitle ? solutionDetails.linkTitle : '',
-          linkUrl: solutionDetails.linkUrl ? solutionDetails.linkUrl : '',
-          questions: templateQuestions,
-        };
+  //       let result = {
+  //         name: solutionDetails.name,
+  //         creator: solutionDetails.creator ? solutionDetails.creator : '',
+  //         entityType: solutionDetails.entityType,
+  //         description: solutionDetails.description,
+  //         linkTitle: solutionDetails.linkTitle ? solutionDetails.linkTitle : '',
+  //         linkUrl: solutionDetails.linkUrl ? solutionDetails.linkUrl : '',
+  //         questions: templateQuestions,
+  //       };
 
-        return resolve(result);
-      } catch (error) {
-        return reject({
-          status: error.status || httpStatusCode.internal_server_error.status,
-          message: error.message || httpStatusCode.internal_server_error.message,
-          errorObject: error,
-        });
-      }
-    });
-  }
+  //       return resolve(result);
+  //     } catch (error) {
+  //       return reject({
+  //         status: error.status || httpStatusCode.internal_server_error.status,
+  //         message: error.message || httpStatusCode.internal_server_error.message,
+  //         errorObject: error,
+  //       });
+  //     }
+  //   });
+  // }
 };
