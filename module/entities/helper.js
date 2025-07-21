@@ -1588,7 +1588,6 @@ module.exports = class EntitiesHelper {
               filterData['_id'] = result.entities
             }
             let entitiesDetails = await entityManagementService.entityDocuments(filterData,entityProjections,req.pageNo,req.pageSize,req.searchText);
-            console.log(entitiesDetails,"<--entitiesDetails line 1598")
             if ( !entitiesDetails.success ) {
                 return resolve({
                     "message" : messageConstants.apiResponses.ENTITY_NOT_FOUND,
