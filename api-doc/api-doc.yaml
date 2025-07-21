@@ -48,7 +48,7 @@ info:
 servers:
   - url: http://{{SamikshaUrl}}
 tags:
-  - name: observation
+  - name: Observation
   - name: Survey
   - name: Solutions
   - name: Program
@@ -56,8 +56,7 @@ tags:
   - name: surveySubmissions
   - name: Questions
   - name: Report
-  - name: Survey Creation Flow
-  - name: Observation Creation Flow
+  - name: observationSubmissions
     description: ''
     externalDocs:
       description: ''
@@ -67,11 +66,26 @@ tags:
     externalDocs:
       description: ''
       url: ''
+  - name: healthCheck
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
+  - name: Criteria
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
+  - name: Frameworks
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
 paths:
   /v1/criteria/upload:
     post:
       tags:
-        - Observation Creation Flow
+        - Criteria
       summary: criteria is uploaded via use of csv file
       requestBody:
         content:
@@ -134,7 +148,7 @@ paths:
   /v1/frameworks/create:
     post:
       tags:
-        - observation
+        - Frameworks
       summary: API to create framework
       requestBody:
         content:
@@ -197,7 +211,7 @@ paths:
   /v1/observations/importFromFramework:
     post:
       tags:
-        - Observation Creation Flow
+        - Observation
       summary: API to create a solution based on a framework upload
       description: >-
         This API is used to create solutions based on a framework upload. Users
@@ -339,7 +353,7 @@ paths:
   /v1/observations/assessment/:observationId:
     post:
       tags:
-        - observation
+        - Observation
       summary: Returns details of the observation including submissionId
       description: >+
         The Assessment API retrieves information about a specific observation
@@ -387,6 +401,8 @@ paths:
                     message: Assessment fetched successfully
                     status: 200
                     result:
+                      orgId: blr
+                      tenantId: shikshagraha
                       entityProfile:
                         entityType: school
                       solution:
@@ -833,7 +849,7 @@ paths:
   /v1/observations/entities:
     post:
       tags:
-        - Observation Creation Flow
+        - Observation
       summary: API to add entities to a specific observation
       description: >-
         This API retrieves a list of entities associated with a specific
@@ -898,7 +914,7 @@ paths:
   /v1/observationSubmissions/list/:observationSubmissionId:
     get:
       tags:
-        - observation
+        - observationSubmissions
       summary: Lists Observation submission
       parameters:
         - name: x-auth-token
@@ -1068,14 +1084,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
                   status:
                     type: number
-                  result:
-                    type: array
-                    items:
-                      type: string
+                  message:
+                    type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message: Bad request
       description: >-
         This API retrieves the details of a specific observation submission
         based on the observation-submission-id. It provides information about
@@ -1084,7 +1101,7 @@ paths:
   /v1/observationSubmissions/update/:observationSubmissionId:
     post:
       tags:
-        - observation
+        - observationSubmissions
       summary: API to submit/update observation Submissions
       requestBody:
         content:
@@ -1388,11 +1405,23 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"externalId\": \"\",\n    \"name\": \"\",\n   
-                \"description\": \"\",\n    \"programExternalId\":
-                \"00000000-1621323219342\"\n}"
+              type: object
+              properties:
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                programExternalId:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  externalId: FQAP-23673
+                  name: Observation For School
+                  description: Observation should be done in all the school
+                  programExternalId: 00000000-1621323219342
       parameters:
         - name: X-auth-token
           in: header
@@ -1437,7 +1466,7 @@ paths:
   /v1/surveys/createSolutionTemplate:
     post:
       tags:
-        - Survey Creation Flow
+        - Survey
       summary: ' Create survey solution template'
       description: >-
         This API is used to create a solution template for a survey. The
@@ -1515,11 +1544,23 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"externalId\": \"\",\n    \"name\": \"\",\n   
-                \"description\": \"\",\n    \"programExternalId\":
-                \"00000000-1621323219342\"\n}"
+              type: object
+              properties:
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                programExternalId:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  externalId: FQAP-23673
+                  name: Observation For School
+                  description: Observation should be done in all the school
+                  programExternalId: 00000000-1621323219342
       parameters:
         - name: X-auth-token
           in: header
@@ -1569,6 +1610,24 @@ paths:
                           type: string
                         msg:
                           type: string
+                      required:
+                        - location
+                        - param
+                        - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required solution id
+                      - location: params
+                        param: _id
+                        msg: Invalid solution id
+                      - location: query
+                        param: programId
+                        msg: required program id
       description: >-
         This API maps a survey solution, identified by solutionId, to a specific
         program. The programId should be passed in the query parameters
@@ -1584,8 +1643,17 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: '"{\n    \"solutionIds\": [\"66b5c1dd982ea3322350853d\"]\n}"'
+              type: object
+              properties:
+                solutionIds:
+                  type: array
+                  items:
+                    type: string
+            examples:
+              sampleBodyData:
+                value:
+                  solutionIds:
+                    - 66b5c1dd982ea3322350853d
       parameters:
         - name: x-auth-token
           in: header
@@ -1680,7 +1748,7 @@ paths:
                 \"db331a8c-b9e2-45f8-b3c0-7ec1e826b6df\",\"6cbce49e-c33d-4f4c-aaa8-c689a1f067f3\"\n   
                 // ]\n}"
             examples:
-              exampleBody:
+              sampleBodyData:
                 value:
                   createdFor: []
                   rootOrganisations: []
@@ -1752,6 +1820,23 @@ paths:
                         - location
                         - param
                         - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: externalId
+                        msg: required solution externalId
+                      - location: body
+                        param: name
+                        msg: required solution name
+                      - location: body
+                        param: type
+                        msg: required solution type
+                      - location: body
+                        param: subType
+                        msg: required solution subType
       description: >-
         This API is used to create a new solution. You need to pass the
         necessary details like name, description, and other solution-related
@@ -1760,7 +1845,7 @@ paths:
   /v1/solutions/importFromSolution:
     post:
       tags:
-        - Observation Creation Flow
+        - Solutions
       summary: creates a child solution from an existing solution
       requestBody:
         content:
@@ -1960,22 +2045,22 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                entityType: state
-                entityTypeId: 5f32d8228e0dc8312404056e
-                entities:
-                  - 5f33c3d85f637784791cd830
-                  - 5fd098e2e049735a86b748ac
-                  - 5fd1b52ab53a6416aaeefc83
-                  - 5fd1b52ab53a6416aaeefb20
-                role: BEO,HM
+              properties:
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                programExternalId:
+                  type: string
             examples:
-              ExampleBody:
+              sampleBodyData:
                 value:
-                  role: HM
-                  state: 236f5cff-c9af-4366-b0b6-253a1789766a
-                  district: 1dcbc362-ec4c-4559-9081-e0c2864c2931
-                  school: c5726207-4f9f-4f45-91f1-3e9e8e84d824
+                  externalId: FQAP-23673
+                  name: Observation For School
+                  description: Observation should be done in all the school
+                  programExternalId: 00000000-1621323219342
       parameters:
         - name: X-auth-token
           in: header
@@ -2100,19 +2185,53 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n\"evidenceMethods\": {\n            \"OB\":
-                {\n                \"externalId\": \"OB\",\n               
-                \"tip\": null,\n                \"name\":
-                \"Observation\",\n                \"description\":
-                null,\n                \"modeOfCollection\":
-                \"onfield\",\n                \"canBeNotApplicable\":
-                false,\n                \"notApplicable\":
-                false,\n                \"canBeNotAllowed\":
-                false,\n                \"remarks\": null\n           
-                }\n        },\n        \"sections\": {\n            \"S1\":
-                \"Observation Question\"\n        }\n}\n"
+              type: object
+              properties:
+                evidenceMethods:
+                  type: object
+                  properties:
+                    OB:
+                      type: object
+                      properties:
+                        externalId:
+                          type: string
+                        tip:
+                          type: 'null'
+                        name:
+                          type: string
+                        description:
+                          type: 'null'
+                        modeOfCollection:
+                          type: string
+                        canBeNotApplicable:
+                          type: boolean
+                        notApplicable:
+                          type: boolean
+                        canBeNotAllowed:
+                          type: boolean
+                        remarks:
+                          type: 'null'
+                sections:
+                  type: object
+                  properties:
+                    S1:
+                      type: string
+            examples:
+              sampleBodyData:
+                value:
+                  evidenceMethods:
+                    OB:
+                      externalId: OB
+                      tip: null
+                      name: Observation
+                      description: null
+                      modeOfCollection: onfield
+                      canBeNotApplicable: false
+                      notApplicable: false
+                      canBeNotAllowed: false
+                      remarks: null
+                  sections:
+                    S1: Observation Question
       parameters:
         - name: x-auth-token
           in: header
@@ -2161,14 +2280,26 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"programExternalId\" :
-                \"MAHARASTHA-AUTO-TARGETING\",\n    \"entityType\" :
-                \"school\",\n    \"externalId\" :
-                \"SCOPE_MAHARASTHA_SURVEY\",\n    \"name\" : \"Survey
-                testing\",\n    \"description\" : \"Improvement project test
-                solution\"\n}"
+              type: object
+              properties:
+                programExternalId:
+                  type: string
+                entityType:
+                  type: string
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  programExternalId: MAHARASTHA-AUTO-TARGETING
+                  entityType: school
+                  externalId: SCOPE_MAHARASTHA_SURVEY
+                  name: Survey testing
+                  description: Improvement project test solution
       parameters:
         - name: X-auth-token
           in: header
@@ -2191,6 +2322,8 @@ paths:
                     status: 200
                     result:
                       _id: 5fa27b88b6bd9b757dc4e92d
+                      orgId: blr
+                      tenantId: shikshagraha
                       resourceType:
                         - Survey Solution
                       language:
@@ -2272,6 +2405,14 @@ paths:
                           type: string
                         msg:
                           type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required survey solution id
       description: >-
         This API retrieves detailed information about a solution by solutionId.
         The response includes all solution-related metadata such as name,
@@ -3120,13 +3261,59 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: '"{\n     \"entities\":[\"5f33c3d85f637784791cd831\"]\n}"'
+              type: object
+              properties:
+                entities:
+                  type: object
+                  properties:
+                    district:
+                      type: array
+                      items:
+                        type: string
+                    professional_subroles:
+                      type: array
+                      items:
+                        type: string
+                    professional_role:
+                      type: array
+                      items:
+                        type: string
+                    school:
+                      type: array
+                      items:
+                        type: string
+                    language:
+                      type: array
+                      items:
+                        type: string
+                    gender:
+                      type: array
+                      items:
+                        type: string
+                organizations:
+                  type: array
+                  items:
+                    type: string
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   entities:
-                    - 5fd098e2e049735a86b748b1
+                    district:
+                      - 682303044e2812081f3426fb
+                    professional_subroles:
+                      - 682301604e2812081f342674
+                      - 682303044e2812081f3426fb
+                    professional_role:
+                      - 681b07b49c57cdcf03c79ae3
+                      - 681b0800f21c88cef9517e0e
+                    school:
+                      - 67c82d9553812588916410d3
+                    language:
+                      - 681b0800f21c88cef951890e
+                    gender:
+                      - 67c82d955381258891642345
+                  organizations:
+                    - blr
       parameters:
         - name: X-auth-token
           in: header
@@ -3195,7 +3382,7 @@ paths:
                 "{\n    \"roles\": [\n        \"DEO\",\n        \"HM\",\n       
                 \"TEACHER\"\n    ]\n}"
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   roles:
                     - DEO
@@ -3253,15 +3440,36 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"entities\": [\n       
-                \"5f33c3d85f637784791cd831\"\n    ]\n}"
+              type: object
+              properties:
+                entities:
+                  type: object
+                  properties:
+                    professional_subroles:
+                      type: array
+                      items:
+                        type: string
+                    professional_role:
+                      type: array
+                      items:
+                        type: string
+                organizations:
+                  type: array
+                  items:
+                    type: string
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   entities:
-                    - 5fd098e2e049735a86b748b1
+                    professional_subroles:
+                      - 682301254e2812081f34266c
+                      - 682303044e2812081f3426fb
+                      - 682301604e2812081f342674
+                    professional_role:
+                      - 681b07b49c57cdcf03c79ae3
+                      - 681b0800f21c88cef9517e0e
+                  organizations:
+                    - ALL
       parameters:
         - name: X-auth--token
           in: header
@@ -3311,7 +3519,7 @@ paths:
               type: string
               example: '"{\n    \"roles\" : [\"DEO\"]\n}\n\n"'
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   roles:
                     - DEO
@@ -3372,7 +3580,7 @@ paths:
                 HM,SPD\"\n    },\n    \"isResource\": true,\n   
                 \"consentShared\": true\n}"
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   userRoleInformation:
                     district: 2f76dcf5-e43b-4f71-a3f2-c8f19e1fce03
@@ -3442,7 +3650,7 @@ paths:
                 10 10\"\n    // \"imageCompression\": {\n    //     \"quality\":
                 10\n    // }\n}"
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   externalId: TESTING_BY_DEV_TEAM_9
                   name: Testing by dev team ap
@@ -3518,43 +3726,22 @@ paths:
                         - location
                         - param
                         - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: externalId
+                        msg: required program externalId
+                      - location: body
+                        param: name
+                        msg: required program name
       description: >-
         This API is used to create a new program. The request body should
         contain necessary details such as the program name, description, and any
         other relevant information to define the program. Once successfully
         created, the API returns the newly generated program's details.
-
-
-        eg req.body
-
-        {
-              "externalId" : "PROGID01",
-              "name" : "DCPCR School Development Index 2018-19",
-              "description" : "DCPCR School Development Index 2018-19",
-              "isDeleted" : false,
-              "resourceType" : [ 
-                  "program"
-              ],
-              "language" : [ 
-                  "English"
-              ],
-              "keywords" : [],
-              "concepts" : [],
-              "userId":"a082787f-8f8f-42f2-a706-35457ca6f1fd",
-              "imageCompression" : {
-                  "quality" : 10
-              },
-              "components" : [ 
-                  "5b98fa069f664f7e1ae7498c"
-              ],
-              "scope" : {
-                  "entityType" : "state",
-                  "entities" : ["5d6609ef81a57a6173a79e78"],
-                  "roles" : ["HM"]
-              }
-              "startDate" : "2023-04-06T09:35:00.000Z",
-              "endDate" : ""2024-04-06T09:35:00.000Z" // optional
-            }
   /v1/programs/list:
     get:
       tags:
@@ -3699,7 +3886,7 @@ paths:
                 \"CRP\",\n            \"DEO\",\n            \"BEO\"\n       
                 ]\n    }  \n}"
             examples:
-              SuccessResponse:
+              sampleBodyData:
                 value:
                   endDate: '2025-05-15 14:00:00'
                   scope:
@@ -3789,6 +3976,8 @@ paths:
                     status: 200
                     result:
                       _id: 65f04dcc0725800009778fea
+                      orgId: blr
+                      tenantId: shikshagraha
                       resourceType:
                         - program
                       language:
@@ -3847,19 +4036,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
                   status:
                     type: number
-                  message:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        location:
-                          type: string
-                        param:
-                          type: string
-                        msg:
-                          type: string
+              examples:
+                FailureResponse:
+                  value:
+                    message: No program found.
+                    status: 400
       description: >-
         This API fetches the details of a specific program identified by the
         programId. The response includes all relevant program information such
@@ -3873,15 +4058,70 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{     \n    
-                \"entities\":[\"db331a8c-b9e2-45f8-b3c0-7ec1e826b6df\",\"4a994d9d-5677-40a8-83eb-e3c5eec73b92\"]\n}"
+              type: object
+              properties:
+                entities:
+                  type: object
+                  properties:
+                    district:
+                      type: array
+                      items:
+                        type: string
+                    professional_subroles:
+                      type: array
+                      items:
+                        type: string
+                    professional_role:
+                      type: array
+                      items:
+                        type: string
+                    school:
+                      type: array
+                      items:
+                        type: string
+                    language:
+                      type: array
+                      items:
+                        type: string
+                    gender:
+                      type: array
+                      items:
+                        type: string
+                organizations:
+                  type: array
+                  items:
+                    type: string
             examples:
-              exampleRequestBody:
-                value:
-                  entities:
-                    - 5fbf3f8c3e9df47967eed916
+              sampleBodyData:
+                value: |-
+                  {
+                          "entities": {
+                              "district": [
+                                  "682303044e2812081f3426fb"
+                              ],
+                              "professional_subroles": [
+                                  "682301604e2812081f342674",
+                                  "682303044e2812081f3426fb"
+                              ],
+                              "professional_role": [
+                                  "681b07b49c57cdcf03c79ae3",
+                                  "681b0800f21c88cef9517e0e"
+                              ],
+                              "school": [
+                                  "67c82d9553812588916410d3"
+                              ],
+                              "language": [
+                                  "681b0800f21c88cef951890e"
+                              ],
+                              "gender": [
+                                  "67c82d955381258891642345"
+                              ]
+                          },
+                          "organizations": [
+                              "blr"
+                          ]
+                        } 
+                      }
       parameters:
         - name: X-auth-token
           in: header
@@ -3935,7 +4175,7 @@ paths:
               type: string
               example: '"{\n    \"roles\":[\"HM\"] \n    \n}"'
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   roles:
                     - HM
@@ -3991,7 +4231,7 @@ paths:
               type: string
               example: '"{\n    \"roles\": [\n        \"BEO\"\n    ]\n}"'
             examples:
-              SuccessResponse:
+              sampleBodyData:
                 value:
                   roles:
                     - BEO
@@ -4036,15 +4276,36 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"entities\": [\n       
-                \"5f80353c946feebb14d68d57\"\n    ]\n}"
+              type: object
+              properties:
+                entities:
+                  type: object
+                  properties:
+                    professional_subroles:
+                      type: array
+                      items:
+                        type: string
+                    professional_role:
+                      type: array
+                      items:
+                        type: string
+                organizations:
+                  type: array
+                  items:
+                    type: string
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   entities:
-                    - 5f80353c946feebb14d68d57
+                    professional_subroles:
+                      - 682301254e2812081f34266c
+                      - 682303044e2812081f3426fb
+                      - 682301604e2812081f342674
+                    professional_role:
+                      - 681b07b49c57cdcf03c79ae3
+                      - 681b0800f21c88cef9517e0e
+                  organizations:
+                    - ALL
       parameters:
         - name: X-auth-token
           in: header
@@ -4155,7 +4416,7 @@ paths:
                 \"rubricLevel\": \"\"\n      }\n    },\n    \"startTime\":
                 1709026873403,\n    \"endTime\": 1709027010423\n  }\n}"
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   evidence:
                     externalId: SF
@@ -4257,6 +4518,14 @@ paths:
                           type: string
                         msg:
                           type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: evidence
+                        msg: request body is required
       description: >-
         This API is used to update the answers for a specific survey submission.
         The surveySubmissionId is passed as a path parameter, and the request
@@ -4318,6 +4587,21 @@ paths:
                           type: string
                         msg:
                           type: string
+                      required:
+                        - location
+                        - param
+                        - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required survey submission id
+                      - location: params
+                        param: _id
+                        msg: Invalid survey submission id
       description: >+
         This API is used to fetch the current status of a survey submission. The
         surveySubmissionId is passed as a path parameter, and the API returns
@@ -4450,6 +4734,11 @@ paths:
                     type: number
                   message:
                     type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message: Bad request
       description: >-
         This API is used to fetch a list of surveys that have been submitted or
         are in progress. The response includes details such as the solutionId,
@@ -4526,6 +4815,20 @@ paths:
                         - location
                         - param
                         - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required survey submission id
+                      - location: params
+                        param: _id
+                        msg: Invalid survey submission id
+                      - location: query
+                        param: evidenceId
+                        msg: required evidenceId
       description: >-
         This API checks if a specific survey submission, identified by
         surveySubmissionId, is allowed to proceed or perform certain actions.
@@ -4653,6 +4956,12 @@ paths:
                     type: number
                   result:
                     type: boolean
+              examples:
+                FailureResponse:
+                  value:
+                    message: submissionId is a required field
+                    status: 200
+                    result: false
   /v1/reports/fetch:
     post:
       tags:
@@ -4671,7 +4980,7 @@ paths:
                 pdf: true
                 criteriaWise: true
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   submissionId: 602a15ea1e72d1287475c66b
                   observation: true
@@ -4696,47 +5005,42 @@ paths:
             application/json:
               examples:
                 SuccessResponse:
-                  value: |-
-                    {
-                      "message": "Observation Report generated successfully",
-                      "status": 200,
-                      "result": {
-                          "result": true,
-                          "entityType": "district",
-                          "entityId": "a87aa157-0d73-4aa3-9623-cb2f8a3ecf32",
-                          "entityName": "AGRA",
-                          "solutionName": "Enrollment challenges in DIKSHA Courses-1613135097520",
-                          "observationId": "60267cf9262f8023e11072a3",
-                          "programName": "School development Program",
-                          "totalSubmissions": 1,
-                          "reportSections": [
-                              {
-                                  "qid": "60267cf9262f8023e1107292",
-                                  "order": "Q1_1612422856598-1613135097685",
-                                  "question": "Enter the date of observation",
-                                  "responseType": "date",
-                                  "answers": [
-                                      "2021-02-15T17:39:18.865+05:30"
-                                  ],
-                                  "chart": {},
-                                  "instanceQuestions": [],
-                                  "options": [],
-                                  "criteriaName": "Criteria 1",
-                                  "criteriaId": "60267cf9262f8023e11072a0",
-                                  "evidences": [
-                                      {
-                                          "name": "tmp_IMG-20210131-WA00071724287027747939105.jpg",
-                                          "sourcePath": "601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg",
-                                          "fileUrl": {
-                                              "filePath": "601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg",
-                                              "url": "https://storage.googleapis.com/mentoring-dev-storage-private/601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg?GoogleAccessId=sl-mentoring-dev-storage%40sl-dev-project.iam.gserviceaccount.com&Expires=1725978364&Signature=ICtClNBhEmGRB01zJU6nbDo3vc81FHdIYxIDDllPFA2sK42GL2ioU6UsieGTBbS1plFDV46%2FOIeBZupGx9UTLJ8yQHmOLJWlj8NyWU9QaS1UqsF6KQPoSOevN%2Fn6UXV5KQkRc8QruyLpKS%2BIoermhz%2BkWT%2BQSvoUwS6%2BGvL2iYCVzMA%2FVJfoIZPeL6a6Xv0JDAUpJQgF%2BNyCjSMO7tBh7UNmDXtsAxAY3G%2BhJ%2BjoehaPANT1IfE%2FR9dYbOVmwG1%2BNiDWNGhA4%2BEY1TU98sL4f7tOlr8nnjCSnvc2suSME%2B1wB1uQxVESGZGbmo87s2FXm6glJrKnPkVbgf%2Fcq41arA%3D%3D"
-                                          },
-                                          "submissionId": "602a15ea1e72d1287475c66b"
-                                      }
-                                  ]
-                              },]
-                            }
-                          }
+                  value:
+                    message: Observation Report generated successfully
+                    status: 200
+                    result:
+                      result: true
+                      entityType: district
+                      entityId: a87aa157-0d73-4aa3-9623-cb2f8a3ecf32
+                      entityName: AGRA
+                      solutionName: Enrollment challenges in DIKSHA Courses-1613135097520
+                      observationId: 60267cf9262f8023e11072a3
+                      programName: School development Program
+                      totalSubmissions: 1
+                      orgId: blr
+                      tenantId: shikshagraha
+                      reportSections:
+                        - qid: 60267cf9262f8023e1107292
+                          order: Q1_1612422856598-1613135097685
+                          question: Enter the date of observation
+                          responseType: date
+                          answers:
+                            - '2021-02-15T17:39:18.865+05:30'
+                          chart: {}
+                          instanceQuestions: []
+                          options: []
+                          criteriaName: Criteria 1
+                          criteriaId: 60267cf9262f8023e11072a0
+                          evidences:
+                            - name: tmp_IMG-20210131-WA00071724287027747939105.jpg
+                              sourcePath: >-
+                                601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg
+                              fileUrl:
+                                filePath: >-
+                                  601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg
+                                url: >-
+                                  https://storage.googleapis.com/mentoring-dev-storage-private/601793cd285b99334d2d9617/e85060c8-a76b-4e79-a36b-95836491baf9/tmp_IMG-20210131-WA00071724287027747939105.jpg?GoogleAccessId=sl-mentoring-dev-storage%40sl-dev-project.iam.gserviceaccount.com&Expires=1725978364&Signature=ICtClNBhEmGRB01zJU6nbDo3vc81FHdIYxIDDllPFA2sK42GL2ioU6UsieGTBbS1plFDV46%2FOIeBZupGx9UTLJ8yQHmOLJWlj8NyWU9QaS1UqsF6KQPoSOevN%2Fn6UXV5KQkRc8QruyLpKS%2BIoermhz%2BkWT%2BQSvoUwS6%2BGvL2iYCVzMA%2FVJfoIZPeL6a6Xv0JDAUpJQgF%2BNyCjSMO7tBh7UNmDXtsAxAY3G%2BhJ%2BjoehaPANT1IfE%2FR9dYbOVmwG1%2BNiDWNGhA4%2BEY1TU98sL4f7tOlr8nnjCSnvc2suSME%2B1wB1uQxVESGZGbmo87s2FXm6glJrKnPkVbgf%2Fcq41arA%3D%3D
+                              submissionId: 602a15ea1e72d1287475c66b
         '400':
           description: Failure response
           headers: {}
@@ -4757,7 +5061,7 @@ paths:
   /v1/surveys/importSurveyTemplateToSolution/:solutionId:
     post:
       tags:
-        - Survey Creation Flow
+        - Survey
       summary: Creates a child solution from an existing solution
       requestBody:
         content:
@@ -4769,7 +5073,7 @@ paths:
                 \"description\": \"\",\n    \"programExternalId\":
                 \"00000000-1621323219342\"\n}"
             examples:
-              exampleBody:
+              sampleBodyData:
                 value:
                   externalId: survey-234
                   name: survey test 123
@@ -4832,6 +5136,20 @@ paths:
                         - location
                         - param
                         - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required solution id
+                      - location: params
+                        param: _id
+                        msg: Invalid solution id
+                      - location: query
+                        param: appName
+                        msg: required appName
       description: >-
         This API is used to create a child solution from an existing solution.
         You need to pass the solutionId and appName as query parameters to
@@ -4839,7 +5157,7 @@ paths:
   /v1/surveys/details/:surveyId:
     post:
       tags:
-        - Survey Creation Flow
+        - Survey
       summary: Returns details of a specific survey using the surveyId.
       requestBody:
         content: {}
@@ -4861,358 +5179,116 @@ paths:
                     status: 200
                     result:
                       solution:
-                        _id: 5fcf34503e9df47967eedb03
-                        externalId: cdcc3246-1e82-11eb-a3bf-000d3af02677-1607414864208
-                        name: 'Diksha test survey '
-                        description: Diksha test survey via genie
+                        _id: 6877a326cbdbfe93c406d98c
+                        externalId: e5c0886a-315c-11f0-9c57-c52e41ff5959-1752671002039
+                        name: survey-May14
+                        description: This is a survey for school performance
                         captureGpsLocationAtQuestionLevel: false
                         enableQuestionReadOut: false
+                        type: survey
+                        minNoOfSubmissionsRequired: 1
+                        isReusable: false
                       assessment:
-                        name: 'Diksha test survey '
-                        description: Diksha test survey via genie
-                        externalId: cdcc3246-1e82-11eb-a3bf-000d3af02677-1607414864208
-                        submissionId: 66f2478712d7b74be68f6095
-                        status: expired
+                        name: survey-May14
+                        description: This is a survey for school performance
+                        externalId: e5c0886a-315c-11f0-9c57-c52e41ff5959-1752671002039
+                        submissionId: 687debcff950adb171b30c6d
+                        status: started
                         evidences:
                           - code: SF
                             sections:
                               - code: SQ
                                 questions:
                                   - _id: ''
+                                    externalId: ''
                                     question: ''
+                                    tip: ''
+                                    hint: ''
+                                    responseType: pageQuestions
+                                    value: ''
                                     isCompleted: ''
                                     showRemarks: ''
+                                    remarks: ''
+                                    visibleIf: ''
                                     options: ''
                                     sliderOptions: ''
                                     children: ''
                                     questionGroup: ''
+                                    questionType: ''
+                                    modeOfCollection: ''
+                                    usedForScoring: ''
                                     fileName: ''
+                                    validation: ''
+                                    accessibility: ''
+                                    canBeNotApplicable: ''
                                     instanceQuestions: ''
                                     isAGeneralQuestion: ''
                                     autoCapture: ''
-                                    allowAudioRecording: ''
-                                    prefillFromEntityProfile: ''
-                                    entityFieldName: ''
-                                    isEditable: ''
-                                    showQuestionInPreview: ''
-                                    deleted: ''
-                                    remarks: ''
-                                    value: ''
-                                    usedForScoring: ''
-                                    questionType: ''
-                                    canBeNotApplicable: ''
-                                    visibleIf: ''
-                                    validation: ''
-                                    file: ''
-                                    externalId: ''
-                                    tip: ''
-                                    hint: ''
-                                    responseType: pageQuestions
-                                    modeOfCollection: ''
-                                    accessibility: ''
                                     rubricLevel: ''
                                     sectionHeader: ''
-                                    page: p2
-                                    questionNumber: ''
-                                    updatedAt: ''
-                                    createdAt: ''
-                                    __v: ''
-                                    createdFromQuestionId: ''
-                                    evidenceMethod: ''
-                                    payload: ''
-                                    startTime: ''
-                                    endTime: ''
-                                    gpsLocation: ''
-                                    pageQuestions:
-                                      - _id: 5fcf34503e9df47967eedafe
-                                        question:
-                                          - Grade?
-                                          - ''
-                                        isCompleted: false
-                                        showRemarks: false
-                                        options: []
-                                        sliderOptions: []
-                                        children: []
-                                        questionGroup:
-                                          - A1
-                                        fileName: []
-                                        instanceQuestions: []
-                                        isAGeneralQuestion: false
-                                        autoCapture: false
-                                        allowAudioRecording: false
-                                        prefillFromEntityProfile: false
-                                        entityFieldName: ''
-                                        isEditable: true
-                                        showQuestionInPreview: false
-                                        deleted: false
-                                        remarks: ''
-                                        value: ''
-                                        usedForScoring: ''
-                                        questionType: auto
-                                        canBeNotApplicable: 'false'
-                                        visibleIf: ''
-                                        validation:
-                                          required: true
-                                          max: '4'
-                                          min: '1'
-                                        file:
-                                          required: true
-                                          type:
-                                            - image/jpeg
-                                            - docx
-                                            - pdf
-                                            - ppt
-                                          minCount: 0
-                                          maxCount: 10
-                                          caption: 'FALSE'
-                                        externalId: TSD003_1604483265440-1607414864214
-                                        tip: ''
-                                        hint: ''
-                                        responseType: slider
-                                        modeOfCollection: onfield
-                                        accessibility: 'No'
-                                        rubricLevel: ''
-                                        sectionHeader: ''
-                                        page: p2
-                                        questionNumber: '3'
-                                        updatedAt: '2020-12-08T08:07:44.220Z'
-                                        createdAt: '2020-11-04T09:47:55.359Z'
-                                        __v: 0
-                                        createdFromQuestionId: 5fa278cb6c10b27561cd281f
-                                        evidenceMethod: SF
-                                        payload:
-                                          criteriaId: 5fcf34503e9df47967eedb02
-                                          responseType: slider
-                                          evidenceMethod: SF
-                                          rubricLevel: ''
-                                        startTime: ''
-                                        endTime: ''
-                                        gpsLocation: ''
-                                      - _id: 5fcf34503e9df47967eedaff
-                                        question:
-                                          - >-
-                                            Which of the following is functional in
-                                            the toilets of the school?
-                                          - ''
-                                        isCompleted: false
-                                        showRemarks: false
-                                        options:
-                                          - value: R1
-                                            label: Cisterns
-                                          - value: R2
-                                            label: Taps
-                                          - value: R3
-                                            label: Washbasins
-                                          - value: R4
-                                            label: Handwash/Soap
-                                          - value: R5
-                                            label: None of the above
-                                        sliderOptions: []
-                                        children: []
-                                        questionGroup:
-                                          - A1
-                                        fileName: []
-                                        instanceQuestions: []
-                                        isAGeneralQuestion: false
-                                        autoCapture: false
-                                        allowAudioRecording: false
-                                        prefillFromEntityProfile: false
-                                        entityFieldName: ''
-                                        isEditable: true
-                                        showQuestionInPreview: false
-                                        deleted: false
-                                        remarks: ''
-                                        value: ''
-                                        usedForScoring: ''
-                                        questionType: auto
-                                        canBeNotApplicable: 'false'
-                                        visibleIf: ''
-                                        validation:
-                                          required: true
-                                        externalId: TSD004_1604483265440-1607414864215
-                                        tip: ''
-                                        hint: exam date
-                                        responseType: multiselect
-                                        modeOfCollection: onfield
-                                        accessibility: 'No'
-                                        rubricLevel: ''
-                                        sectionHeader: ''
-                                        page: p2
-                                        questionNumber: '4'
-                                        updatedAt: '2020-12-08T08:07:44.220Z'
-                                        createdAt: '2020-11-04T09:47:55.372Z'
-                                        __v: 0
-                                        createdFromQuestionId: 5fa278cb6c10b27561cd2820
-                                        evidenceMethod: SF
-                                        payload:
-                                          criteriaId: 5fcf34503e9df47967eedb02
-                                          responseType: multiselect
-                                          evidenceMethod: SF
-                                          rubricLevel: ''
-                                        startTime: ''
-                                        endTime: ''
-                                        gpsLocation: ''
-                                        file: ''
-                                  - _id: ''
-                                    question: ''
-                                    isCompleted: ''
-                                    showRemarks: ''
-                                    options: ''
-                                    sliderOptions: ''
-                                    children: ''
-                                    questionGroup: ''
-                                    fileName: ''
-                                    instanceQuestions: ''
-                                    isAGeneralQuestion: ''
-                                    autoCapture: ''
                                     allowAudioRecording: ''
-                                    prefillFromEntityProfile: ''
-                                    entityFieldName: ''
-                                    isEditable: ''
-                                    showQuestionInPreview: ''
-                                    deleted: ''
-                                    remarks: ''
-                                    value: ''
-                                    usedForScoring: ''
-                                    questionType: ''
-                                    canBeNotApplicable: ''
-                                    visibleIf: ''
-                                    validation: ''
-                                    file: ''
-                                    externalId: ''
-                                    tip: ''
-                                    hint: ''
-                                    responseType: pageQuestions
-                                    modeOfCollection: ''
-                                    accessibility: ''
-                                    rubricLevel: ''
-                                    sectionHeader: ''
                                     page: p1
                                     questionNumber: ''
+                                    prefillFromEntityProfile: ''
+                                    entityFieldName: ''
+                                    isEditable: ''
+                                    showQuestionInPreview: ''
+                                    deleted: ''
                                     updatedAt: ''
                                     createdAt: ''
                                     __v: ''
-                                    createdFromQuestionId: ''
                                     evidenceMethod: ''
                                     payload: ''
                                     startTime: ''
                                     endTime: ''
                                     gpsLocation: ''
+                                    file: ''
                                     pageQuestions:
-                                      - _id: 5fcf34503e9df47967eedb00
+                                      - _id: 68259570cfa7cfe32cd83451
+                                        externalId: SUR_TEST_001_1747293548169
                                         question:
-                                          - >-
-                                            is electrical wiring / boards closed and
-                                            insulated?
-                                          - ''
-                                        isCompleted: false
-                                        showRemarks: true
-                                        options:
-                                          - value: R1
-                                            label: 'Yes'
-                                          - value: R2
-                                            label: 'No'
-                                        sliderOptions: []
-                                        children: []
-                                        questionGroup:
-                                          - A1
-                                        fileName: []
-                                        instanceQuestions: []
-                                        isAGeneralQuestion: false
-                                        autoCapture: false
-                                        allowAudioRecording: false
-                                        prefillFromEntityProfile: false
-                                        entityFieldName: ''
-                                        isEditable: true
-                                        showQuestionInPreview: false
-                                        deleted: false
-                                        remarks: ''
+                                          - Email
+                                          - ఇమెయిల్
+                                        tip: enter email
+                                        hint: refer hint
+                                        responseType: text
                                         value: ''
-                                        usedForScoring: ''
-                                        questionType: auto
-                                        canBeNotApplicable: 'false'
-                                        visibleIf: ''
-                                        validation:
-                                          required: true
-                                        file:
-                                          required: true
-                                          type:
-                                            - image/jpeg
-                                            - docx
-                                            - pdf
-                                            - ppt
-                                          minCount: 0
-                                          maxCount: 10
-                                          caption: 'FALSE'
-                                        externalId: TSD001_1604483265440-1607414864216
-                                        tip: ''
-                                        hint: ''
-                                        responseType: radio
-                                        modeOfCollection: onfield
-                                        accessibility: 'No'
-                                        rubricLevel: ''
-                                        sectionHeader: ''
-                                        page: p1
-                                        questionNumber: '1'
-                                        updatedAt: '2020-12-08T08:07:44.220Z'
-                                        createdAt: '2020-11-04T09:47:55.383Z'
-                                        __v: 0
-                                        createdFromQuestionId: 5fa278cb6c10b27561cd2821
-                                        evidenceMethod: SF
-                                        payload:
-                                          criteriaId: 5fcf34503e9df47967eedb02
-                                          responseType: radio
-                                          evidenceMethod: SF
-                                          rubricLevel: ''
-                                        startTime: ''
-                                        endTime: ''
-                                        gpsLocation: ''
-                                      - _id: 5fcf34503e9df47967eedb01
-                                        question:
-                                          - Name of the school?
-                                          - ''
                                         isCompleted: false
-                                        showRemarks: true
+                                        showRemarks: false
+                                        remarks: ''
+                                        visibleIf: ''
                                         options: []
                                         sliderOptions: []
                                         children: []
                                         questionGroup:
                                           - A1
+                                        questionType: auto
+                                        modeOfCollection: onfield
+                                        usedForScoring: ''
                                         fileName: []
+                                        validation:
+                                          required: true
+                                        accessibility: 'No'
+                                        canBeNotApplicable: 'false'
                                         instanceQuestions: []
                                         isAGeneralQuestion: false
                                         autoCapture: false
+                                        rubricLevel: ''
+                                        sectionHeader: header section 1
                                         allowAudioRecording: false
+                                        page: p1
+                                        questionNumber: '1'
                                         prefillFromEntityProfile: false
                                         entityFieldName: ''
                                         isEditable: true
                                         showQuestionInPreview: false
                                         deleted: false
-                                        remarks: ''
-                                        value: ''
-                                        usedForScoring: ''
-                                        questionType: auto
-                                        canBeNotApplicable: 'false'
-                                        visibleIf: ''
-                                        validation:
-                                          required: true
-                                        externalId: TSD002_1604483265440-1607414864217
-                                        tip: school name
-                                        hint: ''
-                                        responseType: text
-                                        modeOfCollection: onfield
-                                        accessibility: 'No'
-                                        rubricLevel: ''
-                                        sectionHeader: ''
-                                        page: p1
-                                        questionNumber: '2'
-                                        updatedAt: '2020-12-08T08:07:44.220Z'
-                                        createdAt: '2020-11-04T09:47:55.395Z'
+                                        updatedAt: '2025-05-15T07:19:12.167Z'
+                                        createdAt: '2025-05-15T07:19:12.167Z'
                                         __v: 0
-                                        createdFromQuestionId: 5fa278cb6c10b27561cd2822
                                         evidenceMethod: SF
                                         payload:
-                                          criteriaId: 5fcf34503e9df47967eedb02
+                                          criteriaId: 6877a321cbdbfe93c406d988
                                           responseType: text
                                           evidenceMethod: SF
                                           rubricLevel: ''
@@ -5220,6 +5296,228 @@ paths:
                                         endTime: ''
                                         gpsLocation: ''
                                         file: ''
+                                      - _id: 68259570cfa7cfe32cd83457
+                                        externalId: SUR_TEST_002_1747293548169
+                                        question:
+                                          - enter secondary Email
+                                          - ईमेल
+                                        tip: enter second email
+                                        hint: refer hint
+                                        responseType: text
+                                        value: ''
+                                        isCompleted: false
+                                        showRemarks: true
+                                        remarks: ''
+                                        visibleIf: ''
+                                        options: []
+                                        sliderOptions: []
+                                        children: []
+                                        questionGroup:
+                                          - A1
+                                        questionType: auto
+                                        modeOfCollection: onfield
+                                        usedForScoring: ''
+                                        file:
+                                          required: true
+                                          type:
+                                            - image/jpeg
+                                            - docx
+                                            - pdf
+                                            - ppt
+                                          minCount: 0
+                                          maxCount: 10
+                                          caption: 'FALSE'
+                                        fileName: []
+                                        validation:
+                                          required: true
+                                        accessibility: 'No'
+                                        canBeNotApplicable: 'false'
+                                        instanceQuestions: []
+                                        isAGeneralQuestion: false
+                                        autoCapture: false
+                                        rubricLevel: ''
+                                        sectionHeader: header section 2
+                                        allowAudioRecording: false
+                                        page: p1
+                                        questionNumber: '1.1'
+                                        prefillFromEntityProfile: false
+                                        entityFieldName: ''
+                                        isEditable: true
+                                        showQuestionInPreview: false
+                                        deleted: false
+                                        updatedAt: '2025-05-15T07:19:12.200Z'
+                                        createdAt: '2025-05-15T07:19:12.200Z'
+                                        __v: 0
+                                        evidenceMethod: SF
+                                        payload:
+                                          criteriaId: 6877a321cbdbfe93c406d988
+                                          responseType: text
+                                          evidenceMethod: SF
+                                          rubricLevel: ''
+                                        startTime: ''
+                                        endTime: ''
+                                        gpsLocation: ''
+                                  - _id: ''
+                                    externalId: ''
+                                    question: ''
+                                    tip: ''
+                                    hint: ''
+                                    responseType: pageQuestions
+                                    value: ''
+                                    isCompleted: ''
+                                    showRemarks: ''
+                                    remarks: ''
+                                    visibleIf: ''
+                                    options: ''
+                                    sliderOptions: ''
+                                    children: ''
+                                    questionGroup: ''
+                                    questionType: ''
+                                    modeOfCollection: ''
+                                    usedForScoring: ''
+                                    fileName: ''
+                                    validation: ''
+                                    accessibility: ''
+                                    canBeNotApplicable: ''
+                                    instanceQuestions: ''
+                                    isAGeneralQuestion: ''
+                                    autoCapture: ''
+                                    rubricLevel: ''
+                                    sectionHeader: ''
+                                    allowAudioRecording: ''
+                                    page: p2
+                                    questionNumber: ''
+                                    prefillFromEntityProfile: ''
+                                    entityFieldName: ''
+                                    isEditable: ''
+                                    showQuestionInPreview: ''
+                                    deleted: ''
+                                    updatedAt: ''
+                                    createdAt: ''
+                                    __v: ''
+                                    evidenceMethod: ''
+                                    payload: ''
+                                    startTime: ''
+                                    endTime: ''
+                                    gpsLocation: ''
+                                    file: ''
+                                    pageQuestions:
+                                      - _id: 68259570cfa7cfe32cd8345d
+                                        externalId: SUR_TEST_003_1747293548169
+                                        question:
+                                          - enter your Name
+                                          - ''
+                                        tip: ''
+                                        hint: ''
+                                        responseType: text
+                                        value: ''
+                                        isCompleted: false
+                                        showRemarks: false
+                                        remarks: ''
+                                        visibleIf: ''
+                                        options: []
+                                        sliderOptions: []
+                                        children: []
+                                        questionGroup:
+                                          - A1
+                                        questionType: auto
+                                        modeOfCollection: onfield
+                                        usedForScoring: ''
+                                        fileName: []
+                                        validation:
+                                          required: true
+                                        accessibility: 'No'
+                                        canBeNotApplicable: 'false'
+                                        instanceQuestions: []
+                                        isAGeneralQuestion: false
+                                        autoCapture: false
+                                        rubricLevel: ''
+                                        sectionHeader: ''
+                                        allowAudioRecording: false
+                                        page: p2
+                                        questionNumber: '2'
+                                        prefillFromEntityProfile: false
+                                        entityFieldName: ''
+                                        isEditable: true
+                                        showQuestionInPreview: false
+                                        deleted: false
+                                        updatedAt: '2025-05-15T07:19:12.231Z'
+                                        createdAt: '2025-05-15T07:19:12.231Z'
+                                        __v: 0
+                                        evidenceMethod: SF
+                                        payload:
+                                          criteriaId: 6877a321cbdbfe93c406d988
+                                          responseType: text
+                                          evidenceMethod: SF
+                                          rubricLevel: ''
+                                        startTime: ''
+                                        endTime: ''
+                                        gpsLocation: ''
+                                        file: ''
+                                      - _id: 68259570cfa7cfe32cd83463
+                                        externalId: SUR_TEST_004_1747293548169
+                                        question:
+                                          - which Ministry/Department you belong to?
+                                          - ''
+                                        tip: department name
+                                        hint: >-
+                                          A department name is unique but the
+                                          department title is non-unique and can
+                                          be the same across departments
+                                        responseType: text
+                                        value: ''
+                                        isCompleted: false
+                                        showRemarks: true
+                                        remarks: ''
+                                        visibleIf: ''
+                                        options: []
+                                        sliderOptions: []
+                                        children: []
+                                        questionGroup:
+                                          - A1
+                                        questionType: auto
+                                        modeOfCollection: onfield
+                                        usedForScoring: ''
+                                        file:
+                                          required: true
+                                          type:
+                                            - image/jpeg
+                                            - docx
+                                            - pdf
+                                            - ppt
+                                          minCount: 0
+                                          maxCount: 10
+                                          caption: 'FALSE'
+                                        fileName: []
+                                        validation:
+                                          required: true
+                                        accessibility: 'No'
+                                        canBeNotApplicable: 'false'
+                                        instanceQuestions: []
+                                        isAGeneralQuestion: false
+                                        autoCapture: false
+                                        rubricLevel: ''
+                                        sectionHeader: header section 1
+                                        allowAudioRecording: false
+                                        page: p2
+                                        questionNumber: '3'
+                                        prefillFromEntityProfile: false
+                                        entityFieldName: ''
+                                        isEditable: true
+                                        showQuestionInPreview: false
+                                        deleted: false
+                                        updatedAt: '2025-05-15T07:19:12.263Z'
+                                        createdAt: '2025-05-15T07:19:12.263Z'
+                                        __v: 0
+                                        evidenceMethod: SF
+                                        payload:
+                                          criteriaId: 6877a321cbdbfe93c406d988
+                                          responseType: text
+                                          evidenceMethod: SF
+                                          rubricLevel: ''
+                                        startTime: ''
+                                        endTime: ''
+                                        gpsLocation: ''
                                 name: Survey Questions
                             externalId: SF
                             name: Survey And Feedback
@@ -5260,25 +5558,35 @@ paths:
   /v1/solutions/details/:solution-id:
     post:
       tags:
-        - Observation Creation Flow
+        - Solutions
       summary: Details of a specific solution using the solution's id
       requestBody:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "// {\n//     \"role\": \"HM,DEO\",\n//     \"state\":
-                \"5f33c3d85f637784791cd830\",\n//     \"district\":
-                \"1dcbc362-ec4c-4559-9081-e0c2864c2931\",\n//     \"school\":
-                \"c5726207-4f9f-4f45-91f1-3e9e8e84d824\"\n// }\n\n{\n   
-                \"entityType\" : \"state\",\n    \"entityTypeId\" :
-                \"5f32d8228e0dc8312404056e\",\n    \"entities\" : [\n       
-                \"5f33c3d85f637784791cd830\",\n       
-                \"5fd098e2e049735a86b748ac\",\n       
-                \"5fd1b52ab53a6416aaeefc83\",\n       
-                \"5fd1b52ab53a6416aaeefb20\"\n    ],\n    \"role\" :
-                \"BEO,HM\"\n}"
+              type: object
+              properties:
+                entityType:
+                  type: string
+                entityTypeId:
+                  type: string
+                entities:
+                  type: array
+                  items:
+                    type: string
+                role:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  entityType: state
+                  entityTypeId: 5f32d8228e0dc8312404056e
+                  entities:
+                    - 5f33c3d85f637784791cd830
+                    - 5fd098e2e049735a86b748ac
+                    - 5fd1b52ab53a6416aaeefc83
+                    - 5fd1b52ab53a6416aaeefb20
+                  role: BEO,HM
       parameters:
         - name: X-auth-token
           in: header
@@ -5313,6 +5621,8 @@ paths:
                         scoringSystem: null
                         isRubricDriven: false
                         pageHeading: Domains
+                        orgId: blr
+                        tenantId: shikshagraha
                       assessment:
                         name: dev_testing
                         description: dev testing
@@ -5794,7 +6104,7 @@ paths:
   /v1/observations/updateEntities/:observation_id:
     post:
       tags:
-        - Observation Creation Flow
+        - Observation
       summary: API used to add entities to a specific observation
       description: >-
         This API is used to add multiple entities to a specific observation. The
@@ -5851,6 +6161,14 @@ paths:
                           type: string
                         msg:
                           type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required observation id
   /v1/files/preSignedUrls:
     post:
       tags:
@@ -5867,7 +6185,7 @@ paths:
             schema:
               type: string
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   request:
                     5f72f9998925ec7c60f79a91:
@@ -5919,10 +6237,31 @@ paths:
                   status:
                     type: number
                   message:
-                    type: string
-                  result:
-                    type: object
-                    properties: {}
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        location:
+                          type: string
+                        param:
+                          type: string
+                        msg:
+                          type: string
+                      required:
+                        - location
+                        - param
+                        - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: request
+                        msg: request data is required
+                      - location: body
+                        param: ref
+                        msg: required reference type
   /V1/frameworks/uploadThemes/:frameworkExternalID:
     post:
       summary: ' Upload Themes For Frameworks'
@@ -5935,7 +6274,7 @@ paths:
         relevant areas of the framework.
       operationId: ''
       tags:
-        - Observation Creation Flow
+        - Frameworks
       parameters: []
       requestBody: {}
       responses:
@@ -6028,7 +6367,7 @@ paths:
             schema:
               type: string
             examples:
-              exampleRequestBody:
+              sampleBodyData:
                 value:
                   filePaths:
                     - >-
@@ -6090,6 +6429,20 @@ paths:
                         - location
                         - param
                         - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: filePaths
+                        msg: files data is required
+                      - location: body
+                        param: filePaths
+                        msg: files should be an array
+                      - location: body
+                        param: filePaths
+                        msg: files array should not be empty
   /v1/userExtension/bulkUpload:
     post:
       tags:
@@ -6181,9 +6534,176 @@ paths:
                           type: string
                         msg:
                           type: string
-                      required:
-                        - location
-                        - param
-                        - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: body
+                        param: userRoles
+                        msg: CSV file (userRoles) is required
+  /survey/health:
+    get:
+      summary: >-
+        Performs a complete health scan including core and downstream
+        microservices.
+      description: >-
+        This API is used to verify the health status of the Samiksha Service and
+        its dependencies. 
+
+        * The API Endpoint for health check is /survey/health
+
+        * It is mandatory to provide values for parameters that are marked as
+        `required`
+
+        * This is a mandatory parameter and cannot be empty or null
+      operationId: ''
+      tags:
+        - healthCheck
+      parameters: []
+      responses:
+        '200':
+          description: Success Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  ver:
+                    type: string
+                  ts:
+                    type: string
+                  params:
+                    type: object
+                    properties:
+                      resmsgid:
+                        type: string
+                      msgid:
+                        type: string
+                      status:
+                        type: string
+                      err:
+                        type: 'null'
+                      errMsg:
+                        type: 'null'
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      version:
+                        type: string
+                      healthy:
+                        type: boolean
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            healthy:
+                              type: boolean
+                            err:
+                              type: string
+                            errMsg:
+                              type: string
+                          required:
+                            - name
+                            - healthy
+                            - err
+                            - errMsg
+              examples:
+                Success Response:
+                  value:
+                    id: service.health.api
+                    ver: '1.0'
+                    ts: '2025-07-18T07:18:09.146Z'
+                    params:
+                      resmsgid: 5b54d5a0-63a7-11f0-aedd-93a691a3d737
+                      msgid: 5b54d5a1-63a7-11f0-aedd-93a691a3d737
+                      status: successful
+                      err: null
+                      errMsg: null
+                    status: 200
+                    result:
+                      name: project
+                      version: 1.0.0
+                      healthy: true
+                      checks:
+                        - name: mongodb
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+                        - name: Kafka
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+                        - name: gotenberg
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+                        - name: SamikshaService
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+                        - name: EntityManagementService
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+                        - name: UserService
+                          healthy: true
+                          err: ''
+                          errMsg: ''
+        '400':
+          description: bad request
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  ver:
+                    type: string
+                  ts:
+                    type: string
+                  params:
+                    type: object
+                    properties:
+                      resmsgid:
+                        type: string
+                      msgid:
+                        type: string
+                      status:
+                        type: string
+                      err:
+                        type: string
+                      errMsg:
+                        type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties: {}
+              examples:
+                Failure Response:
+                  value:
+                    id: entityManagementService.Health.API
+                    ver: '1.0'
+                    ts: '2025-07-18T04:43:35.352Z'
+                    params:
+                      resmsgid: c3b82b80-6391-11f0-9617-d554ca31487a
+                      msgid: c3b82b81-6391-11f0-9617-d554ca31487a
+                      status: failed
+                      err: CONFIG_VALIDATION_ERROR
+                      errMsg: 'Missing ''url'' for enabled service: mongodb'
+                    status: 400
+                    result: {}
 components:
   securitySchemes: {}
