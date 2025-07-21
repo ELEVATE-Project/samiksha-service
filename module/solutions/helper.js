@@ -189,7 +189,8 @@ module.exports = class SolutionsHelper {
             solutionData.programId,
             solutionCreation._id,
             solutionData.scope ? solutionData.scope : {},
-            userDetails
+            userDetails,
+            solutionCreation
           );
         }
 
@@ -750,7 +751,7 @@ module.exports = class SolutionsHelper {
         // Getting program documents
         let programData;
         if (programId) {
-           if(solutionDocument.isExternalProgram){
+           if(solutionDocument?.isExternalProgram){
             programData = await projectService.programDetails(userDetails.userToken, programId, userDetails,userDetails.tenantAndOrgInfo);
             if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
               throw {
@@ -2219,7 +2220,9 @@ module.exports = class SolutionsHelper {
             };
           }
         }
-
+        // Generate link for each domain
+        let links
+        if(solution.type !== messageConstants.common.COURSE) {
         // fetch tenant domain by calling  tenant details API
         let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
         const domains = tenantDetailsResponse?.data?.domains || [];
@@ -2235,7 +2238,7 @@ module.exports = class SolutionsHelper {
         let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
 
         // Generate link for each domain
-        let links = allDomains.map((domain) => {
+         links = allDomains.map((domain) => {
           return _generateLink(
             `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
             prefix,
@@ -2243,6 +2246,9 @@ module.exports = class SolutionsHelper {
             solutionData[0].type
           );
         });
+      }else {
+        links = [solution.link]
+      }
 
         return resolve({
           success: true,
@@ -4307,6 +4313,8 @@ function _generateLink(appsPortalBaseUrl, prefix, solutionLink, solutionType) {
     case messageConstants.common.IMPROVEMENT_PROJECT:
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_PROJECT + solutionLink;
       break;
+    case messageConstants.common.COURSE:
+      link = solutionLink
     default:
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_SURVEY + solutionLink;
   }
