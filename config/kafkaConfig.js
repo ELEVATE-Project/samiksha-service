@@ -3,6 +3,7 @@ const kafka = require('kafka-node');
 const USER_DELETE_TOPIC = process.env.USER_DELETE_TOPIC;
 const USER_DELETE_ON_OFF = process.env.USER_DELETE_ON_OFF
 const SUBMISSION_RATING_QUEUE_TOPIC = process.env.SUBMISSION_RATING_QUEUE_TOPIC
+const COURSES_TOPIC = process.env.USER_COURSES_SUBMISSION_TOPIC;
 
 var connect = function (config) {
   Producer = kafka.Producer;
@@ -30,6 +31,8 @@ var connect = function (config) {
   if(USER_DELETE_ON_OFF !== "OFF") {
     _sendToKafkaConsumers(USER_DELETE_TOPIC, process.env.KAFKA_URL)
   }
+
+  _sendToKafkaConsumers(COURSES_TOPIC, process.env.KAFKA_URL)
 
   return {
     kafkaProducer: producer,
@@ -69,6 +72,10 @@ var _sendToKafkaConsumers = function (topic, host) {
       // call userDelete consumer
       if (message && message.topic === USER_DELETE_TOPIC) {
         userDeleteConsumer.messageReceived(message);
+      }
+       // call userCourses consumer
+       if (message && message.topic === COURSES_TOPIC) {
+        userCoursesConsumer.messageReceived(message);
       }
     });
 

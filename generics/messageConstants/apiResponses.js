@@ -444,4 +444,7 @@ module.exports = {
 	UPDATE_OBJECT_SUCCESSFULLY: 'Successfully generate update object',
   SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'This solution is not allowed to be consumed privately',
   PROJECT_TEMPLATE_NOT_FOUND: 'Project templates not found',
+  USER_COURSES_NOT_CREATED: 'User course not created',
+  USER_COURSES_NOT_UPDATED: 'User course not updated',
+
 };
