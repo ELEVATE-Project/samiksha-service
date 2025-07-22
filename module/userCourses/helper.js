@@ -72,6 +72,7 @@ module.exports = class UserCoursesHelper {
           status: userCoursesData.status,
           tenantId: userCoursesData.tenant_code,
           orgId: userCoursesData.organization_id,
+          ...(userCoursesData.status.toLowerCase() === messageConstants.common.SUBMISSION_STATUS_COMPLETED&& { completedAt: timestamp })
         });
 
         if (!createOrUpdateCourse || !createOrUpdateCourse._id) {
