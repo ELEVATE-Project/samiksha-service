@@ -49,13 +49,45 @@ servers:
   - url: http://{{SamikshaUrl}}
 tags:
   - name: Observation
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Survey
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Solutions
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Program
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Admin
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: surveySubmissions
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Questions
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Report
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: observationSubmissions
     description: ''
     externalDocs:
@@ -109,6 +141,7 @@ paths:
             and permissions.
       responses:
         '200':
+          description: Success response
           headers: {}
           content:
             text:
@@ -180,11 +213,6 @@ paths:
               example:
                 message: Framework inserted successfully.
                 status: 200
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Framework inserted successfully.
-                    status: 200
         '400':
           description: Failure response
           headers: {}
@@ -1356,11 +1384,6 @@ paths:
                     startDate: '2023-08-28T09:37:25.313Z'
                     endDate: '2024-08-28T09:37:25.686Z'
                     solutionId: 64ec693ae67838d0267c7e88
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Observation submission updated successfully
-                    status: 200
         '400':
           description: Failure response
           headers: {}
@@ -2143,6 +2166,19 @@ paths:
           schema:
             type: string
           example: '{{token}}'
+        - in: header
+          name: "admin-auth-token\t"
+          description: "Admin-specific auth token"
+          schema: &ref_0
+            type: string
+        - in: header
+          name: tenantId
+          description: "Tenant identifier"
+          schema: *ref_0
+        - in: header
+          name: orgId
+          description: "Organization ID"
+          schema: *ref_0
       responses:
         '200':
           description: Success response
@@ -2195,12 +2231,10 @@ paths:
                       properties:
                         externalId:
                           type: string
-                        tip:
-                          type: 'null'
                         name:
                           type: string
                         description:
-                          type: 'null'
+                          type: string
                         modeOfCollection:
                           type: string
                         canBeNotApplicable:
@@ -2210,7 +2244,7 @@ paths:
                         canBeNotAllowed:
                           type: boolean
                         remarks:
-                          type: 'null'
+                          type: string
                 sections:
                   type: object
                   properties:
@@ -4492,11 +4526,6 @@ paths:
                           submissionDate: '2024-08-12T07:04:18.913Z'
                           isValid: true
                       hasConflicts: false
-              examples:
-                SuccessResponse:
-                  value:
-                    status: 200
-                    message: Survey submission created successfully
         '400':
           description: Failure response
           headers: {}
@@ -4559,13 +4588,6 @@ paths:
                 status: 200
                 result:
                   status: completed
-              examples:
-                SuccessResponse:
-                  value:
-                    status: 200
-                    message: Submission status fetched successfully
-                    result:
-                      status: completed
         '400':
           description: Failure response
           headers: {}
@@ -4612,7 +4634,6 @@ paths:
       tags:
         - surveySubmissions
       summary: Fetches list of survey submissions done by user
-      requestBody: {}
       parameters:
         - name: X-auth-token
           in: header
@@ -4845,7 +4866,6 @@ paths:
         submissionId passed in the query parameters. It provides insights and
         data regarding the responses submitted for a specific survey or
         observation.
-      requestBody: {}
       parameters:
         - name: x-auth-token
           in: header
@@ -6276,7 +6296,6 @@ paths:
       tags:
         - Frameworks
       parameters: []
-      requestBody: {}
       responses:
         '200':
           description: success response
@@ -6585,9 +6604,9 @@ paths:
                       status:
                         type: string
                       err:
-                        type: 'null'
+                        type: string
                       errMsg:
-                        type: 'null'
+                        type: string
                   status:
                     type: number
                   result:
