@@ -22,15 +22,15 @@ module.exports = class UserCoursesHelper {
       let coursesfilter = {
         solutionId: new ObjectId(userCoursesData.entityId),
         userId: userCoursesData.userId,
-        tenantId: userCoursesData.tenantId,
+        tenantId: userCoursesData.tenant_code,
       };
       // Check for solutions in solutionDocuments
       let solutionDocument = await solutionsQueries.solutionDocuments({
         _id: new ObjectId(userCoursesData.entityId),
-        tenantId: userCoursesData.tenantId,
+        tenantId: userCoursesData.tenant_code,
         type: userCoursesData.type,
         isDeleted: false,
-        status:{$ne:messageConstants.COMMON.INACTIVE_STATUS}
+        status:{$ne:messageConstants.common.INACTIVE_STATUS}
       });
 
       if (!solutionDocument || !solutionDocument.length > 0) {
@@ -70,9 +70,7 @@ module.exports = class UserCoursesHelper {
           solutionId: new ObjectId(userCoursesData.entityId),
           userId: userCoursesData.userId,
           status: userCoursesData.status,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-          tenantId: userCoursesData.tenantId,
+          tenantId: userCoursesData.tenant_code,
           orgId: userCoursesData.organization_id,
         });
 
