@@ -29,6 +29,8 @@ module.exports = class UserCoursesHelper {
         _id: new ObjectId(userCoursesData.entityId),
         tenantId: userCoursesData.tenantId,
         type: userCoursesData.type,
+        isDeleted: false,
+        status:{$ne:messageConstants.COMMON.INACTIVE_STATUS}
       });
 
       if (!solutionDocument || !solutionDocument.length > 0) {
@@ -72,9 +74,6 @@ module.exports = class UserCoursesHelper {
           updatedAt: timestamp,
           tenantId: userCoursesData.tenantId,
           orgId: userCoursesData.organization_id,
-          programId: solutionDocument.programId,
-          programExternalId: solutionDocument.programExternalId,
-          isExternalProgram: solutionDocument.isExternalProgram,
         });
 
         if (!createOrUpdateCourse || !createOrUpdateCourse._id) {

@@ -2222,32 +2222,32 @@ module.exports = class SolutionsHelper {
         }
         // Generate link for each domain
         let links
-        if(solution.type !== messageConstants.common.COURSE) {
-        // fetch tenant domain by calling  tenant details API
-        let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
-        const domains = tenantDetailsResponse?.data?.domains || [];
-        // Error handling if API failed or no domains found
-        if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
-          throw {
-            status: httpStatusCode.bad_request.status,
-            message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
-          };
-        }
-
-        // Collect all verified domains into an array
-        let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
-
-        // Generate link for each domain
-         links = allDomains.map((domain) => {
-          return _generateLink(
-            `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
-            prefix,
-            solutionLink,
-            solutionData[0].type
-          );
-        });
-      }else {
-        links = [solution.link]
+        if (solution.type === messageConstants.common.COURSE) {
+          links = [solution.link]
+        } else {
+           // fetch tenant domain by calling  tenant details API
+           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
+           const domains = tenantDetailsResponse?.data?.domains || [];
+           // Error handling if API failed or no domains found
+           if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
+             throw {
+               status: httpStatusCode.bad_request.status,
+               message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
+             };
+           }
+   
+           // Collect all verified domains into an array
+           let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
+   
+           // Generate link for each domain
+            links = allDomains.map((domain) => {
+             return _generateLink(
+               `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
+               prefix,
+               solutionLink,
+               solutionData[0].type
+             );
+           });
       }
 
         return resolve({

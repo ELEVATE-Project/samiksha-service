@@ -13,19 +13,6 @@ module.exports = {
         index: true,
         required: true,
       },
-      programId: {
-        type: 'ObjectId',
-        index: true,
-      },
-      programExternalId: {
-        type: String,
-        index: true,
-      },
-      isAPrivateProgram: {
-        default: false,
-        type: Boolean,
-      },
-      programInformation: Object,
       orgId: {
         type: String,
         require: true,
@@ -36,12 +23,7 @@ module.exports = {
         require: true,
         index: true,
       },
-      project: Object,
-      referenceFrom: String,
-      isExternalProgram:{
-        default : false,
-        type : Boolean
-      }
+    
     },
     compoundIndex: [
       {
