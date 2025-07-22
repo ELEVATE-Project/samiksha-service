@@ -50,7 +50,7 @@ module.exports = class UserCoursesHelper {
         let updateCourseData = {
           status: userCoursesData.status,
           updatedAt: timestamp,
-          ...(userCoursesData.status.toLowerCase() === 'completed' && { completedAt: timestamp }),
+          ...(userCoursesData.status.toLowerCase() === messageConstants.common.SUBMISSION_STATUS_COMPLETED && { completedAt: timestamp }),
         };
 
         let updateObject = { $set: updateCourseData };

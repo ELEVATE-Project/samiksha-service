@@ -1,12 +1,12 @@
 /**
- * name : CriteriaQuestionsController.js
- * author : Akash
- * created-date : 22-Nov-2018
- * Description : Criteria Questions.
+ * name : userCoursesController.js
+ * author : PraveenDass
+ * created-date : 22-Jul-2025
+ * Description : userCourses 
  */
 
 /**
- * CriteriaQuestions
+ * userCourses
  * @class
  */
 module.exports = class UserCourses extends Abstract {

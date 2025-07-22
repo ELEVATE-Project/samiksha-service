@@ -1,13 +1,13 @@
 /**
- * name : userDeleteConsumer.js
+ * name : userCoursesConsumer.js
  * author : PraveenDass
- * created-date : 27-May-2025
+ * created-date : 22-Jul-2025
  * Description : User courses consumer.
  */
 const userCoursesHelper = require(MODULES_BASE_PATH + '/userCourses/helper');
 
 /**
- * user delete consumer message received.
+ * user Courses consumer message received.
  * @function
  * @name messageReceived
  * @param {Object} message - consumer data
@@ -16,7 +16,7 @@ const userCoursesHelper = require(MODULES_BASE_PATH + '/userCourses/helper');
  *   key:null
  *   offset:62
  *   partition:0
- *   topic:'user_courses'
+ *   topic:'elevate-user-courses-dev'
  *   value:{
         type: "course",
         eventType: "update",
