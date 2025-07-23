@@ -221,7 +221,11 @@ module.exports = class ProgramsHelper {
         data.updatedAt = new Date();
         //convert components to objectedIds
         if (data.components && data.components.length > 0) {
-          data.components = data.components.map((component) => gen.utils.convertStringToObjectId(component));
+          const componentsWithOrder = components.filter(c => c._id && c.hasOwnProperty('order'));
+          data.components = data.components.map((component) => {
+
+            return {...component,id:gen.utils.convertStringToObjectId(component.id)}
+          });
         }
 
         // Updating start and end date

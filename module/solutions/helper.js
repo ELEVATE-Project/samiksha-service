@@ -71,7 +71,8 @@ module.exports = class SolutionsHelper {
               'scope',
               'endDate',
               'startDate',
-              "externalId"
+              "externalId",
+              "components"
             ]);
             if (!programData.length) {
               throw {
@@ -177,9 +178,10 @@ module.exports = class SolutionsHelper {
 
         if (solutionData.programExternalId) {
           if (!solutionData?.isExternalProgram) {
+            let currentComponents = programData[0]?.components || [];
             await programsQueries.findOneAndUpdate(
               { _id: solutionData.programId },
-              { $addToSet: { components: solutionCreation._id } }
+              { $addToSet: { components: {id:solutionCreation._id,order:currentComponents.length+1} } }
             );
           }
         }
