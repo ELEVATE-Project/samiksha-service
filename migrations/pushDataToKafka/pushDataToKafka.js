@@ -7,6 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') })
 // Parse command-line arguments
 const args = minimist(process.argv.slice(2));
 
+// Read CLI arguments
 const DOMAIN       = args.domain || null
 const ORIGIN       = args.origin || null
 const IDENTIFIER   = args.email || null
@@ -16,6 +17,8 @@ const MODE         = args.mode || "both"
 const PROGRAM_ID   = args.programId || null
 const SOLUTION_ID  = args.solutionId || null
 const DATE         = args.date || null
+
+// Constant values for endpoints and collection names
 const COMPLETED = "completed"
 const completedObservationsPushEndpoint = "/survey/v1/observationSubmissions/pushCompletedObservationSubmissionForReporting"
 const inCompletedObservationsPushEndpoint = "/survey/v1/observationSubmissions/pushInCompleteObservationSubmissionForReporting"
@@ -24,15 +27,18 @@ const inCompletedSurveyPushEndpoint = "/survey/v1/surveySubmissions/pushInComple
 const observationSubmissionCollectionName = "observationSubmissions"
 const surveySubmissionCollectionName = "surveySubmissions"
 
+// Validate required CLI arguments
 if (!DOMAIN || !ORIGIN || !IDENTIFIER || !PASSWORD) {
 	console.error('Usage: node pushDataToKafka.js <domain> <origin> <identifier> <password>')
 	process.exit(1)
 }
 
+// Utility to delay execution for throttling
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+// Login and fetch user token
 async function loginAndGetToken() {
 	try {
 		const response = await axios.post(
@@ -56,6 +62,7 @@ async function loginAndGetToken() {
 	}
 }
 
+// Fetch documents based on collection name and filters
 async function fetchResourceIds(token, collectionName) {
 	try {
         let query = {
@@ -63,12 +70,15 @@ async function fetchResourceIds(token, collectionName) {
 		}
 		if(PROGRAM_ID) query["programId"] = PROGRAM_ID
 		if(SOLUTION_ID) query["solutionId"] = SOLUTION_ID
+
+		// Filter by createdAt date if provided
 		if (DATE) {
 			const parsedDate = new Date(DATE)
 			if (!isNaN(parsedDate)) {
 			  query["createdAt"] = { $gte: parsedDate }
 			}
 		}
+
 		const response = await axios.post(
 			`${DOMAIN}/survey/v1/admin/dbFind/${collectionName}`,
 			{
@@ -91,6 +101,7 @@ async function fetchResourceIds(token, collectionName) {
 	}
 }
 
+// Push completed survey submission
 async function pushCompletedSurveySubmissionToKafka(id, token){
     try{
         const response = await axios.post(
@@ -110,6 +121,7 @@ async function pushCompletedSurveySubmissionToKafka(id, token){
     }
 }
 
+// Push incomplete survey submission
 async function pushInCompletedSurveySubmissionToKafka(id, token){
     try{
         const response = await axios.post(
@@ -129,6 +141,7 @@ async function pushInCompletedSurveySubmissionToKafka(id, token){
     }
 }
 
+// Push completed observation submission
 async function pushCompletedObservationSubmissionToKafka(id, token){
     try{
         const response = await axios.post(
@@ -148,6 +161,7 @@ async function pushCompletedObservationSubmissionToKafka(id, token){
     }
 }
 
+// Push incomplete observation submission
 async function pushInCompletedObservationSubmissionToKafka(id, token){
     try{
         const response = await axios.post(
@@ -167,6 +181,7 @@ async function pushInCompletedObservationSubmissionToKafka(id, token){
     }
 }
 
+// Wrapper to push completed resources by type
 async function pushCompletedResourcesToKafka(id, token, collection) {
 	try {
         switch(collection){
@@ -183,6 +198,7 @@ async function pushCompletedResourcesToKafka(id, token, collection) {
 	}
 }
 
+// Wrapper to push incomplete resources by type
 async function pushInCompletedResourcesToKafka(id, token, collection) {
 	try {
         switch(collection){
@@ -199,6 +215,7 @@ async function pushInCompletedResourcesToKafka(id, token, collection) {
 	}
 }
 
+// Separate completed and incomplete resources
 function separateCompletedAndInCompletedResources(docs){
     let completedResources = []
     let inCompletedResources = []
@@ -210,6 +227,7 @@ function separateCompletedAndInCompletedResources(docs){
     return {completedResources, inCompletedResources}
 }
 
+// Handle pushing survey submissions in chunks
 async function pushSurveySubmissions(token) {
     try{
         const surveyDocs = await fetchResourceIds(token, surveySubmissionCollectionName)
@@ -217,7 +235,7 @@ async function pushSurveySubmissions(token) {
         const completedSurveyChunks = _.chunk(completedResources, 5)
         const inCompletedSurveyChunks = _.chunk(inCompletedResources, 5)
 
-        // Handle Completed Survey Submissions
+        // Push completed surveys
 		for (let i = 0; i < completedSurveyChunks.length; i++) {
 			const chunk = completedSurveyChunks[i]
 			console.log(`[Processing] Chunk ${i + 1} of ${completedSurveyChunks.length}`)
@@ -226,11 +244,11 @@ async function pushSurveySubmissions(token) {
 			// Wait 3 seconds before the next chunk
 			if (i < completedSurveyChunks.length - 1) {
 				console.log(`[Waiting] Delaying before next chunk...`)
-				await delay(3000) // delay in milliseconds
+				await delay(3000)
 			}
 		}
 
-        // Handle InCompleted Survey Submissions
+        // Push incomplete surveys
 		for (let i = 0; i < inCompletedSurveyChunks.length; i++) {
 			const chunk = inCompletedSurveyChunks[i]
 			console.log(`[Processing] Chunk ${i + 1} of ${inCompletedSurveyChunks.length}`)
@@ -239,7 +257,7 @@ async function pushSurveySubmissions(token) {
 			// Wait 3 seconds before the next chunk
 			if (i < inCompletedSurveyChunks.length - 1) {
 				console.log(`[Waiting] Delaying before next chunk...`)
-				await delay(3000) // delay in milliseconds
+				await delay(3000)
 			}
 		}
     }
@@ -248,6 +266,7 @@ async function pushSurveySubmissions(token) {
     }
 }
 
+// Handle pushing observation submissions in chunks
 async function pushObservationSubmissions(token) {
     try{
         const observationDocs = await fetchResourceIds(token, observationSubmissionCollectionName)
@@ -255,7 +274,7 @@ async function pushObservationSubmissions(token) {
         const completedObservationChunks = _.chunk(completedResources, 5)
         const inCompletedObservationChunks = _.chunk(inCompletedResources, 5)
 
-        // Handle Completed Observation Submissions
+        // Push completed observations
 		for (let i = 0; i < completedObservationChunks.length; i++) {
 			const chunk = completedObservationChunks[i]
 			console.log(`[Processing] Chunk ${i + 1} of ${completedObservationChunks.length}`)
@@ -264,11 +283,11 @@ async function pushObservationSubmissions(token) {
 			// Wait 3 seconds before the next chunk
 			if (i < completedObservationChunks.length - 1) {
 				console.log(`[Waiting] Delaying before next chunk...`)
-				await delay(3000) // delay in milliseconds
+				await delay(3000)
 			}
 		}
 
-        // Handle InCompleted Observation Submissions
+        // Push incomplete observations
 		for (let i = 0; i < inCompletedObservationChunks.length; i++) {
 			const chunk = inCompletedObservationChunks[i]
 			console.log(`[Processing] Chunk ${i + 1} of ${inCompletedObservationChunks.length}`)
@@ -277,7 +296,7 @@ async function pushObservationSubmissions(token) {
 			// Wait 3 seconds before the next chunk
 			if (i < inCompletedObservationChunks.length - 1) {
 				console.log(`[Waiting] Delaying before next chunk...`)
-				await delay(3000) // delay in milliseconds
+				await delay(3000)
 			}
 		}
     }
@@ -286,6 +305,7 @@ async function pushObservationSubmissions(token) {
     }    
 }
 
+// Main execution block
 ;(async () => {
 	try {
 		const token = await loginAndGetToken()
@@ -301,7 +321,6 @@ async function pushObservationSubmissions(token) {
 })()
 
 // Examplar command to run the script
-
 /* 
 	node pushDataToKafka.js \
 	--domain=http://localhost:6000 \
