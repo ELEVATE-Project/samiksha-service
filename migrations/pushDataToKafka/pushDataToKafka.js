@@ -1,15 +1,21 @@
 const axios = require('axios')
 const path = require('path')
 const _ = require('lodash')
+const minimist = require('minimist');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') })
 
-// Command-line args
-const args = process.argv.slice(2)
-const DOMAIN = args[0] // e.g., https://saas-qa.tekdinext.com
-const ORIGIN = args[1] // e.g., default-qa.tekdinext.com
-const IDENTIFIER = args[2] // e.g., nevil@tunerlabs.com
-const PASSWORD = args[3] // e.g., your password
-const LIMIT = isNaN(parseInt(args[4])) ? 10 : parseInt(args[4])
+// Parse command-line arguments
+const args = minimist(process.argv.slice(2));
+
+const DOMAIN       = args.domain || null
+const ORIGIN       = args.origin || null
+const IDENTIFIER   = args.email || null
+const PASSWORD     = args.password || null
+const LIMIT        = isNaN(parseInt(args.limit)) ? 10 : parseInt(args.limit);
+const MODE         = args.mode || "both"
+const PROGRAM_ID   = args.programId || null
+const SOLUTION_ID  = args.solutionId || null
+const DATE         = args.date || null
 const COMPLETED = "completed"
 const completedObservationsPushEndpoint = "/survey/v1/observationSubmissions/pushCompletedObservationSubmissionForReporting"
 const inCompletedObservationsPushEndpoint = "/survey/v1/observationSubmissions/pushInCompleteObservationSubmissionForReporting"
@@ -19,7 +25,7 @@ const observationSubmissionCollectionName = "observationSubmissions"
 const surveySubmissionCollectionName = "surveySubmissions"
 
 if (!DOMAIN || !ORIGIN || !IDENTIFIER || !PASSWORD) {
-	console.error('Usage: node pushProjectToKafka.js <domain> <origin> <identifier> <password>')
+	console.error('Usage: node pushDataToKafka.js <domain> <origin> <identifier> <password>')
 	process.exit(1)
 }
 
@@ -52,11 +58,21 @@ async function loginAndGetToken() {
 
 async function fetchResourceIds(token, collectionName) {
 	try {
-        console.log(`${DOMAIN}/survey/v1/admin/dbFind/${collectionName}`)
+        let query = {
+			"deleted" : false
+		}
+		if(PROGRAM_ID) query["programId"] = PROGRAM_ID
+		if(SOLUTION_ID) query["solutionId"] = SOLUTION_ID
+		if (DATE) {
+			const parsedDate = new Date(DATE)
+			if (!isNaN(parsedDate)) {
+			  query["createdAt"] = { $gte: parsedDate }
+			}
+		}
 		const response = await axios.post(
 			`${DOMAIN}/survey/v1/admin/dbFind/${collectionName}`,
 			{
-				query: {"deleted" : false},
+				query,
 				projection: ['_id', 'status'],
 				limit: LIMIT,
 			},
@@ -275,12 +291,26 @@ async function pushObservationSubmissions(token) {
 		const token = await loginAndGetToken()
 		console.log('[Info] Logged in successfully.')
 
-        await pushSurveySubmissions(token)
-        await pushObservationSubmissions(token)
+		if(MODE === 'survey' || MODE === 'both') await pushSurveySubmissions(token)
+		if(MODE === 'observation' || MODE === 'both') await pushObservationSubmissions(token)
 		
-		console.log(`[Done] All survey and observation submissions processed.`)
+		console.log(`[Done] All submissions processed.`)
 	} catch (error) {
 		console.error('[Error] Script execution failed:', error.message)
 	}
 })()
-// command sample : node pushProjectsToKafka.js   https://saas-qa.tekdinext.com   default-qa.tekdinext.com   nevil@tunerlabs.com   'PASSword###11'
+
+// Examplar command to run the script
+
+/* 
+	node pushDataToKafka.js \
+	--domain=http://localhost:6000 \
+	--origin=localhost \
+	--email=user@example.com \
+	--password=pass123 \
+	--limit=10 \
+	--mode=survey \
+	--programId=prog123 \
+	--solutionId=sol456 \
+	--date=2025-01-01
+*/
