@@ -456,7 +456,7 @@ module.exports = class UserHelper {
           {
             _id: programId,
           },
-          ['name', 'requestForPIIConsent', 'rootOrganisations', 'endDate', 'description']
+          ['name', 'requestForPIIConsent', 'rootOrganisations', 'endDate', 'description','components']
         );
 
         if (!programData.length > 0) {
@@ -633,6 +633,13 @@ module.exports = class UserHelper {
         };
         if (programData[0].hasOwnProperty('requestForPIIConsent')) {
           result.requestForPIIConsent = programData[0].requestForPIIConsent;
+        }
+
+        let components = programData[0].components || [];
+
+        if (components.length > 0) {
+        //order solutions based on components order
+        console.log(result,'result')
         }
 
         return resolve({

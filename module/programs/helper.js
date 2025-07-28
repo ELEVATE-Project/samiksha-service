@@ -221,10 +221,10 @@ module.exports = class ProgramsHelper {
         data.updatedAt = new Date();
         //convert components to objectedIds
         if (data.components && data.components.length > 0) {
-          const componentsWithOrder = components.filter(c => c._id && c.hasOwnProperty('order'));
+          const componentsWithOrder = data.components.filter(c => c._id && c.hasOwnProperty('order'));
           data.components = componentsWithOrder.map((component) => {
 
-            return {...component,id:gen.utils.convertStringToObjectId(component.id)}
+            return {...component,_id:gen.utils.convertStringToObjectId(component._id)}
           });
         }
 
@@ -237,42 +237,52 @@ module.exports = class ProgramsHelper {
             data.startDate = gen.utils.getStartDate(data.startDate, timeZoneDifference);
           }
         }
-
-        if(data.components && data.components.length > 0) {
+        if(data.components) {
           let programDocumentRecord = await programsQueries.programDocuments({ _id: programId }, ['components']);
-
+        
           if (!programDocumentRecord[0]) {
-            throw {
-              message: messageConstants.apiResponses.PROGRAM_NOT_UPDATED,
-            };
+              throw {
+                  message: messageConstants.apiResponses.PROGRAM_NOT_UPDATED,
+              };
           }
-
-          let currentComponents = programDocumentRecord[0].components || [];
-          let toBeUpdatedComponentOrder = data.components;
-
-          for(let component of toBeUpdatedComponentOrder) {
-            let componentIndex = currentComponents.findIndex(c => c._id.toString() === component._id.toString());
-            if(componentIndex !== -1) {
-              currentComponents[componentIndex].order = component.order;
-            }
+        
+          let currentComponents = [...programDocumentRecord[0].components] || []; // Create a copy
+          
+          // Process each component in data.components
+          for(let component of data.components) {
+              let componentIndex = currentComponents.findIndex(c => c._id.toString() === component._id.toString());
+              
+              if(componentIndex !== -1) {
+                  // Update existing component's order (preserve other fields)
+                  currentComponents[componentIndex] = {
+                      ...currentComponents[componentIndex], // Keep existing fields
+                      order: component.order // Update only the order
+                  };
+              } else {
+                  // Add new component only if it's valid
+                  currentComponents.push({
+                      _id: component._id,
+                      order: component.order
+                  });
+              }
           }
-
-          let onlyOrderOfUpdateReadyComponents = currentComponents.map(component => {
-            return component.order;
-          })
-
-          const hasDuplicates = _.uniq(onlyOrderOfUpdateReadyComponents).length !== onlyOrderOfUpdateReadyComponents.length;
-
-          console.log(hasDuplicates); // true
-
-          if( hasDuplicates) {
-            throw {
-              message: messageConstants.apiResponses.COMPONENT_ORDER_DUPLICATE,
-              status: httpStatusCode.bad_request.status
-            };
+          
+          // Check for duplicate orders
+          let orderValues = currentComponents.map(component => component.order);
+          const hasDuplicateOrders = _.uniq(orderValues).length !== orderValues.length;
+          
+          if(hasDuplicateOrders) {
+              throw {
+                  message: messageConstants.apiResponses.COMPONENT_ORDER_DUPLICATE,
+                  status: httpStatusCode.bad_request.status
+              };
           }
+          
+          // Save currentComponents back to the database
+          data.components = currentComponents;
+      }
+      
 
-        }
 
         //Find and update the program Document
         let program = await programsQueries.findOneAndUpdate(
