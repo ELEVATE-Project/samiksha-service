@@ -24,7 +24,7 @@ const fs = require('fs');
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-
+const projectService = require(ROOT_PATH + '/generics/services/project')
 
 /**
  * UserHelper
@@ -449,9 +449,10 @@ module.exports = class UserHelper {
    * @returns {Object} targeted user solutions.
    */
 
-  static solutions(programId, requestedData, pageSize, pageNo, search, userId, type) {
+  static solutions(programId, requestedData, pageSize, pageNo, search, userDetails,type) {
     return new Promise(async (resolve, reject) => {
       try {
+        let {userId, userToken,tenantData} = userDetails;
         let programData = await programsQueries.programDocuments(
           {
             _id: programId,
@@ -460,6 +461,16 @@ module.exports = class UserHelper {
         );
 
         if (!programData.length > 0) {
+          programData = await projectService.programDetails(
+            userToken,
+            programId,
+            userDetails,
+            tenantData
+          );
+          programData = programData?.result ? [programData.result] : [];
+        }
+        
+        if(!programData.length > 0){
           return resolve({
             status: httpStatusCode['bad_request'].status,
             message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
