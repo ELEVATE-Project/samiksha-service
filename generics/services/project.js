@@ -5,6 +5,7 @@
  * Description : Projcet service related information.
  */
 
+const { header } = require('express-validator/check');
 const request = require('request');
 const projectServiceUrl = process.env.IMPROVEMENT_PROJECT_BASE_URL;
 
@@ -268,9 +269,64 @@ const pushSubmissionToTask = function (projectId, taskId, reqBody) {
   });
 };
 
+
+/**
+ * @function pullSolutionIdFromProgram
+ * @description Sends a POST request to the project service to remove the given solutionId
+ *              from all program components that reference it.
+ *
+ * @param {String} solutionId - The ID of the solution to be pulled (removed) from programs.
+ * @returns {Promise<Object>} - Resolves with success status and message from the project service.
+ */
+const pullSolutionIdFromProgram = function (solutionId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.PULL_SOLUTION_ID_FROM_PROGRAM}${solutionId}`;
+
+      // Set the options for the HTTP GET request
+      let options = {
+				headers: {
+					'content-type': 'application/json',
+					'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,		
+				},
+			}	      
+      request.post(url, options, pullSolutionFromProgram);
+      let result = {
+        success: true,
+      };      
+      // Handle callback fucntion
+      function pullSolutionFromProgram(err, data) {
+        if (err) {          
+          result.success = false;
+        } else {
+          let response = data.body;  
+          result = JSON.parse(response);                            
+          if (result.status === httpStatusCode['ok'].status) {
+            return resolve(result);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 module.exports = {
   templateLists: templateLists,
   programDetails: programDetails,
   programUpdate: programUpdate,
   pushSubmissionToTask: pushSubmissionToTask,
+  pullSolutionIdFromProgram:pullSolutionIdFromProgram
 };

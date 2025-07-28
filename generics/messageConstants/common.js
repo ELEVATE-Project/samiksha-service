@@ -119,5 +119,7 @@ module.exports = {
   DEFAULT_PROGRAM_USER_MAPPING_TOPIC:'elevate_program_operation',
   DELETE:"DELETE",
   POST:"POST",
-  ALL: 'all'
+  ALL: 'all',
+  PROGRAM_CHECK : 'program',
+  SOLUTION_CHECK : 'solution',
 };

@@ -444,4 +444,7 @@ module.exports = {
 	UPDATE_OBJECT_SUCCESSFULLY: 'Successfully generate update object',
   SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'This solution is not allowed to be consumed privately',
   PROJECT_TEMPLATE_NOT_FOUND: 'Project templates not found',
+  INVALID_RESOURCE_TYPE:'Invalid resource type provided',
+  SOLUTION_RESOURCE_DELETED:'Solution and associated resources deleted successfully',
+  PROGRAM_RESOURCE_DELETED:'Program and associated resources deleted successfully'
 };

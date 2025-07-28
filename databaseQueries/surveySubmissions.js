@@ -110,4 +110,21 @@ module.exports = class SurveySubmissions {
       }
     });
   }
+
+  /**
+	 * Delete surveySubmissions documents based on the provided MongoDB filter.
+	 *entities
+	 * @param {Object} filter - MongoDB query filter to match documents for deletion.
+	 * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
+	 */
+	static removeDocuments(filter) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				let deleteDocuments = await database.models.surveySubmissions.deleteMany(filter)
+				return resolve(deleteDocuments)
+			} catch (error) {
+				return reject(error);
+			}
+		})
+	}
 };
