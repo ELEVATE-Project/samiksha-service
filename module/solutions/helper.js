@@ -87,7 +87,7 @@ module.exports = class SolutionsHelper {
           solutionData.programExternalId = programData[0].externalId;
         }
 
-        if (solutionData.type == messageConstants.common.COURSE && !solutionData.link) {
+        if (solutionData.type == messageConstants.common.COURSE && !solutionData.linkUrl) {
           return resolve({
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.COURSE_LINK_REQUIRED,
@@ -2221,10 +2221,6 @@ module.exports = class SolutionsHelper {
           }
         }
         // Generate link for each domain
-        let links
-        if (solution.type === messageConstants.common.COURSE) {
-          links = [solution.link]
-        } else {
            // fetch tenant domain by calling  tenant details API
            let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
            const domains = tenantDetailsResponse?.data?.domains || [];
@@ -2240,7 +2236,7 @@ module.exports = class SolutionsHelper {
            let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
    
            // Generate link for each domain
-            links = allDomains.map((domain) => {
+            let links = allDomains.map((domain) => {
              return _generateLink(
                `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
                prefix,
@@ -2248,7 +2244,7 @@ module.exports = class SolutionsHelper {
                solutionData[0].type
              );
            });
-      }
+     
 
         return resolve({
           success: true,
