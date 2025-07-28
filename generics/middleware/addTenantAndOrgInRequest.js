@@ -6,7 +6,7 @@
  */
 
 module.exports = async function (req, res, next) {
-  let paths = ['solutions/targetedSolutions', 'solutions/details', 'solutions/verifyLink', 'programs/targetedPrograms','surveys/details','solutions/detailsBasedOnRoleAndLocation'];
+  let paths = ['solutions/targetedSolutions', 'solutions/details', 'solutions/verifyLink', 'programs/targetedPrograms','surveys/details','solutions/detailsBasedOnRoleAndLocation', 'users/solutions'];
 
   let performTenantAndOrgCheck = false;
 
