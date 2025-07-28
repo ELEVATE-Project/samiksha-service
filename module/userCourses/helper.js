@@ -22,7 +22,7 @@ module.exports = class UserCoursesHelper {
   static async syncUserCourse(userCoursesData,userDetails) {
     try {
       if(userDetails){
-        userCoursesData.userId = 4;
+        userCoursesData.userId = userDetails.userId;
         userCoursesData.tenant_code = userDetails.tenantData.tenantId;
         userCoursesData.organization_id = userDetails.tenantData.orgId;
       }
@@ -48,7 +48,7 @@ module.exports = class UserCoursesHelper {
         createOrUpdateCourse = await this.update(userCoursesData);
       } else {
         //userCourse not exist create the courses document
-        createOrUpdateCourse = await this.createuserCourses(userCoursesData,userDetails?.userToken ?? '');
+        createOrUpdateCourse = await this.createUserCourses(userCoursesData,userDetails?.userToken ?? '');
       }
 
       if (!createOrUpdateCourse.success) {
@@ -74,11 +74,11 @@ module.exports = class UserCoursesHelper {
   /**
    * create userCourses
    * @method
-   * @name createuserCourses
+   * @name createUserCourses
    * @param {Object} [userCoursesData] -  userCourses data.
    * @returns {Object} - response with status
    */
-  static async createuserCourses(userCoursesData, userToken = '') {
+  static async createUserCourses(userCoursesData, userToken = '') {
     try {
       // Check for solutions in solutionDocuments
       let solutionDocument = await solutionsQueries.solutionDocuments({
@@ -119,7 +119,7 @@ module.exports = class UserCoursesHelper {
         }),
       };
       //create userCourses document
-      let createCourse = await userCoursesQueries.createuserCourses(createCourseData);
+      let createCourse = await userCoursesQueries.createUserCourses(createCourseData);
       if (!createCourse || !createCourse._id) {
         return {
           status: httpStatusCode.bad_request.status,
@@ -153,7 +153,7 @@ module.exports = class UserCoursesHelper {
     try {
 
       if(isDeleted && userDetails){
-        userCoursesData.userId = 4;
+        userCoursesData.userId = userDetails.userId;
         userCoursesData.tenant_code = userDetails.tenantData.tenantId;
         userCoursesData.organization_id = userDetails.tenantData.orgId;
       }
