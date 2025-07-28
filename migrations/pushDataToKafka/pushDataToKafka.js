@@ -1,8 +1,6 @@
 const axios = require('axios')
-const path = require('path')
 const _ = require('lodash')
-const minimist = require('minimist');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') })
+const minimist = require('minimist')
 
 // Parse command-line arguments
 const args = minimist(process.argv.slice(2));

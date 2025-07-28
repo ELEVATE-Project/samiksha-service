@@ -7,7 +7,6 @@ This Node.js script is designed to **push survey and observation submissions** (
 ## 📦 Prerequisites
 
 - Node.js (v14 or higher recommended)
-- A valid `.env` file located **two levels up** (`../../.env`)
 - Network access to the backend services/APIs
 
 ---
@@ -19,7 +18,7 @@ This Node.js script is designed to **push survey and observation submissions** (
 Run this command in the project directory:
 
 ```bash
-npm install axios dotenv minimist lodash
+npm install axios minimist lodash
 ```
 
 ---
