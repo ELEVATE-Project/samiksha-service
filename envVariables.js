@@ -35,7 +35,11 @@ let enviromentVariables = {
     message: 'Required mobile application app type value',
     optional: false,
   },
-
+  RESOURCE_DELETION_TOPIC: {
+    message: 'Required mobile application app type value',
+    optional: false,
+    default: 'resource-deletion-topic',
+  },
   // AUTHORIZATION: {
   //   message: 'Required Server authorization code',
   //   optional: false,
