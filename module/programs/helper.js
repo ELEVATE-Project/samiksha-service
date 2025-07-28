@@ -222,7 +222,7 @@ module.exports = class ProgramsHelper {
         //convert components to objectedIds
         if (data.components && data.components.length > 0) {
           const componentsWithOrder = components.filter(c => c._id && c.hasOwnProperty('order'));
-          data.components = data.components.map((component) => {
+          data.components = componentsWithOrder.map((component) => {
 
             return {...component,id:gen.utils.convertStringToObjectId(component.id)}
           });
@@ -237,6 +237,43 @@ module.exports = class ProgramsHelper {
             data.startDate = gen.utils.getStartDate(data.startDate, timeZoneDifference);
           }
         }
+
+        if(data.components && data.components.length > 0) {
+          let programDocumentRecord = await programsQueries.programDocuments({ _id: programId }, ['components']);
+
+          if (!programDocumentRecord[0]) {
+            throw {
+              message: messageConstants.apiResponses.PROGRAM_NOT_UPDATED,
+            };
+          }
+
+          let currentComponents = programDocumentRecord[0].components || [];
+          let toBeUpdatedComponentOrder = data.components;
+
+          for(let component of toBeUpdatedComponentOrder) {
+            let componentIndex = currentComponents.findIndex(c => c._id.toString() === component._id.toString());
+            if(componentIndex !== -1) {
+              currentComponents[componentIndex].order = component.order;
+            }
+          }
+
+          let onlyOrderOfUpdateReadyComponents = currentComponents.map(component => {
+            return component.order;
+          })
+
+          const hasDuplicates = _.uniq(onlyOrderOfUpdateReadyComponents).length !== onlyOrderOfUpdateReadyComponents.length;
+
+          console.log(hasDuplicates); // true
+
+          if( hasDuplicates) {
+            throw {
+              message: messageConstants.apiResponses.COMPONENT_ORDER_DUPLICATE,
+              status: httpStatusCode.bad_request.status
+            };
+          }
+
+        }
+
         //Find and update the program Document
         let program = await programsQueries.findOneAndUpdate(
           {
