@@ -444,8 +444,8 @@ module.exports = class UserHelper {
    * @param {String} pageSize page size.
    * @param {String} pageNo page no.
    * @param {String} search search text.
-   * @param {String} token user token.
-   * @param {String} userId user userId.
+   * @param {String} userDetails this will contain userId, userToken and tenantData information.
+   * @param {String} type type of solution user is looking for (survey/observation).
    * @returns {Object} targeted user solutions.
    */
 
