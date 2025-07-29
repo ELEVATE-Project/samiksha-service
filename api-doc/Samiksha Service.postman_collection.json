@@ -4747,7 +4747,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
+									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -4796,7 +4796,7 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
+											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
 											"host": [
 												"{{baseUrl}}"
 											],

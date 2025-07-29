@@ -4856,7 +4856,7 @@ paths:
         The response will indicate whether the user has the necessary
         permissions or if any constraints apply to the submission, such as
         completion status or other validation criteria.
-  /v1/reports/submissionReport:
+  /v1/reports/submissionReport/:submissionId=submissionId_id&pdf=:
     post:
       tags:
         - Report
@@ -4882,6 +4882,11 @@ paths:
           schema:
             type: string
           example: 66c849fb98a45cd39a392e17
+        - name: pdf
+          in: query
+          schema:
+            type: boolean
+          example: true
       responses:
         '200':
           description: Success response
