@@ -5,7 +5,6 @@ const {
     entityType,
     userRoleExtension
 } = require('./entity_sampleData.js');
-const {getEndDate}= require('./common')
 let solutionData = [
 {
     "_id" : new ObjectId("66f4e62d8ea984c17a5b374a"),
