@@ -86,18 +86,18 @@ module.exports = class Questions extends Abstract {
             message: messageConstants.apiResponses.QUESTIONS_FILE_REQUIRED,
           });
         }
-
         let questionData = await csv().fromString(req.files.questions.data.toString());
-
+        let tenantFilter =  req.userDetails.tenantAndOrgInfo;
         let criteriaIds = new Array();
         let criteriaObject = {};
 
         let questionCollection = {};
         let questionIds = new Array();
-
         let solutionDocument = await database.models.solutions
           .findOne(
-            { externalId: questionData[0]['solutionId'] },
+            { externalId: questionData[0]['solutionId'] , 
+              tenantId: tenantFilter.tenantId
+            },
             {
               evidenceMethods: 1,
               sections: 1,
@@ -180,6 +180,7 @@ module.exports = class Questions extends Abstract {
         let criteriaDocument = await database.models.criteria
           .find({
             externalId: { $in: criteriaIds },
+            tenantId: tenantFilter.tenantId
           })
           .lean();
 
@@ -196,6 +197,7 @@ module.exports = class Questions extends Abstract {
         let questionsFromDatabase = await database.models.questions
           .find({
             externalId: { $in: questionIds },
+            tenantId: tenantFilter.tenantId
           })
           .lean();
 
@@ -246,7 +248,7 @@ module.exports = class Questions extends Abstract {
         }
 
         // Create question
-        function createQuestion(parsedQuestion, question, criteria, ecm, section, profileFields) {
+        function createQuestion(parsedQuestion, question, criteria, ecm, section, profileFields,tenantFilter) {
           let resultFromCreateQuestions = questionsHelper.createQuestions(
             parsedQuestion,
             question,
@@ -254,6 +256,7 @@ module.exports = class Questions extends Abstract {
             ecm,
             section,
             profileFields,
+            tenantFilter
           );
 
           return resultFromCreateQuestions;
@@ -307,6 +310,7 @@ module.exports = class Questions extends Abstract {
               ecm,
               section,
               entityTypeDocument.profileFields,
+              tenantFilter
             );
 
             if (resultFromCreateQuestions.result) {
@@ -329,6 +333,7 @@ module.exports = class Questions extends Abstract {
               eachPendingItem.evaluationFrameworkMethod,
               eachPendingItem.section,
               entityTypeDocument.profileFields,
+              tenantFilter
             );
 
             input.push(csvQuestionData.total[0]);

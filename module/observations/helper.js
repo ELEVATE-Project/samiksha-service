@@ -13,8 +13,9 @@ const shikshalokamHelper = require(MODULES_BASE_PATH + '/shikshalokam/helper');
 const slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
 const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const chunkOfObservationSubmissionsLength = 500;
-const solutionHelper = require(MODULES_BASE_PATH +'/solutions/helper');
 const kendraService = require(ROOT_PATH + '/generics/services/kendra');
+const solutionHelperUtils = require(ROOT_PATH + '/generics/helpers/solutionsUtils');
+
 const moment = require('moment-timezone');
 const { ObjectId } = require('mongodb');
 const appsPortalBaseUrl =
@@ -31,6 +32,9 @@ const validateEntity = process.env.VALIDATE_ENTITIES;
 const validateRole = process.env.VALIDATE_ROLE;
 const topLevelEntityType = process.env.TOP_LEVEL_ENTITY_TYPE;
 const surveyService = require(ROOT_PATH + "/generics/services/survey");
+const userService = require(ROOT_PATH + '/generics/services/users');
+const projectService = require(ROOT_PATH + '/generics/services/project')
+
 /**
  * ObservationsHelper
  * @class
@@ -79,6 +83,7 @@ module.exports = class ObservationsHelper {
    * @param {Object} data - Observation creation data.
    * @param {Object} userId - User id.
    * @param {String} requestingUserAuthToken - Requesting user auth token.
+   * @param {Object} tenantData - tenantData information
    * @param {String} [programId = ""] - program id
    * @returns {Object} observation creation data.
    */
@@ -87,8 +92,10 @@ module.exports = class ObservationsHelper {
     solutionId,
     data,
     userId,
-    requestingUserAuthToken = '',
-    userRoleAndProfileInformation
+    requestingUserAuthToken = "",
+    userRoleAndProfileInformation,
+    tenantData,
+    programId = ""
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -97,82 +104,111 @@ module.exports = class ObservationsHelper {
         //     messageConstants.apiResponses.REQUIRED_USER_AUTH_TOKEN
         //   );
         // }
-
+  
         // let organisationAndRootOrganisation =
         //   await shikshalokamHelper.getOrganisationsAndRootOrganisations(
         //     requestingUserAuthToken,
         //     userId
         //   );
-
         let solutionData = await solutionsQueries.solutionDocuments(
           {
             _id: solutionId,
           },
           [
-            'isReusable',
-            'externalId',
-            'programId',
-            'programExternalId',
-            'frameworkId',
-            'frameworkExternalId',
-            'entityType',
-            'entityTypeId',
-            'isAPrivateProgram',
-          ],
+            "isReusable",
+            "externalId",
+            "programId",
+            "programExternalId",
+            "frameworkId",
+            "frameworkExternalId",
+            "entityType",
+            "entityTypeId",
+            "isAPrivateProgram",
+            "project",
+            "referenceFrom",
+            "isExternalProgram",
+          ]
         );
-
         if (!solutionData.length > 0) {
           throw {
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
           };
         }
-
+  
         if (solutionData[0].isReusable) {
-
-
-          solutionData = await solutionHelper.createProgramAndSolutionFromTemplate(
-            solutionId,
-            //   {
-            //     _id: programId,
-            //   },
-            userId,
-            _.omit(data, ['entities']),
-            true,
-            userId,
-            //   organisationAndRootOrganisation.,
-            //   organisationAndRootOrganisation.rootOrganisations
-          );
+          solutionData =
+            await solutionHelperUtils.createProgramAndSolutionFromTemplate(
+              solutionId,
+              {
+                _id: programId,
+              },
+              userId,
+              _.omit(data, ["entities"]),
+              true,
+              userId,
+              requestingUserAuthToken,
+              tenantData
+              //   organisationAndRootOrganisation.,
+              //   organisationAndRootOrganisation.rootOrganisations
+            );
         } else {
           solutionData = solutionData[0];
         }
-
-        if (userRoleAndProfileInformation && Object.keys(userRoleAndProfileInformation).length > 0 && validateRole == "ON" && topLevelEntityType) {
+        if (
+          userRoleAndProfileInformation &&
+          Object.keys(userRoleAndProfileInformation).length > 0 &&
+          validateRole == "ON" &&
+          topLevelEntityType
+        ) {
           //validate the user access to create observation
-          let validateUserRole = await this.validateUserRole(userRoleAndProfileInformation,solutionId);
+          let validateUserRole = await this.validateUserRole(
+            userRoleAndProfileInformation,
+            solutionId,
+            tenantData
+          );
           if (!validateUserRole.success) {
             throw {
               status: httpStatusCode.bad_request.status,
-              message: validateUserRole.message || messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
+              message:
+                validateUserRole.message ||
+                messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
             };
           }
         }
-
-        let userProfileData = await surveyService.profileRead(requestingUserAuthToken)
-        if (userProfileData.success && userProfileData.data) {
-          userProfileData = userProfileData.data;
-        }else{
-          userProfileData = {}
-        }
-
-        let observationData = await this.createObservation(data, userId, solutionData,userProfileData);
-
-        return resolve(_.pick(observationData, ['_id', 'name', 'description']));
+  
+        let userProfileData = await surveyService.profileRead(
+          requestingUserAuthToken
+        );
+        userProfileData =
+          userProfileData.success && userProfileData.data
+            ? userProfileData.data
+            : {};
+  
+        let observationData = await this.createObservation(
+          data,
+          userId,
+          solutionData,
+          userProfileData,
+          tenantData
+        );
+  
+        return resolve(
+          _.pick(observationData, [
+            "_id",
+            "name",
+            "description",
+            "solutionId",
+            "solutionExternalId",
+          ])
+        );
       } catch (error) {
         return reject(error);
       }
     });
   }
+  
+
 
   /**
    * Create observation.
@@ -186,17 +222,27 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation creation data.
    */
 
-  static createObservation(data, userId, solution,userProfileInformation = {}) {
+  static createObservation(data, userId, solution,userProfileInformation = {},tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (validateEntities == 'ON') {
-          if (data.entities) {
-            let entitiesToAdd = await entityManagementService.validateEntities(data.entities, solution.entityTypeId);
+          if (data.entities ) {
+            if(!solution.entityTypeId){
+              let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments({
+                name: solution.entityType,
+                tenantId: tenantData.tenantId,
+                orgIds: {$in:['ALL',tenantData.orgId]}
+              });
+              if (entityTypeDocumentsAPICall?.success && Array.isArray(entityTypeDocumentsAPICall?.data) && entityTypeDocumentsAPICall.data.length > 0) {
+                solution['entityTypeId'] = entityTypeDocumentsAPICall.data[0]._id;
+              }
+            }
+            let entitiesToAdd = await entityManagementService.validateEntities(data.entities, solution.entityTypeId,tenantData);
             data.entities = entitiesToAdd.entityIds;
           }
         }
 
-        if (data.project) {
+        if (data?.project) {
           data.project._id = new ObjectId(data.project._id);
           data.referenceFrom = messageConstants.common.PROJECT;
         }
@@ -214,9 +260,13 @@ module.exports = class ObservationsHelper {
           createdBy: userId,
           createdFor: userId,
           isAPrivateProgram: solution.isAPrivateProgram,
-          "userProfile" : userProfileInformation ? userProfileInformation : {}
+          startDate:solution.startDate,
+          endDate:solution.endDate,
+          "userProfile" : userProfileInformation ? userProfileInformation : {},
+          tenantId: tenantData.tenantId,
+          orgId: tenantData.orgId,
+          isExternalProgram:solution.isExternalProgram
         });
-
         let observationDataEntry = await database.models.observations.create(
           observationData
         );
@@ -287,14 +337,14 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation list.
    */
 
-  static listV1(userId = '') {
+  static listV1(userId = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
           throw new Error(messageConstants.apiResponses.INVALID_USER_ID);
         }
 
-        let observations = this.listCommon(userId, 'v1');
+        let observations = this.listCommon(userId, 'v1',tenantData);
 
         return resolve(observations);
       } catch (error) {
@@ -308,17 +358,18 @@ module.exports = class ObservationsHelper {
    * @method
    * @name listV2
    * @param {String} [userId = ""] -Logged in user id.
+   * @param {Object} tenantData - tenantData
    * @returns {Object} observation list.
    */
 
-  static listV2(userId = '') {
+  static listV2(userId = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
           throw new Error(messageConstants.apiResponses.INVALID_USER_ID);
         }
 
-        let observations = this.listCommon(userId, 'v2');
+        let observations = this.listCommon(userId, 'v2',tenantData);
 
         return resolve(observations);
       } catch (error) {
@@ -332,10 +383,12 @@ module.exports = class ObservationsHelper {
    * @method
    * @name listV2
    * @param {String} [userId = ""] -Logged in user id.
+   * @param {String} [sourceApi = ""] - source api.
+   * @param {Object} [tenantData = ""] - tenant data.
    * @returns {Object} observation list.
    */
 
-  static listCommon(userId = '', sourceApi = 'v2') {
+  static listCommon(userId = '', sourceApi = 'v2',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -349,6 +402,8 @@ module.exports = class ObservationsHelper {
             $match: {
               createdBy: userId,
               status: { $ne: 'inactive' },
+              tenantId: tenantData.tenantId,
+              orgId:tenantData.orgId
             },
           },
           {
@@ -396,6 +451,8 @@ module.exports = class ObservationsHelper {
                   entityId: {
                     $in: observation.entities,
                   },
+                  tenantId: tenantData.tenantId,
+                  orgId: tenantData.orgId
                 },
                 {
                   themes: 0,
@@ -412,6 +469,8 @@ module.exports = class ObservationsHelper {
                 entityId: {
                   $in: observation.entities,
                 },
+                tenantId: tenantData.tenantId,
+                orgId: tenantData.orgId,
               },
               {
                 themes: 0,
@@ -492,7 +551,7 @@ module.exports = class ObservationsHelper {
           submissionDocument = await database.models.observationSubmissions.create(document);
 
           if (submissionDocument.referenceFrom === messageConstants.common.PROJECT) {
-            await submissionsHelper.pushSubmissionToImprovementService(submissionDocument);
+            await submissionsHelper.pushSubmissionToProjectService(submissionDocument);
           }
 
           // Push new observation submission to kafka for reporting/tracking.
@@ -942,36 +1001,10 @@ module.exports = class ObservationsHelper {
    * @param  {String} observationId -observation id.
    * @param  {String} solutionId    -solutionId.
    * @param  {String} userId        -user id.
+   * @param  {Object} tenantData    -tenant data.
    * @returns {Object}              observation details.
    */
-
-  // static details(observationId) {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       let observationDocument = await this.observationDocuments({
-  //         _id: observationId,
-  //       });
-
-  //       if (!observationDocument[0]) {
-  //         throw new Error(messageConstants.apiResponses.OBSERVATION_NOT_FOUND);
-  //       }
-
-  //       if (observationDocument[0].entities.length > 0) {
-  //         let entitiesDocument = await entitiesHelper.entityDocuments({
-  //           _id: { $in: observationDocument[0].entities },
-  //         });
-
-  //         observationDocument[0]['count'] = entitiesDocument.length;
-  //         observationDocument[0].entities = entitiesDocument;
-  //       }
-
-  //       return resolve(observationDocument[0]);
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // }
-  static details(observationId = "", solutionId = "", userId = "") {
+  static details(observationId = "", solutionId = "", userId = "",tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         //Check for observation or soultion ID
@@ -989,10 +1022,11 @@ module.exports = class ObservationsHelper {
         }
 
         if (solutionId && solutionId != "" && userId && userId != "") {
-          filterQuery.solutionId = ObjectId(solutionId);
+          filterQuery.solutionId = new ObjectId(solutionId);
           filterQuery.createdBy = userId;
         }
-        
+
+        filterQuery.tenantId = tenantData.tenantId;
         //find the Obserations documents from the observation collections
         let observationDocument = await this.observationDocuments(filterQuery);
 
@@ -1003,6 +1037,8 @@ module.exports = class ObservationsHelper {
         if (observationDocument[0].entities.length > 0) {
           let filterData = {
            _id: {$in:observationDocument[0].entities},
+           tenantId:tenantData.tenantId,
+           orgId: {$in:['ALL',tenantData.orgId]}
           };
         
          //Retrieving the entity from the Entity Management Service
@@ -1060,7 +1096,8 @@ module.exports = class ObservationsHelper {
         referenceFrom: 1,
         pageHeading: 1,
         criteriaLevelReport: 1,
-        endDate: 1
+        endDate: 1,
+        isExternalProgram: 1
       });
     });
   }
@@ -1121,7 +1158,7 @@ module.exports = class ObservationsHelper {
           solutionInformation['referenceFrom'] = messageConstants.common.PROJECT;
         }
 
-        let createdSolutionAndProgram = await solutionHelper.createProgramAndSolutionFromTemplate(
+        let createdSolutionAndProgram = await solutionHelperUtils.createProgramAndSolutionFromTemplate(
           templateId,
           requestedData.program,
           userId,
@@ -1632,10 +1669,11 @@ module.exports = class ObservationsHelper {
    * @param {Number} pageSize - Size of page.
    * @param {String} search - search text.
    * @param {String} [ filter = ""] - filter text.
+   * @param {Object} tenantFilter - tenant filter.
    * @returns {Object} List of user assigned observations.
    */
 
-  static userAssigned(userId, pageNo, pageSize, search, filter = '') {
+  static userAssigned(userId, pageNo, pageSize, search, filter = '',tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         //Constructing the match query for assigned solutions
@@ -1644,6 +1682,8 @@ module.exports = class ObservationsHelper {
             createdBy: userId,
             deleted: false,
             referenceFrom: { $ne: messageConstants.common.PROJECT },
+            tenantId:tenantFilter.tenantId,
+            orgId:tenantFilter.orgId
           },
         };
 
@@ -1709,6 +1749,7 @@ module.exports = class ObservationsHelper {
           let solutionDocuments = await solutionsQueries.solutionDocuments(
             {
               _id: { $in: solutionIds },
+              tenantId:tenantFilter.tenantId
             },
             ['language', 'creator'],
           );
@@ -1861,11 +1902,15 @@ module.exports = class ObservationsHelper {
    * @method
    * @name entities
    * @param {String} userId - Logged in user id.
-   * @param {String} userToken - Logged in user token.
+   * @param {String} token - Logged in user token.
+   * @param {String} observationId - observation id.
+   * @param {String} solutionId - solution id.
+   * @param {Object} bodyData - request body data.
+   * @param {Object} tenantData - tenant data.
    * @returns {Object} list of entities in observation
    */
 
-  static entities(userId, token, observationId, solutionId, bodyData) {
+  static entities(userId, token, observationId, solutionId, bodyData,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (observationId === '') {
@@ -1873,6 +1918,8 @@ module.exports = class ObservationsHelper {
             {
               solutionId: solutionId,
               createdBy: userId,
+              tenantId:tenantData.tenantId,
+              orgId:tenantData.orgId
             },
             ['_id'],
           );
@@ -1882,6 +1929,7 @@ module.exports = class ObservationsHelper {
           } else {
             let solutionData = await solutionsQueries.solutionDocuments({
               _id: solutionId,
+              tenantId:tenantData.tenantId
             });
 
             if (solutionData.length === 0) {
@@ -1903,8 +1951,9 @@ module.exports = class ObservationsHelper {
                 let filterData = {
                   _id:bodyData[solutionData.data.entityType],
                   entityType: solutionData.data.entityType,
+                  tenantId:tenantData.tenantId
                 };
-          
+                
                 let entitiesDocument = await entityManagementService.entityDocuments(
                   filterData
                 );
@@ -1925,7 +1974,8 @@ module.exports = class ObservationsHelper {
               //validate the user access to create observation
               let validateUserRole = await this.validateUserRole(
                 bodyData,
-                solutionId
+                solutionId,
+                tenantData
               );
 
               if (!validateUserRole.success) {
@@ -1939,11 +1989,11 @@ module.exports = class ObservationsHelper {
               }
            }
             
-            let observation = await this.create(solutionId, solutionData.data, userId, token,bodyData);
+            let observation = await this.create(solutionId, solutionData.data, userId, token,bodyData,tenantData);
             observationId = observation._id;
           }
         }    
-        let entitiesList = await this.listEntities(observationId); 
+        let entitiesList = await this.listEntities(observationId,tenantData); 
         let observationData = await this.observationDocuments(
           {
             _id: observationId,
@@ -1955,8 +2005,9 @@ module.exports = class ObservationsHelper {
           solutionData = await solutionsQueries.solutionDocuments(
             {
               _id: observationData[0].solutionId,
+              tenantId:tenantData.tenantId
             },
-            ['allowMultipleAssessemts'],
+            ['allowMultipleAssessemts', 'parentEntityKey'],
           );
         }
 
@@ -1968,6 +2019,7 @@ module.exports = class ObservationsHelper {
             _id: observationId,
             entities: entitiesList.data.entities,
             entityType: entitiesList.data.entityType,
+            parentEntityKey: solutionData[0].parentEntityKey
           },
         });
       } catch (error) {
@@ -1986,10 +2038,11 @@ module.exports = class ObservationsHelper {
    * @method
    * @name listEntities
    * @param {String} observationId - Observation id.
+   * @param {Object} tenantData -tenantData.
    * @returns {Object} List of observation entities.
    */
 
-  static listEntities(observationId) {
+  static listEntities(observationId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let observationDocument = await this.observationDocuments(
@@ -2019,6 +2072,8 @@ module.exports = class ObservationsHelper {
              entitiesData = await entityManagementService.entityDocuments(
               {
                 _id: { $in: observationDocument[0].entities },
+                tenantId:tenantData.tenantId,
+                orgIds: {$in:['ALL',tenantData.orgId]}
               },
               ['metaInformation.externalId', 'metaInformation.name'],
             );
@@ -2087,24 +2142,22 @@ module.exports = class ObservationsHelper {
    * @param {String} observationId - observation id.
    * @param {Object} requestedData - requested data.
    * @param {String} userId - logged in user id.
+   * @param {Object} tenantData -tenantData.
    * @returns {JSON} message - regarding either entity is added to observation or not.
    */
 
-  static addEntityToObservation(observationId, requestedData, userId) {
+  static addEntityToObservation(observationId, requestedData, userId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let responseMessage = 'Updated successfully.';
 
-        console.log(          {
-          _id: observationId,
-          createdBy: userId,
-          status: { $ne: 'inactive' },
-        },'<---chekchere')
         let observationDocument = await this.observationDocuments(
           {
             _id: observationId,
             createdBy: userId,
             status: { $ne: 'inactive' },
+            tenantId:tenantData.tenantId,
+            orgId: tenantData.orgId
           },
           ['entityTypeId', 'status'],
         );
@@ -2118,7 +2171,7 @@ module.exports = class ObservationsHelper {
           });
         }
 
-        let entitiesToAdd =  await entityManagementService.validateEntities(requestedData,observationDocument[0].entityTypeId);
+        let entitiesToAdd =  await entityManagementService.validateEntities(requestedData,observationDocument[0].entityTypeId,tenantData);
 
         if (entitiesToAdd.entityIds.length > 0) {
           await database.models.observations.updateOne(
@@ -2158,7 +2211,7 @@ module.exports = class ObservationsHelper {
    * @returns {JSON} observation remoevable message
    */
 
-  static removeEntityFromObservation(observationId, requestedData, userId) {
+  static removeEntityFromObservation(observationId, requestedData, userId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         await database.models.observations.updateOne(
@@ -2166,6 +2219,8 @@ module.exports = class ObservationsHelper {
             _id:observationId,
             status: { $ne: 'completed' },
             createdBy: userId,
+            tenantId:tenantData.tenantId,
+            orgId:tenantData.orgId,
           },
           {
             $pull: {
@@ -2204,11 +2259,14 @@ module.exports = class ObservationsHelper {
 
     return new Promise(async (resolve, reject)=>{
 
+      let tenantData = req.userDetails.tenantData;
       let observationDocument = await this.observationDocuments({
         _id: req.params._id,
         createdBy: req.userDetails.userId,
         status: { $ne: 'inactive' },
-        entities: { '$in': [req.query.entityId]}
+        entities: { '$in': [req.query.entityId]},
+        tenantId:tenantData.tenantId,
+        orgId:tenantData.orgId,
       });
 
       if (!observationDocument[0]) {
@@ -2226,12 +2284,12 @@ module.exports = class ObservationsHelper {
         let filterData = {
           _id: req.query.entityId,
           entityType: observationDocument.entityType,
+          tenantId: req.userDetails.tenantData.tenantId,
+          orgIds: {$in:['ALL',req.userDetails.tenantData.orgId]}
          };
-  
          let entitiesDocument = await entityManagementService.entityDocuments(
            filterData
          );
-
          if(!entitiesDocument.success){
           throw new Error({
             message:messageConstants.apiResponses.ENTITIES_NOT_FOUND
@@ -2274,6 +2332,7 @@ module.exports = class ObservationsHelper {
           'project',
           'referenceFrom',
           'criteriaLevelReport',
+          'isExternalProgram'
         ],
       );
   
@@ -2328,23 +2387,42 @@ module.exports = class ObservationsHelper {
       lastSubmissionNumber = lastSubmissionForObservationEntity.result + 1;
   
       let programInformation = null;
-
+      
       if(solutionDocument.programId){
-
-      let programQueryObject = {
-        _id: solutionDocument.programId,
-        status: messageConstants.common.ACTIVE_STATUS
-      };
-
-      let programDocument = await programsHelper.list(programQueryObject, [
-         "externalId",
-         "name",
-         "description",
-         "imageCompression",
-         "isAPrivateProgram",
-       ]);
-
-       programDocument = programDocument.data.data
+        let programDocument
+        let programQueryObject = {
+          _id: solutionDocument.programId,
+          status: messageConstants.common.ACTIVE_STATUS,
+          tenantId:tenantData.tenantId,
+        };
+        if (solutionDocument.isExternalProgram) {
+          programDocument = await projectService.programDetails(req.userDetails.userToken, solutionDocument.programId);
+          if (programDocument.status != httpStatusCode.ok.status || !programDocument?.result?._id) {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+            };
+          }
+          programDocument = [programDocument.result];
+        } else {
+          /*
+          arguments passed to programsHelper.list() are:
+          - filter: { externalId: { $in: Array.from(allProgramIds) } }
+          - projection: ['_id', 'externalId']
+          - sort: ''
+          - skip: ''
+          - limit: ''
+        */
+          programDocument = await programsHelper.list(
+            programQueryObject,
+            ['externalId', 'name', 'description', 'imageCompression', 'isAPrivateProgram'],
+            '',
+            '',
+            ''
+          );
+          programDocument = programDocument.data.data;
+        }
+        
        
        if (!programDocument[0]._id) {
          throw messageConstants.apiResponses.PROGRAM_NOT_FOUND;
@@ -2385,7 +2463,10 @@ module.exports = class ObservationsHelper {
         isRubricDriven: solutionDocument.isRubricDriven,
         userProfile: observationDocument?.userProfile ?? {},
         themes: solutionDocument.themes,
-        programInformation:programInformation
+        programInformation:programInformation,
+        tenantId: observationDocument.tenantId,
+        orgId: observationDocument.orgId,
+        isExternalProgram:solutionDocument.isExternalProgram
       };
   
       if (solutionDocument.hasOwnProperty('criteriaLevelReport')) {
@@ -2398,7 +2479,7 @@ module.exports = class ObservationsHelper {
   
       if (solutionDocument.referenceFrom === messageConstants.common.PROJECT) {
         submissionDocument['referenceFrom'] = messageConstants.common.PROJECT;
-        submissionDocument['project'] = solutionDocument.project;
+        submissionDocument['project'] = observationDocument.project;
       }
   
       let criteriaId = new Array();
@@ -2478,11 +2559,11 @@ module.exports = class ObservationsHelper {
   
       let newObservationSubmissionDocument = await database.models.observationSubmissions.create(submissionDocument);
   
-      // if (newObservationSubmissionDocument.referenceFrom === messageConstants.common.PROJECT) {
-      //   await observationSubmissionsHelper.pushSubmissionToImprovementService(
-      //     _.pick(newObservationSubmissionDocument, ['project', 'status', '_id']),
-      //   );
-      // }
+      if (newObservationSubmissionDocument.referenceFrom === messageConstants.common.PROJECT) {
+        await observationSubmissionsHelper.pushSubmissionToProjectService(
+          _.pick(newObservationSubmissionDocument, ['project', 'status', '_id']),
+        );
+      }
   
       // Push new observation submission to kafka for reporting/tracking.
       observationSubmissionsHelper.pushInCompleteObservationSubmissionForReporting(
@@ -2490,8 +2571,7 @@ module.exports = class ObservationsHelper {
       );
   
       let observations = new Array();
-  
-      observations = await this.listV2(req.userDetails.userId);
+      observations = await this.listV2(req.userDetails.userId,tenantData);
 
       let responseMessage = messageConstants.apiResponses.OBSERVATION_SUBMISSION_CREATED;
   
@@ -2506,7 +2586,7 @@ module.exports = class ObservationsHelper {
 
   }
 
-  static async targetedEntityHelper(solutionId,requestedData){
+  static async targetedEntityHelper(solutionId,requestedData,tenantData){
 
     let solutionData = await solutionsQueries.solutionDocuments(
       {
@@ -2525,6 +2605,8 @@ module.exports = class ObservationsHelper {
     
     let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
       code: requestedData.role,
+      "tenantId": tenantData.tenantId,
+      "orgIds": {$in:['ALL',tenantData.orgId]}
     },
     ["entityTypes.entityType"])
     if (!rolesDocumentAPICall.success) {
@@ -2548,7 +2630,9 @@ module.exports = class ObservationsHelper {
     if (solutionData[0].entityType === targetedEntityType) {
 
       let filterQuery = {
-        "_id": requestedData[targetedEntityType]
+        "_id": requestedData[targetedEntityType],
+        "tenantId": tenantData.tenantId,
+        "orgIds": {$in:['ALL',tenantData.orgId]}
       };
 
       // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2580,7 +2664,9 @@ module.exports = class ObservationsHelper {
       }
     }
     let filterData = {
-      "_id": requestedData[targetedEntityType]
+      "_id": requestedData[targetedEntityType],
+      "tenantId": tenantData.tenantId,
+      "orgIds": {$in:['ALL',tenantData.orgId]}
     };
 
     // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2622,10 +2708,11 @@ module.exports = class ObservationsHelper {
    * @method
    * @name getHighestTargetedEntity
    * @param {Object} requestedData - requested data
+   * @param {Object} tenantData - tenantData data
    * @returns {Object} - Entity.
    */
 
-  static getHighestTargetedEntity( roleWiseTargetedEntities ) {
+  static getHighestTargetedEntity( roleWiseTargetedEntities,tenantData ) {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -2647,7 +2734,9 @@ module.exports = class ObservationsHelper {
           }
 
           let entitiesDocument = await entityManagementService.entityDocuments({
-              _id: currentEntity._id
+              _id: currentEntity._id,
+              tenantId:tenantData.tenantId,
+              orgIds:{$in:['ALL',tenantData.orgId]}
           }, ["groups"]);
 
           if (!entitiesDocument.success || entitiesDocument.data.length == 0 ) {
@@ -2698,12 +2787,14 @@ module.exports = class ObservationsHelper {
       try{
         let roleArray = req.body.role.split(",");
         let targetedEntities = {};
+        let tenantData = req.userDetails.tenantData;
         if ( roleArray.length === 1 ) {
           
           const detailEntity = 
           await this.targetedEntityHelper(
               req.params._id,
-              req.body
+              req.body,
+              tenantData
           );
           detailEntity["result"] = detailEntity.data;
           return resolve(detailEntity);
@@ -2719,7 +2810,8 @@ module.exports = class ObservationsHelper {
               const detailEntity = 
               await this.targetedEntityHelper(
                   req.params._id,
-                  bodyData
+                  bodyData,
+                  tenantData
               );       
               if ( detailEntity.data && Object.keys(detailEntity.data).length > 0 ) {              
                   roleWiseTargetedEntities.push(detailEntity.data);
@@ -2740,7 +2832,7 @@ module.exports = class ObservationsHelper {
           // multiple targeted entity
           else if (roleWiseTargetedEntities && roleWiseTargetedEntities.length > 1) {
             // request body contain role and entity information
-            let targetedEntity = await this.getHighestTargetedEntity(roleWiseTargetedEntities, req.body);
+            let targetedEntity = await this.getHighestTargetedEntity(roleWiseTargetedEntities, tenantData);
 
             if (!targetedEntity.data) {
               throw {
@@ -2767,10 +2859,11 @@ module.exports = class ObservationsHelper {
    * @name validateUserRole
    * @param {Object} bodyData - user location request data
    * @param {String} solutionId - Solution id.
+   * @param {Object} tenantData - tenant data.
    * @returns {Object} return the eligibity of user
    */
 
-    static validateUserRole(bodyData, solutionId) {
+    static validateUserRole(bodyData, solutionId,tenantData) {
       return new Promise(async (resolve, reject) => {
         try {
           //validate solution
@@ -2778,7 +2871,7 @@ module.exports = class ObservationsHelper {
             {
               _id: solutionId,
             },
-            ["entityType"]
+            ["entityType",'tenantId','orgId']
           );
   
           if (!solutionDocument[0]) {
@@ -2791,76 +2884,80 @@ module.exports = class ObservationsHelper {
           let topLevelEntityId = bodyData[topLevelEntityType];
 
 
-          let roles = bodyData.role.split(",");
-
-          let entityTypeArr = [];
-          for(let roleIndex=0;roleIndex<roles.length;roleIndex++){
-
-          let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
-            code: roles[roleIndex],
-          },
-          ["entityTypes.entityType"])
-
-          if(rolesDocumentAPICall.success){
-            entityTypeArr.push(rolesDocumentAPICall.data[0].entityTypes[0].entityType)
-          }else{
-            throw {
+          let tenantDetails = await userService.fetchPublicTenantDetails(tenantData.tenantId);
+          if (!tenantDetails.success || !tenantDetails?.data?.meta) {
+            throw { 
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+              message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
             };
           }
 
-        }
+          let observableEntityKeys = tenantDetails.data.meta?.observableEntityKeys || [];
 
-          const uniqueEntityTypeArr = _.uniq(entityTypeArr);
-          let filterData = {
-            _id:topLevelEntityId,
-            entityType: topLevelEntityType,
-            deleted:false
-           };
-         
-          //Retrieving the entity from the Entity Management Service
-           let entitiesDocument = await entityManagementService.entityDocuments(
-             filterData
-           );
-
-           if (!entitiesDocument.success) {
-             throw {
-               status: httpStatusCode.bad_request.status,
-               message: messageConstants.apiResponses.ENTITIES_NOT_FOUND,
-             };
-           }
-
-          let childHierarchyPath = entitiesDocument.data[0].childHierarchyPath;
-          childHierarchyPath.unshift(topLevelEntityType)
-
-          const highestEntityType = this.findHighestHierarchy(uniqueEntityTypeArr,childHierarchyPath);
-          if(solutionEntityType === topLevelEntityType && solutionEntityType === highestEntityType) {
+          if (!observableEntityKeys || observableEntityKeys.length === 0) {
+            // if observableEntityKeys is empty, then no validation is needed
             resolve({
               success: true
             })
           }
-          const highestIndex = childHierarchyPath.indexOf(highestEntityType);
-          const solutionIndex = childHierarchyPath.indexOf(solutionEntityType);
-        
-          if (highestIndex === -1 || solutionIndex === -1) {
-            throw {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.INVALID_ENTITY_TYPE
-          };   
-          }
-        
-          if (highestIndex > solutionIndex) {
-            throw {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER
-          };
-        
-        }
 
-        resolve({
-          success: true
-        })
+          let KeytoValidate = [];
+
+          for (let i = 0; i < observableEntityKeys.length; i++) {
+            KeytoValidate.push(observableEntityKeys[i]);
+          }
+
+          let roles = observableEntityKeys
+            .filter((key) => typeof bodyData[key] === 'string' && bodyData[key].trim() !== '')
+            .flatMap((key) => bodyData[key].split(',').map((role) => role.trim()));
+
+          let entityTypeArr = [];
+
+          for (let roleIndex = 0; roleIndex < roles.length; roleIndex++) {
+            let rolesDocumentAPICall = await entityManagementService.entityDocuments(
+              {
+                _id: roles[roleIndex],
+                tenantId: solutionDocument[0].tenantId,
+                orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
+              },
+              ['metaInformation.targetedEntityTypes']
+            );
+            
+            if (
+              rolesDocumentAPICall?.success &&
+              Array.isArray(rolesDocumentAPICall.data) &&
+              rolesDocumentAPICall.data[0]?.metaInformation?.targetedEntityTypes &&
+              rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes.length > 0
+            ) {
+              let targetedEntityTypes = rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes;
+              for (let entityTypeData of targetedEntityTypes) {
+                if (!entityTypeData.entityType) {
+                  throw {
+                    status: httpStatusCode.bad_request.status,
+                    message: messageConstants.apiResponses.INVALID_ENTITY_TYPE,
+                  };
+                }
+                entityTypeArr.push(entityTypeData.entityType);
+              }
+            } else {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+              };
+            }
+          }
+
+          const uniqueEntityTypeArr = _.uniq(entityTypeArr);
+          if (uniqueEntityTypeArr.includes(solutionEntityType)) {
+            resolve({
+              success: true,
+            });
+          } else {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
+            };
+          }
 
         } catch (error) { 
           return resolve({
@@ -2895,4 +2992,30 @@ module.exports = class ObservationsHelper {
       
         return highestHierarchyValue;
     }
+
+  /**
+   * Update observations
+   * @method
+   * @name updateMany
+   * @param {Object} query 
+   * @param {Object} update 
+   * @param {Object} options 
+   * @returns {JSON} - updated response.
+  */
+
+  static updateMany(query, update, options={}) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let observationUpdate = await database.models.observations.updateMany(
+                query, 
+                update,
+                options
+            );
+           return resolve(observationUpdate);
+        } catch (error) {
+            return reject(error);
+        }
+    })
+  }
 };

@@ -93,7 +93,6 @@ module.exports = class ObservationSubmissions extends Abstract {
   async create(req) {
     return new Promise(async (resolve, reject) => {
       try {
-
         let createObservationStatus = await observationsHelper.createNewObservation(req)
         return resolve(createObservationStatus);
       } catch (error) {
@@ -407,7 +406,7 @@ module.exports = class ObservationSubmissions extends Abstract {
   async delete(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let result = await observationSubmissionsHelper.delete(req.params._id, req.userDetails.userId);
+        let result = await observationSubmissionsHelper.delete(req.params._id, req.userDetails.userId,req.userDetails.tenantData);
 
         return resolve(result);
       } catch (error) {
@@ -454,6 +453,7 @@ module.exports = class ObservationSubmissions extends Abstract {
           req.params._id,
           req.userDetails.userId,
           req.body.title,
+          req.userDetails.tenantData
         );
 
         return resolve(result);
@@ -975,7 +975,7 @@ module.exports = class ObservationSubmissions extends Abstract {
   async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let submissionDocument = await observationSubmissionsHelper.list(req.query.entityId, req.params._id);
+        let submissionDocument = await observationSubmissionsHelper.list(req.query.entityId, req.params._id,req.userDetails.tenantData);
         return resolve(submissionDocument);
       } catch (error) {
         return reject({
@@ -1105,6 +1105,7 @@ module.exports = class ObservationSubmissions extends Abstract {
   async update(req) {
     return new Promise(async (resolve, reject) => {
       try {
+        let tenantData = req.userDetails.tenantData;
         let response = {};
         if (req.method === 'POST') {
           if (req.body.title) {
@@ -1112,12 +1113,14 @@ module.exports = class ObservationSubmissions extends Abstract {
               req.params._id,
               req.userDetails.userId,
               req.body.title,
+              tenantData
             );
           } else if (req.body.evidence) {
             let isSubmissionAllowed = await observationSubmissionsHelper.isAllowed(
               req.params._id,
               req.body.evidence.externalId,
               req.userDetails.userId,
+              tenantData
             );
 
             if (isSubmissionAllowed.data.allowed && isSubmissionAllowed.data.allowed == false) {
@@ -1185,7 +1188,7 @@ module.exports = class ObservationSubmissions extends Abstract {
             }
           }
         } else if (req.method === 'DELETE') {
-          response = await observationSubmissionsHelper.delete(req.params._id, req.userDetails.userId);
+          response = await observationSubmissionsHelper.delete(req.params._id, req.userDetails.userId,tenantData);
         }
 
         return resolve(response);
@@ -1259,6 +1262,7 @@ module.exports = class ObservationSubmissions extends Abstract {
   async solutionList(req) {
     return new Promise(async (resolve, reject) => {
       try {
+
         let entityType = req.query.entityType ? req.query.entityType : '';
 
         let solutions = await observationSubmissionsHelper.solutionList(
@@ -1267,6 +1271,7 @@ module.exports = class ObservationSubmissions extends Abstract {
           entityType,
           req.pageSize,
           req.pageNo,
+          req.userDetails.tenantData,
         );
 
         return resolve({

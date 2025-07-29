@@ -98,5 +98,26 @@ module.exports = {
    AUTH_METHOD: {
 		NATIVE: 'native',
 		KEYCLOAK_PUBLIC_KEY: 'keycloak_public_key',
-	}
+	},
+  ADMIN:'admin',
+  TENANT_ADMIN:'tenant_admin',
+  ORG_ADMIN:'org_admin',
+  USER_PROFILE_KEY: 'userProfile.',
+  USER_PROFILE_KEY_OBS: 'observationInformation.userProfile.',
+  DELETE_EVENT_ENTITY: 'user',
+	DELETE_EVENT_TYPE: 'delete',
+  CREATE_EVENT_TYPE:'create',
+  OBJECT: 'object',
+  OPTIONAL_SCOPE_FIELD: 'optional_factors',
+  MANDATORY_SCOPE_FIELD: 'factors',
+  ALL_SCOPE_VALUE:'ALL',
+  ADD_OPERATION:"ADD",
+  APPEND_OPERATION:'APPEND',
+  REMOVE_OPERATION:"REMOVE",
+  OVERRIDE_OPERATION:"OVERRIDE",
+  PROMISE_FULFILLED: 'fulfilled',
+  DEFAULT_PROGRAM_USER_MAPPING_TOPIC:'elevate_program_operation',
+  DELETE:"DELETE",
+  POST:"POST",
+  ALL: 'all'
 };

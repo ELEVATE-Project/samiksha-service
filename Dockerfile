@@ -1,29 +1,31 @@
 FROM node:20
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
+# Install necessary system dependencies for canvas
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2-dev \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
-    librsvg2-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+    libfreetype6-dev \
+    pkg-config \
+    gcc \
+    g++ \
+    make \
+    python3
+    
 WORKDIR /opt/samiksha/
 
 #copy package.json file
-COPY package.json /opt/samiksha/package.json
+COPY package.json .
 
 #install node packges
-RUN npm install --build-from-source
-RUN npm install -g nodemon@2.0.20
+RUN npm install && npm install -g nodemon@2.0.16
 
 #copy all files 
-COPY . /opt/samiksha
+COPY . .
 
 #expose the application port
 EXPOSE 4301
 
 #start the application
-CMD ["node", "app.js"]
+CMD ["node", "dev"]

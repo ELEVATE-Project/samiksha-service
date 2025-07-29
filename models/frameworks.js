@@ -26,5 +26,21 @@ module.exports = {
       default: [],
     },
     criteriaLevelReport: Boolean,
+    orgId: {
+      type: String,
+      require: true,
+      index: true,
+    },
+    tenantId: {
+      type: String,
+      require: true,
+      index: true,
+    },
   },
+  compoundIndex: [
+    {
+      name: { externalId: 1, tenantId: 1, orgId: 1 },
+      indexType: { unique: true },
+    },
+  ],
 };

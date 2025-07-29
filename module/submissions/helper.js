@@ -8,7 +8,6 @@
 // Dependencies
 let slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
-const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const emailClient = require(ROOT_PATH + '/generics/helpers/emailCommunications');
@@ -20,6 +19,11 @@ const entityAssessorsHelper = require(MODULES_BASE_PATH + '/entityAssessors/help
 const criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
 const filesHelper = require(MODULES_BASE_PATH + '/cloud-services/files/helper');
 const path = require('path');
+const projectService = require(ROOT_PATH + '/generics/services/project')
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
+const solutionsHelperUtils = require(ROOT_PATH + '/generics/helpers/solutionsUtils')
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
+
 
 /**
  * SubmissionsHelper
@@ -130,9 +134,9 @@ module.exports = class SubmissionsHelper {
           // Push new submission to kafka for reporting/tracking.
           this.pushInCompleteSubmissionForReporting(submissionDocument._id);
 
-          // if (submissionDocument.referenceFrom === messageConstants.common.PROJECT) {
-          //   this.pushSubmissionToImprovementService(_.pick(submissionDocument, ['project', 'status', '_id']));
-          // }
+          if (submissionDocument.referenceFrom === messageConstants.common.PROJECT) {
+            this.pushSubmissionToProjectService(_.pick(submissionDocument, ['project', 'status', '_id']));
+          }
         } else {
           let assessorElement = submissionDocument[0].assessors.find((assessor) => assessor.userId === userId);
           if (assessorElement && assessorElement.externalId != '') {
@@ -235,9 +239,7 @@ module.exports = class SubmissionsHelper {
   static isSubmissionToBeAutoRated(submissionSolutionId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
-
-        let solutionDocument = await solutionsHelper.checkIfSolutionIsRubricDriven(submissionSolutionId);
+        let solutionDocument = await solutionsHelperUtils.checkIfSolutionIsRubricDriven(submissionSolutionId);
 
         let submissionToBeAutoRated =
           solutionDocument[0] && solutionDocument[0].scoringSystem && solutionDocument[0].scoringSystem != ''
@@ -505,9 +507,7 @@ module.exports = class SubmissionsHelper {
             observationSubmissionsHelper.pushInCompleteObservationSubmissionForReporting(updatedSubmissionDocument._id);
           } else if (modelName == messageConstants.common.SURVEY_SUBMISSIONS) {
             // Push updated submission to kafka for reporting/tracking."
-            const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
-
-            surveySubmissionsHelper.pushInCompleteSurveySubmissionForReporting(updatedSubmissionDocument._id);
+            surveySubmissionsHelperUtils.pushInCompleteSurveySubmissionForReporting(updatedSubmissionDocument._id);
           }
 
           let canRatingsBeEnabled = await this.canEnableRatingQuestionsOfSubmission(updatedSubmissionDocument);
@@ -620,11 +620,11 @@ module.exports = class SubmissionsHelper {
           throw messageConstants.apiResponses.SUBMISSION_NOT_FOUND + 'or' + SUBMISSION_STATUS_NOT_COMPLETE;
         }
 
-        // if (submissionsDocument.referenceFrom === messageConstants.common.PROJECT) {
-        //   await this.pushSubmissionToImprovementService(
-        //     _.pick(submissionsDocument, ['project', 'status', '_id', 'completedDate']),
-        //   );
-        // }
+        if (submissionsDocument.referenceFrom === messageConstants.common.PROJECT) {
+          await this.pushSubmissionToProjectService(
+            _.pick(submissionsDocument, ['project', 'status', '_id', 'completedDate']),
+          );
+        }
 
         const kafkaMessage = await kafkaClient.pushCompletedSubmissionToKafka(submissionsDocument);
 
@@ -1056,7 +1056,7 @@ module.exports = class SubmissionsHelper {
   static create(solutionId, entityId, userAgent, userId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let solutionDocument = await solutionsHelper.solutionDocuments(
+        let solutionDocument = await solutionsQueries.solutionDocuments(
           {
             _id: solutionId,
           },
@@ -1600,7 +1600,7 @@ module.exports = class SubmissionsHelper {
           result.criteriaQuestions = Object.values(criteriaQuestionObject);
           result.levelToScoreMapping = [];
 
-          let solutionDocument = await solutionsHelper.solutionDocuments({ _id: submissionDocument[0].solutionId }, [
+          let solutionDocument = await solutionsQueries.solutionDocuments({ _id: submissionDocument[0].solutionId }, [
             'levelToScoreMapping',
           ]);
 
@@ -1732,43 +1732,59 @@ module.exports = class SubmissionsHelper {
   /**
    * Push submission to improvement service.
    * @method
-   * @name pushSubmissionToImprovementService
+   * @name pushSubmissionToProjectService
    * @param {String} submissionDocument - submission document.
    * @returns {JSON} consists of kafka message whether it is pushed for reporting
    * or not.
    */
 
-  // static pushSubmissionToImprovementService(submissionDocument) {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       let submissionData = {
-  //         taskId: submissionDocument.project.taskId,
-  //         projectId: submissionDocument.project._id,
-  //         _id: submissionDocument._id,
-  //         status: submissionDocument.status,
-  //       };
-
-  //       if (submissionDocument.completedDate) {
-  //         submissionData['submissionDate'] = submissionDocument.completedDate;
-  //       }
-  //       const kafkaMessage = await kafkaClient.pushSubmissionToImprovementService(submissionData);
-
-  //       if (kafkaMessage.status != 'success') {
-  //         let errorObject = {
-  //           formData: {
-  //             submissionId: submissionDocument._id.toString(),
-  //             message: kafkaMessage.message,
-  //           },
-  //         };
-  //         slackClient.kafkaErrorAlert(errorObject);
-  //       }
-
-  //       return resolve(kafkaMessage);
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // }
+  static pushSubmissionToProjectService(submissionDocument) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let submissionData = {
+          taskId: submissionDocument.project.taskId,
+          projectId: submissionDocument.project._id,
+          _id: submissionDocument._id,
+          status: submissionDocument.status,
+        };
+  
+        if (submissionDocument.completedDate) {
+          submissionData["submissionDate"] = submissionDocument.completedDate;
+        }
+        let pushSubmissionToProject;
+        if (
+          process.env.SUBMISSION_UPDATE_KAFKA_PUSH_ON_OFF === "ON" &&
+          process.env.IMPROVEMENT_PROJECT_SUBMISSION_TOPIC
+        ) {
+          pushSubmissionToProject =
+            await kafkaClient.pushSubmissionToProjectService(submissionData);
+  
+          if (pushSubmissionToProject.status != messageConstants.common.SUCCESS) {
+            throw new Error(
+              `Failed to push submission to project. Submission ID: ${submissionDocument._id.toString()}, Message: ${pushSubmissionToProject.message}`,
+            );
+          }
+        } else {
+          pushSubmissionToProject = await projectService.pushSubmissionToTask(
+            submissionDocument.project._id,
+            submissionDocument.project.taskId,
+            submissionDocument,
+          );
+          if (!pushSubmissionToProject.success) {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.PUSH_SUBMISSION_FAILED,
+            };
+          }
+        }
+  
+        return resolve(pushSubmissionToProject);
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+  
 
   /**
    * Add app information in submissions

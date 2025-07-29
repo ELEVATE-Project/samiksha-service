@@ -12,6 +12,7 @@ const userService = require(ROOT_PATH + '/generics/services/users');
 const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
 const programUsersQueries = require(DB_QUERY_BASE_PATH + '/programUsers');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
+const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSolutionUtilities')
 
 /**
  * ProgramsHelper
@@ -22,11 +23,11 @@ module.exports = class ProgramsHelper {
    * List program
    * @method
    * @name list
+   * @param {Object} filter - filter.
+   * @param {Array} projection - projection.
    * @param {Number} pageNo - page no.
    * @param {Number} pageSize - page size.
    * @param {String} searchText - text to search.
-   *  @param {Object} filter - filter.
-   *  @param {Array} projection - projection.
    * @returns {Object} - Programs list.
    */
 
@@ -34,16 +35,17 @@ module.exports = class ProgramsHelper {
     return new Promise(async (resolve, reject) => {
       try {
         let programDocument = [];
-
-        let matchQuery = { status: messageConstants.common.ACTIVE_STATUS };
+        
+        let matchQuery = {
+           status: messageConstants.common.ACTIVE_STATUS
+         };
 
         if (Object.keys(filter).length > 0) {
           matchQuery = _.merge(matchQuery, filter);
         }
 
         if (searchText !== '') {
-          matchQuery['$or'] = [];
-          matchQuery['$or'].push(
+          let searchData = [
             {
               externalId: new RegExp(searchText, 'i'),
             },
@@ -53,7 +55,14 @@ module.exports = class ProgramsHelper {
             {
               description: new RegExp(searchText, 'i'),
             }
-          );
+          ];
+
+          if(matchQuery['$and']){
+            matchQuery['$and'].push({ $or: searchData });
+          }else{
+            matchQuery['$or'] = searchData;
+          }
+
         }
 
         let sortQuery = {
@@ -120,10 +129,11 @@ module.exports = class ProgramsHelper {
    * @name create
    * @param {Array} data
    * @param {Boolean} checkDate this is true for when its called via API calls
+   * @param {Object} userDetails loggedin user's info
    * @returns {JSON} - create program.
    */
 
-  static create(data, checkDate = false) {
+  static create(data, checkDate = false, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let programData = {
@@ -146,6 +156,8 @@ module.exports = class ProgramsHelper {
           },
           components: [],
           isAPrivateProgram: data.isAPrivateProgram ? data.isAPrivateProgram : false,
+          tenantId:data.tenantData.tenantId,
+          orgId:data.tenantData.orgId[0]
         };
 
         // Adding Start and End date in program document
@@ -173,7 +185,7 @@ module.exports = class ProgramsHelper {
 
         //if scope exits adding scope to programDocument
         if (data.scope) {
-          let programScopeUpdated = await this.setScope(program._id, data.scope);
+          let programScopeUpdated = await this.setScope(program._id, data.scope,userDetails);
 
           if (!programScopeUpdated.success) {
             throw {
@@ -197,10 +209,12 @@ module.exports = class ProgramsHelper {
    * @param {Array} data
    * @param {String} userId
    * @param {Boolean} checkDate -this is true for when its called via API calls
+   * @param {Object} tenantData - tenant data
+   * @param {Object} userDetails - loggedin user's info
    * @returns {JSON}            - update program.
    */
 
-  static update(programId, data, userId, checkDate = false) {
+  static update(programId, data, userId, checkDate = false, tenantData, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         data.updatedBy = userId;
@@ -223,8 +237,9 @@ module.exports = class ProgramsHelper {
         let program = await programsQueries.findOneAndUpdate(
           {
             _id: programId,
+            tenantId:tenantData.tenantId,
           },
-          { $set: _.omit(data, ['scope']) },
+          { $set: _.omit(data, ['scope','tenantId']) },
           { new: true }
         );
 
@@ -235,7 +250,7 @@ module.exports = class ProgramsHelper {
         }
         // If the request body contains scope data, it will be updated as follows
         if (data.scope) {
-          let programScopeUpdated = await this.setScope(programId, data.scope);
+          let programScopeUpdated = await this.setScope(programId, data.scope,userDetails);
 
           if (!programScopeUpdated.success) {
             throw {
@@ -267,10 +282,13 @@ module.exports = class ProgramsHelper {
    * @name addRolesInScope
    * @param {String} programId - Program Id.
    * @param {Array} roles - roles data.
+   * @param {Object} tenantData - tenant data
    * @returns {JSON} - Added roles data.
    */
 
-  static addRolesInScope(programId, roles) {
+  // Role-based logic has been removed from the current implementation, so this API is currently not in use.
+  //  It may be revisited in the future based on requirements.
+  static addRolesInScope(programId, roles,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         // check if program exits in program collection and also it has scope
@@ -279,6 +297,7 @@ module.exports = class ProgramsHelper {
             _id: programId,
             scope: { $exists: true },
             isAPrivateProgram: false,
+            tenantId:tenantData.tenantId
           },
           ['_id']
         );
@@ -361,57 +380,55 @@ module.exports = class ProgramsHelper {
    * @method
    * @name addEntitiesInScope
    * @param {String} programId - Program Id.
-   * @param {Array} entities - entities data.
+	 * @param {Object} bodyData - body data.
+	 * @param {Object} userDetails - User Details
    * @returns {JSON} - Added entities data.
    */
 
-  static addEntitiesInScope(programId, entities) {
+  static addEntitiesInScope(programId, bodyData,userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
+        // Extract tenant and org IDs from user details
+        let tenantId = userDetails.tenantAndOrgInfo.tenantId
+				let orgId = userDetails.tenantAndOrgInfo.orgId[0]
+
+        // Fetch the program document to ensure it exists and has a scope
         let programData = await programsQueries.programDocuments(
           {
             _id: programId,
             scope: { $exists: true },
             isAPrivateProgram: false,
+            tenantId: tenantId,
+            orgId: orgId,
           },
-          ['_id', 'scope.entityType']
+          ['_id', 'scope']
         );
 
         if (!(programData.length > 0)) {
           throw {
             message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+            status: httpStatusCode.bad_request.status
           };
         }
+        let updateObjectData = await programSolutionUtility.getUpdateObjectTOAddScope(
+					bodyData,
+					tenantId,
+					orgId,
+					userDetails
+				)
+				if (!updateObjectData?.success) {
+					throw {
+						message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
+						status: httpStatusCode.bad_request.status,
+					}
+				}
 
-        let entityIds = [];
-
-        let entitiesData = await entityManagementService.entityDocuments(
-          {
-            _id: { $in: entities },
-            entityType: programData[0].scope.entityType,
-          },
-          ['_id']
-        );
-
-        if (!entitiesData.success) {
-          throw {
-            message: messageConstants.apiResponses.ENTITIES_NOT_FOUND,
-          };
-        }
-
-        entitiesData = entitiesData.data;
-
-        entitiesData.forEach((entity) => {
-          entityIds.push(entity._id);
-        });
-
+        // Perform the actual update on the program
         let updateProgram = await programsQueries.findOneAndUpdate(
           {
             _id: programId,
           },
-          {
-            $addToSet: { 'scope.entities': { $each: entityIds } },
-          },
+          updateObjectData.updateObject,
           { new: true }
         );
         if (!updateProgram || !updateProgram._id) {
@@ -440,10 +457,13 @@ module.exports = class ProgramsHelper {
    * @name removeRolesInScope
    * @param {String} programId - Program Id.
    * @param {Array} roles - roles data.
+   * @param {Object} tenantData - tenant data
    * @returns {JSON} - Added roles data.
    */
 
-  static removeRolesInScope(programId, roles) {
+  // Role-based logic has been removed from the current implementation, so this API is currently not in use.
+  //  It may be revisited in the future based on requirements.
+  static removeRolesInScope(programId, roles,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let programData = await programsQueries.programDocuments(
@@ -451,6 +471,7 @@ module.exports = class ProgramsHelper {
             _id: programId,
             scope: { $exists: true },
             isAPrivateProgram: false,
+            tenantId:tenantData.tenantId
           },
           ['_id']
         );
@@ -503,48 +524,71 @@ module.exports = class ProgramsHelper {
    * @method
    * @name removeEntitiesInScope
    * @param {String} programId - Program Id.
-   * @param {Array} entities - entities.
+	 * @param {Object} bodyData - body data.
+	 * @param {Object} userDetails - User Details
    * @returns {JSON} - Removed entities data.
    */
 
-  static removeEntitiesInScope(programId, entities) {
+  static removeEntitiesInScope(programId, bodyData, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
+
+        // Extract tenant and org IDs from userDetails
+        let tenantId = userDetails.tenantAndOrgInfo.tenantId
+				let orgId = userDetails.tenantAndOrgInfo.orgId[0]
+        const ALL_SCOPE_VALUE = messageConstants.common.ALL_SCOPE_VALUE
+
+        // Fetch the program to verify it exists and has a scope field
         let programData = await programsQueries.programDocuments(
           {
             _id: programId,
             scope: { $exists: true },
             isAPrivateProgram: false,
+            tenantId: tenantId,
+						orgId: orgId,
           },
-          ['_id', 'scope.entities']
+          ['_id', 'scope']
         );
 
         if (!(programData.length > 0)) {
           throw {
             message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+            status: httpStatusCode.bad_request.status
           };
         }
-        let entitiesData = [];
-        entitiesData = programData[0].scope.entities;
+				// Initialize the update object to be used in MongoDB update query
+				const currentScope = programData[0].scope || {};
+        let updateObjectData = await programSolutionUtility.getUpdateObjectToRemoveScope(
+					currentScope,
+					bodyData,
+					tenantId,
+					userDetails
+				)
+				if (!updateObjectData?.success) {
+					throw {
+						message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
+						status: httpStatusCode.bad_request.status,
+					}
+				}
 
-        if (!(entitiesData.length > 0)) {
-          throw {
-            message: messageConstants.apiResponses.ENTITIES_NOT_FOUND,
-          };
-        }
-
+				// Prepare update object
+				let updateObject = {
+					$set: {
+						scope: updateObjectData.updatedScope,
+					},
+				}
+        // Update the program document with $pull operation to remove specified values
         let updateProgram = await programsQueries.findOneAndUpdate(
-          {
-            _id: programId,
-          },
-          {
-            $pull: { 'scope.entities': { $in: entities } },
-          },
-          { new: true }
-        );
+					{
+						_id: programId,
+					},
+					updateObject,
+					{ new: true }
+				)
         if (!updateProgram || !updateProgram._id) {
           throw {
             message: messageConstants.apiResponses.PROGRAM_NOT_UPDATED,
+            status: httpStatusCode.bad_request.status
           };
         }
 
@@ -567,15 +611,17 @@ module.exports = class ProgramsHelper {
    * @method
    * @name details
    * @param {String} programId - Program Id.
+   * @param {Object} tenantData - tenant data
    * @returns {Object} - Details of the program.
    */
 
-  static details(programId) {
+  static details(programId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         // Get the details or dump of the program based on the programid
         let programData = await programsQueries.programDocuments({
           _id: programId,
+          tenantId:tenantData.tenantId
         });
 
         if (!(programData.length > 0)) {
@@ -610,11 +656,12 @@ module.exports = class ProgramsHelper {
    * @param {String} userToken - User token
    * @param {String} [appName = ""] - App Name.
    * @param {String} [appVersion = ""] - App Version.
+   * @param {Object} tenantData - tenant data
    * @param {Boolean} callConsetAPIOnBehalfOfUser - required to call consent api or not
    * @returns {Object} - Details of the program join.
    */
 
-  static join(programId, data, userId, userToken,appName = '', appVersion = '', callConsetAPIOnBehalfOfUser = false) {
+  static join(programId, data, userId, userToken,appName = '', appVersion = '', callConsetAPIOnBehalfOfUser = false,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let pushProgramUsersDetailsToKafka = false;
@@ -624,6 +671,7 @@ module.exports = class ProgramsHelper {
             _id: programId,
             status: messageConstants.common.ACTIVE_STATUS,
             isDeleted: false,
+            tenantId:tenantData.tenantId
           },
           ['name', 'externalId', 'requestForPIIConsent', 'rootOrganisations']
         );
@@ -794,10 +842,11 @@ module.exports = class ProgramsHelper {
    * @param {String} scopeData.entityType - entity type
    * @param {Array} scopeData.entities - entities in scope
    * @param {Array} scopeData.roles - roles in scope
+   * @param {Object} tenantData - tenant data
    * @returns {JSON} - Set scope data.
    */
 
-  static setScope(programId, scopeData) {
+  static setScope(programId, scopeData,userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         // Find program document to update or set scope based on program id
@@ -808,6 +857,41 @@ module.exports = class ProgramsHelper {
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
           });
+        }
+
+        // populate scopeData.organizations data
+        if (
+          scopeData.organizations &&
+          scopeData.organizations.length > 0 &&
+          userDetails.roles.includes(messageConstants.common.ADMIN)
+        ) {
+          // call user-service to fetch related orgs
+          let validOrgs = await userService.fetchTenantDetails(
+            userDetails.tenantAndOrgInfo.tenantId,
+            userDetails.userToken,
+            true
+          )
+          if (!validOrgs.success) {
+            throw {
+              success: false,
+              status: httpStatusCodes['bad_request'].status,
+              message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+            }
+          }
+          validOrgs = validOrgs.data
+
+          // filter valid orgs
+          scopeData.organizations = scopeData.organizations.filter(
+            (id) => validOrgs.includes(id) || id.toLowerCase() == messageConstants.common.ALL
+          )
+        } else {
+          scopeData['organizations'] = userDetails.tenantAndOrgInfo.orgId
+        }
+
+        if (Array.isArray(scopeData.organizations)) {
+          scopeData.organizations = scopeData.organizations.map(orgId =>
+            orgId === messageConstants.common.ALL ? 'ALL' : orgId
+          )
         }
 
         let scope = {};
@@ -829,6 +913,18 @@ module.exports = class ProgramsHelper {
             });
             scopeData = _.omit(scopeData, keysCannotBeAdded);
           }
+
+          let tenantDetails = await userService.fetchPublicTenantDetails(userDetails.tenantAndOrgInfo.tenantId);
+          if (!tenantDetails.success || !tenantDetails?.data?.meta) {
+            throw ({
+              status: httpStatusCode['bad_request'].status,
+              message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
+            });
+          }
+          let tenantPublicDetailsMetaField = tenantDetails.data.meta;
+
+          let filteredScope = gen.utils.getFilteredScope(scopeData, tenantPublicDetailsMetaField);
+
                   // }
 
                   const updateObject = {
@@ -836,13 +932,12 @@ module.exports = class ProgramsHelper {
                   }
           
                   // Set the scope in updateObject to the updated scopeData
-                  updateObject['$set']['scope'] = scopeData
+                  updateObject['$set']['scope'] = filteredScope
           
                   // Extract entities from scopeData excluding the 'roles' key
                   const entities = Object.keys(scopeData)
                     .filter((key) => key !== 'roles')
                     .reduce((acc, key) => acc.concat(scopeData[key]), [])
-          
                   // Add the entities array to updateObject
                   updateObject.$set.entities = entities
           
@@ -851,7 +946,6 @@ module.exports = class ProgramsHelper {
           
                   // Add the entityType to updateObject
                   updateObject['$set']['entityType'] = scopeData.entityType
-          
 
         //Updating or set scope in program document
         let updateProgram = await programsQueries.findOneAndUpdate(
@@ -960,10 +1054,11 @@ module.exports = class ProgramsHelper {
    * @method
    * @name listByIds
    * @param {Array} programIds - Program ids.
+   * @param {Object} tenantData - tenantData info
    * @returns {Array} List of Programs.
    */
 
-  static listByIds(programIds) {
+  static listByIds(programIds,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let programsData;
@@ -974,7 +1069,10 @@ module.exports = class ProgramsHelper {
               _id: { $in: programIds },
             },
             'all',
-            ['components', 'imageCompression', 'updatedAt', 'createdAt', 'startDate', 'endDate', 'updatedBy']
+            ['components', 'imageCompression', 'updatedAt', 'createdAt', 'startDate', 'endDate', 'updatedBy'],
+            '',
+            '',
+            tenantData
           );
 
           if (!programsData.length > 0) {
@@ -1129,13 +1227,14 @@ module.exports = class ProgramsHelper {
    * @param {Number} pageSize       - Size of page.
    * @param {String} search         - search text.
    * @param {String} [ filter = ""] - filter text.
+   * @param {Object} tenantData - tenant data
    * @returns {Object} - Details of the program.
    */
-  static targetedPrograms(requestedData, userId, pageSize, pageNo, search, filter) {
+  static targetedPrograms(requestedData, userId, pageSize, pageNo, search, filter,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         //fetch the assigned programs for the user
-        let assignedPrograms = await this.assignedUserPrograms(userId);
+        let assignedPrograms = await this.assignedUserPrograms(userId,tenantData);
         let mergedData = [];
         let programIds = [];
         if (assignedPrograms.success && assignedPrograms.data) {
@@ -1164,7 +1263,8 @@ module.exports = class ProgramsHelper {
             filter,
             pageSize,
             pageNo,
-            search
+            search,
+            tenantData
           );
         }
 
@@ -1184,10 +1284,11 @@ module.exports = class ProgramsHelper {
    * @method
    * @name assignedUserPrograms
    * @param {String} userId         - logged in user id.
+   * @param {Object} tenantData - tenant data
    * @returns {Object} - Details of the program.
    */
 
-  static assignedUserPrograms(userId) {
+  static assignedUserPrograms(userId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -1195,7 +1296,9 @@ module.exports = class ProgramsHelper {
         //Checking for user assigned programs based on userId
 
         let userAssignedPrograms = await programUsersQueries.programUsersDocument(
-          { userId: userId } ,
+          { userId: userId,
+            tenantId:tenantData.tenantId
+          } ,
           projection// find query
         );
 
@@ -1217,7 +1320,7 @@ module.exports = class ProgramsHelper {
     });
   }
 
-  static forUserRoleAndLocation(bodyData, programIds, filter, pageSize, pageNo, searchText = '') {
+  static forUserRoleAndLocation(bodyData, programIds, filter, pageSize, pageNo, searchText = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         //Getting query based on roles and entity
@@ -1236,6 +1339,8 @@ module.exports = class ProgramsHelper {
         }
         matchQuery['startDate'] ={ $lte: new Date() }
         matchQuery['endDate'] =  { $gte: new Date() }
+        matchQuery['tenantId'] = tenantData.tenantId
+        //matchQuery['orgIds'] = {$in:['ALL',tenantData.orgId]}
         //adding programIds array to matchQuery
         // matchQuery['_id'] = { $in: programIds };
         let projection = [
@@ -1250,7 +1355,7 @@ module.exports = class ProgramsHelper {
           "metaInformation"
         ];
         //listing the solution based on type and query
-        let targetedPrograms = await this.list(matchQuery, projection, pageNo, pageSize, searchText);
+        let targetedPrograms = await this.list(matchQuery, projection, pageNo, pageSize, searchText,tenantData);
         return resolve({
           success: true,
           message: messageConstants.apiResponses.TARGETED_PROGRAM_FETCHED,
@@ -1283,13 +1388,13 @@ module.exports = class ProgramsHelper {
 				let filterQuery = {
 					isDeleted: false,
 				}
-				Object.keys(_.omit(data, ['role', 'filter', 'factors', 'type'])).forEach((key) => {
+				Object.keys(_.omit(data, ['role', 'filter', 'factors', 'type','tenantId','orgId','organizations'])).forEach((key) => {
 					data[key] = data[key].split(',')
 				})
 
 				// If validate entity set to ON . strict scoping should be applied
 				if (validateEntity !== messageConstants.common.OFF) {
-					Object.keys(_.omit(data, ['filter', 'role', 'factors', 'type'])).forEach((requestedDataKey) => {
+					Object.keys(_.omit(data, ['filter', 'role', 'factors', 'type','tenantId','orgId','organizations'])).forEach((requestedDataKey) => {
 						registryIds.push(...data[requestedDataKey])
 						entityTypes.push(requestedDataKey)
 					})
@@ -1299,64 +1404,96 @@ module.exports = class ProgramsHelper {
 						}
 					}
 
-					if (!data.role) {
-						throw {
-							message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
-						}
-					}
+          /*
+          if (!data.role) {
+            throw {
+              message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+            }
+          }
+          // filterQuery['scope.roles.code'] = {
+          //   $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')],
+          // };
+          filterQuery['scope.roles'] = {
+            $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')],
+          };
+          */
+          // filterQuery['scope.entities'] = { $in: entities };
+          let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type','tenantId','orgId']);
 
-					filterQuery['scope.roles'] = {
-						$in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')],
-					}
+          let tenantDetails = await userService.fetchPublicTenantDetails(data.tenantId);
+					if (!tenantDetails.success || !tenantDetails?.data?.meta) {
+            return resolve({
+              success: false,
+              message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
+            });
+          }
+          // factors = [ 'professional_role', 'professional_subroles' ]
+          let tenantPublicDetailsMetaField = tenantDetails.data.meta;
+          let builtQuery = gen.utils.targetingQuery(
+            userRoleInfo,
+            tenantPublicDetailsMetaField,
+            messageConstants.common.MANDATORY_SCOPE_FIELD,
+            messageConstants.common.OPTIONAL_SCOPE_FIELD
+          )
 
-					filterQuery.$or = []
-					Object.keys(_.omit(data, ['filter', 'role', 'factors', 'type'])).forEach((key) => {
-						filterQuery.$or.push({
-							[`scope.${key}`]: { $in: data[key] },
-						})
-					})
-					filterQuery['scope.entityType'] = { $in: entityTypes }
-				} else {
-					// Obtain userInfo
-					let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type'])
-					let userRoleKeys = Object.keys(userRoleInfo)
-					let queryFilter = []
+          filterQuery = {...filterQuery,...builtQuery}
+          filterQuery['scope.entityType'] = { $in: entityTypes }
+        } else {
+          // let userRoleInfo = _.omit(data, ['filter', , 'factors', 'role','type']);
+          // let userRoleKeys = Object.keys(userRoleInfo);
+          // userRoleKeys.forEach((entities) => {
+          //   filterQuery['scope.' + entities] = {
+          //     $in: userRoleInfo[entities].split(','),
+          //   };
+          // });
 
-					// if factors are passed or query has to be build based on the keys passed
-					if (data.hasOwnProperty('factors') && data.factors.length > 0) {
-						let factors = data.factors
-						// Build query based on each key
-						factors.forEach((factor) => {
-							let scope = 'scope.' + factor
-							let values = userRoleInfo[factor]
-							if (factor === 'role') {
-								queryFilter.push({
-									['scope.roles']: { $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')] },
-								})
-							} else if (!Array.isArray(values)) {
-								queryFilter.push({ [scope]: { $in: values.split(',') } })
-							} else {
-								queryFilter.push({ [scope]: { $in: [...values] } })
-							}
-						})
-						// append query filter
-						filterQuery['$or'] = queryFilter
-					} else {
-						userRoleKeys.forEach((key) => {
-							let scope = 'scope.' + key
-							let values = userRoleInfo[key]
-							if (!Array.isArray(values)) {
-								queryFilter.push({ [scope]: { $in: values.split(',') } })
-							} else {
-								queryFilter.push({ [scope]: { $in: [...values] } })
-							}
-						})
+          // Obtain userInfo
+          let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type','tenantId','orgId'])
+          let userRoleKeys = Object.keys(userRoleInfo)
+          let queryFilter = []
 
-						if (data.role) {
-							queryFilter.push({
-								['scope.roles']: { $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')] },
-							})
-						}
+          // factors = [ 'professional_role', 'professional_subroles' ]
+          // if factors are passed or query has to be build based on the keys passed
+          if (data.hasOwnProperty('factors') && data.factors.length > 0) {
+            let factors = data.factors
+            // Build query based on each key
+            factors.forEach((factor) => {
+              let scope = 'scope.' + factor
+              let values = userRoleInfo[factor]
+              if (factor === 'role') {
+                queryFilter.push({
+                  ['scope.roles']: { $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')] },
+                })
+              } else if (!Array.isArray(values)) {
+                queryFilter.push({ [scope]: { $in: values.split(',') } });
+              } else {
+                queryFilter.push({ [scope]: { $in: [...values] } });
+              }
+            })
+            // append query filter
+            if(filterQuery['$and']){
+              filterQuery['$and'].push({
+                $or: queryFilter,
+              });
+            }else{
+              filterQuery['$or'] = queryFilter;
+            }
+          } else {
+            userRoleKeys.forEach((key) => {
+              let scope = 'scope.' + key
+              let values = userRoleInfo[key]
+              if (!Array.isArray(values)) {
+                queryFilter.push({ [scope]: { $in: values.split(',') } });
+              } else {
+                queryFilter.push({ [scope]: { $in: [...values] } });
+              }
+            })
+
+            if (data.role) {
+              queryFilter.push({
+                ['scope.roles']: { $in: [messageConstants.common.ALL_ROLES, ...data.role.split(',')] },
+              });
+            }
 
 						// append query filter
 						filterQuery['$and'] = queryFilter
@@ -1367,18 +1504,21 @@ module.exports = class ProgramsHelper {
 				if (type != '') {
 					filterQuery.type = type
 				}
-				return resolve({
-					success: true,
-					data: filterQuery,
-				})
-			} catch (error) {
-				return resolve({
-					success: false,
-					status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
-					message: error.message,
-					data: {},
-				})
-			}
-		})
-	}
-};
+
+        delete filterQuery['scope.entityType'];
+        filterQuery.tenantId = data.tenantId
+        return resolve({
+        success: true,
+          data: filterQuery,
+        })
+      } catch (error) {
+        return resolve({
+          success: false,
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
+          message: error.message,
+          data: {},
+        })
+      }
+    })
+  }
+}

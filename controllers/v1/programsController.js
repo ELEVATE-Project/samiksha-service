@@ -10,7 +10,7 @@ const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
 const insightsHelper = require(MODULES_BASE_PATH + '/insights/helper');
 const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
-
+const userService = require(ROOT_PATH + '/generics/services/users');
 /**
  * Programs
  * @class
@@ -68,12 +68,31 @@ module.exports = class Programs extends Abstract {
   async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
+
+        let tenantDetails = await userService.fetchPublicTenantDetails(req.userDetails.tenantData.tenantId);
+        if (!tenantDetails.success || !tenantDetails?.data?.meta) {
+          throw ({
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
+          });
+        }
+        let tenantPublicDetailsMetaField = tenantDetails.data.meta;
+        let queryResult = gen.utils.targetingQuery(
+          req.body,
+          tenantPublicDetailsMetaField,
+          messageConstants.common.MANDATORY_SCOPE_FIELD,
+          messageConstants.common.OPTIONAL_SCOPE_FIELD
+        )
+
         let listOfPrograms = await programsHelper.list(
-          "",          //filter
-          "",          // projection
+          {
+            tenantId: req.userDetails.tenantData.tenantId,
+            ...queryResult, // targetingQuery
+          }, //filter
+          '', // projection
           req.pageNo, //middleware convert req.params.page as req.PageNo
           req.pageSize, //middleware convert req.params.linit as req.PageSize
-          req.query.searchText,
+          req.query.searchText
         );
 
         listOfPrograms['result'] = listOfPrograms.data;
@@ -149,9 +168,20 @@ module.exports = class Programs extends Abstract {
     return new Promise(async (resolve, reject) => {
       try {
         req.body.userId = req.userDetails.userId;
+        req.body.tenantData = req.userDetails.tenantAndOrgInfo;
+
+        if(req.body.tenantId){
+          delete req.body.tenantId;
+        }
+
+        if(req.body.orgId){
+          delete req.body.orgId;
+        }
+
         let programCreationData = await programsHelper.create(
           req.body,
-          true, // checkDate
+          true, // checkDate,
+          req.userDetails
         );
 
         return resolve({
@@ -224,22 +254,17 @@ module.exports = class Programs extends Abstract {
    * @param {Object}
    * @returns {JSON} -
    */
-  /**
-   * Update program.
-   * @method
-   * @name update
-   * @param {Object} req - requested data.
-   * @param {Object}
-   * @returns {JSON} -
-   */
 
   async update(req) {
     try {
+      let tenantFilter =  req.userDetails.tenantAndOrgInfo;
       let programUpdationData = await programsHelper.update(
         req.params._id,
         req.body,
         req.userDetails.userId,
         true, //checkDate
+        tenantFilter,
+        req.userDetails
       );
 
       programUpdationData.result = programUpdationData.data;
@@ -285,10 +310,12 @@ module.exports = class Programs extends Abstract {
    * @returns {Array} Program scope roles.
    */
 
+  // Role-based logic has been removed from the current implementation, so this API is currently not in use.
+  //  It may be revisited in the future based on requirements.
   async addRolesInScope(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let programDetails = await programsHelper.addRolesInScope(req.params._id, req.body.roles);
+        let programDetails = await programsHelper.addRolesInScope(req.params._id, req.body.roles,req.userDetails.tenantData);
 
         return resolve(programDetails);
       } catch (error) {
@@ -308,7 +335,32 @@ module.exports = class Programs extends Abstract {
     * @apiGroup Programs
     * @apiParamExample {json} Request-Body:
     * {
-      "entities" : ["5f33c3d85f637784791cd830"]
+        "entities": {
+            "district": [
+                "681b0800f21c88cef951890e"
+            ],
+            "professional_subroles": [
+                "682301604e2812081f342674",
+                "682303044e2812081f3426fb"
+            ],
+            "professional_role": [
+                "681b07b49c57cdcf03c79ae3",
+                "681b0800f21c88cef9517e0e"
+            ],
+            "school": [
+                "67c82d9553812588916410d3"
+            ],
+            "language": [
+                "681b0800f21c88cef951890e"
+            ],
+            "gender": [
+                "67c82d955381258891642345"
+            ]
+        },
+        "organizations": [
+            "blr"
+        ]
+      } 
     }
     * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiSampleRequest /samiksha/v1/programs/addEntitiesInScope/5ffbf8909259097d48017bbf
@@ -327,16 +379,19 @@ module.exports = class Programs extends Abstract {
    * @name addEntitiesInScope
    * @param {Object} req - requested data.
    * @param {String} req.params._id - program id.
-   * @param {Array} req.body.entities - Entities to be added.
+	 * @param {Object} req.body - data to be added.
+	 * @param {Object} req.userDetails - User details
    * @returns {Array} Program scope roles.
    */
 
   async addEntitiesInScope(req) {
     return new Promise(async (resolve, reject) => {
       try {
+        let tenantFilter =  req.userDetails.tenantAndOrgInfo;
         let programDetails = await programsHelper.addEntitiesInScope(
           req.params._id,
-          req.body.entities,
+          req.body,
+          req.userDetails,
         );
 
         return resolve(programDetails);
@@ -380,10 +435,12 @@ module.exports = class Programs extends Abstract {
    * @returns {Array} Program scope roles.
    */
 
+  // Role-based logic has been removed from the current implementation, so this API is currently not in use.
+  //  It may be revisited in the future based on requirements.
   async removeRolesInScope(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let programDetails = await programsHelper.removeRolesInScope(req.params._id, req.body.roles);
+        let programDetails = await programsHelper.removeRolesInScope(req.params._id, req.body.roles, req.userDetails.tenantData);
 
         return resolve(programDetails);
       } catch (error) {
@@ -403,7 +460,20 @@ module.exports = class Programs extends Abstract {
     * @apiGroup Programs
     * @apiParamExample {json} Request-Body:
     * {
-      "entities" : ["5f33c3d85f637784791cd830"]
+        "entities": {
+            "professional_subroles": [
+                "682301254e2812081f34266c",
+                "682303044e2812081f3426fb",
+                "682301604e2812081f342674"
+            ],
+            "professional_role": [
+                "681b07b49c57cdcf03c79ae3",
+                "681b0800f21c88cef9517e0e"
+            ]
+        },
+        "organizations": [
+            "ALL"
+        ]
     }
     * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiSampleRequest /samiksha/v1/programs/removeEntitiesInScope/5ffbf8909259097d48017bbf
@@ -422,14 +492,15 @@ module.exports = class Programs extends Abstract {
    * @name removeEntitiesInScope
    * @param {Object} req - requested data.
    * @param {String} req.params._id - program id.
-   * @param {Array} req.body.entities - Entities to be added.
+	 * @param {Object} req.body - data to be removed.
+	 * @param {Object} req.userDetails - User details
    * @returns {Array} Program scope roles.
    */
 
   async removeEntitiesInScope(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let programDetails = await programsHelper.removeEntitiesInScope(req.params._id, req.body.entities);
+        let programDetails = await programsHelper.removeEntitiesInScope(req.params._id, req.body,req.userDetails);
 
         return resolve(programDetails);
       } catch (error) {
@@ -473,7 +544,7 @@ module.exports = class Programs extends Abstract {
   async details(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let programData = await programsHelper.details(req.params._id);
+        let programData = await programsHelper.details(req.params._id,req.userDetails.tenantData);
 
         programData['result'] = programData.data;
 
@@ -534,6 +605,7 @@ module.exports = class Programs extends Abstract {
           req.headers['x-app-id'] ? req.headers['x-app-id'] : req.headers.appname ? req.headers.appname : '',
           req.headers['x-app-ver'] ? req.headers['x-app-ver'] : req.headers.appversion ? req.headers.appversion : '',
           req.headers['internal-access-token'] ? true : req.headers.internalAccessToken ? true : false,
+          req.userDetails.tenantData
         );
         programJoin['result'] = programJoin.data;
         return resolve(programJoin);
@@ -1168,7 +1240,7 @@ module.exports = class Programs extends Abstract {
   async listByIds(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let programsData = await programsHelper.listByIds(req.body.programIds);
+        let programsData = await programsHelper.listByIds(req.body.programIds,req.userDetails.tenantData);
 
         programsData.result = programsData.data;
 
@@ -1301,6 +1373,7 @@ module.exports = class Programs extends Abstract {
           req.pageNo,
           req.searchText,
           req.query.filter,
+          req.userDetails.tenantData
         );
 
         programs['result'] = programs.data;

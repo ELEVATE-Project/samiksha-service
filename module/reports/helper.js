@@ -9,13 +9,14 @@
 // Dependencies
 let moment = require('moment');
 const filesHelper = require(MODULES_BASE_PATH + '/files/helper');
-const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const helperFunc = require('../../helper/chart_data');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const observationSubmissionsHelper = require(MODULES_BASE_PATH + '/observationSubmissions/helper');
 const pdfHelper = require('../../helper/pdfGeneration');
+const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
+const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
 
 /**
  * ReportsHelper
@@ -79,9 +80,11 @@ module.exports = class ReportsHelper {
     } else {
       let submissionId = req.query.submissionId;
 
-      let surveySubmissionsDocumentArray = await surveySubmissionsHelper.surveySubmissionDocuments({
+      let surveySubmissionsDocumentArray = await surveySubmissionsQueries.surveySubmissionDocuments({
         _id: submissionId,
         status: 'completed',
+        tenantId: req.userDetails.tenantData.tenantId,
+        orgId: req.userDetails.tenantData.orgId,
       });
 
       let surveySubmissionsDocument = surveySubmissionsDocumentArray[0];
@@ -98,6 +101,7 @@ module.exports = class ReportsHelper {
       let solutionDocument = await solutionsQueries.solutionDocuments(
         {
           _id: surveySubmissionsDocument.solutionId,
+          tenantId: req.userDetails.tenantData.tenantId
         },
         ['name', 'scoringSystem', 'description', 'questionSequenceByEcm']
       );
@@ -113,8 +117,9 @@ module.exports = class ReportsHelper {
         let programDocument = await programsHelper.list(
           {
             _id: surveySubmissionsDocument.programId,
+            tenantId: req.userDetails.tenantData.tenantId
           },
-          ['name', 'description']
+          ['name', 'description',"externalId"]
         );
 
         surveySubmissionsDocument['programInfo'] = programDocument[0];
@@ -128,6 +133,15 @@ module.exports = class ReportsHelper {
         surveyName: surveySubmissionsDocument.surveyInformation.name,
         report: report,
       };
+
+      if (req.query.pdf) {
+        let pdfResponse = await pdfHelper.instanceSurveyPdfReport({
+          surveyName: surveySubmissionsDocument.surveyInformation.name,
+          response: report,
+        });
+        responseObj.response.pdfLink = pdfResponse.pdfUrl;
+        delete responseObj.response.report;
+      }
 
       return {
         status: httpStatusCode.ok.status,
@@ -149,20 +163,58 @@ module.exports = class ReportsHelper {
       entityId: entityId,
       observationId: observationId,
       status: 'completed',
+      tenantId: req.userDetails.tenantData.tenantId,
+      orgId: req.userDetails.tenantData.orgId,
     };
 
     let submissionDocumentArr = await observationSubmissionsHelper.observationSubmissionsDocument(queryObject);
     let submissionDocument = submissionDocumentArr[0];
 
-    if(!submissionDocument){
-      throw { message: messageConstants.apiResponses.SUBMISSION_NOT_FOUND};
+    if (!submissionDocument) {
+      throw { message: messageConstants.apiResponses.SUBMISSION_NOT_FOUND };
+    }
+    // Initialize an empty array to collect all improvement project suggestions
+    let improvementProjectSuggestions = [];
+
+    if (submissionDocument.criteria && submissionDocument.isRubricDriven) {
+      for (const criterias of submissionDocument.criteria) {
+        // Build a query to find the criteria document by its unique _id
+        let criteriaFindQuery = {
+          _id: criterias._id,
+        };
+
+        // Define which fields to return from the database
+        let criteriaProjectionArray = ['name', 'rubric'];
+
+        // Fetch the criteria document from the database using a helper function
+        let allCriteriaDocument = await criteriaHelper.criteriaDocument(criteriaFindQuery, criteriaProjectionArray);
+
+        // Process the returned document(s)
+        allCriteriaDocument.map((criteria) => {
+          criteria.criteriaId = criteria._id;
+          criteria.criteriaName = criteria.name;
+          criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level?criteria.rubric.levels[criterias.score].level:"No Level Matched";
+          criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
+          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
+            criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
+          }
+
+          // Clean up the object by removing unneeded properties
+          delete criteria.rubric;
+          delete criteria._id;
+          delete criteria.name;
+        });
+
+        // Since we're only expecting one match, push the first document to the suggestions array
+        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+      }
     }
 
-    let solutionDocument = await solutionsQueries.solutionDocuments(
-      {
-        _id: submissionDocument.solutionId,
-      }
-    );
+
+    let solutionDocument = await solutionsQueries.solutionDocuments({
+      _id: submissionDocument.solutionId,
+      tenantId: req.userDetails.tenantData.tenantId
+    });
 
     let programDocument = await programsHelper.details(submissionDocument.programId);
 
@@ -186,7 +238,8 @@ module.exports = class ReportsHelper {
       observationId: observationId,
       programName: programDocument.data?.name,
       totalSubmissions: submissionDocumentArr.length,
-      filters
+      filters,
+      improvementProjectSuggestions : improvementProjectSuggestions
     };
 
     let result;
@@ -241,6 +294,8 @@ module.exports = class ReportsHelper {
       _id:submissionId,
       entityType:entityType,
       status: 'completed',
+      tenantId:req.userDetails.tenantData.tenantId,
+      orgId:req.userDetails.tenantData.orgId
     };
 
     let submissionDocumentArr = await observationSubmissionsHelper.observationSubmissionsDocument(queryObject);
@@ -251,9 +306,46 @@ module.exports = class ReportsHelper {
       throw { message: messageConstants.apiResponses.SUBMISSION_NOT_FOUND};
     }
 
+    let improvementProjectSuggestions = [];
+
+    if (submissionDocument.criteria && submissionDocument.isRubricDriven) {
+      for (const criterias of submissionDocument.criteria) {
+        // Build a query to find the criteria document by its unique _id
+        let criteriaFindQuery = {
+          _id: criterias._id,
+        };
+
+        // Define which fields to return from the database
+        let criteriaProjectionArray = ['name', 'rubric'];
+
+        // Fetch the criteria document from the database using a helper function
+        let allCriteriaDocument = await criteriaHelper.criteriaDocument(criteriaFindQuery, criteriaProjectionArray);
+
+        // Process the returned document(s)
+        allCriteriaDocument.map((criteria) => {
+          criteria.criteriaId = criteria._id;
+          criteria.criteriaName = criteria.name;
+          criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level? criteria.rubric.levels[criterias.score].level :" No Level Matched";
+          criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
+          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
+            criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
+          }
+
+          // Clean up the object by removing unneeded properties
+          delete criteria.rubric;
+          delete criteria._id;
+          delete criteria.name;
+        });
+
+        // Since we're only expecting one match, push the first document to the suggestions array
+        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+      }
+    }
+
     let solutionDocument = await solutionsQueries.solutionDocuments(
       {
         _id: submissionDocument.solutionId,
+        tenantId: req.userDetails.tenantData.tenantId
       }
     );
 
@@ -283,6 +375,7 @@ module.exports = class ReportsHelper {
       programName: programDocument.data?.name,
       totalSubmissions: submissionDocumentArr.length,
       filters,
+      improvementProjectSuggestions : improvementProjectSuggestions
     };
     let result;
     if (req.body.scores === true) {

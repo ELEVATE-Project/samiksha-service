@@ -1,9 +1,10 @@
 let improvementProjectService = require(ROOT_PATH + '/generics/services/improvement-project');
 let criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
+const projectService = require(ROOT_PATH + '/generics/services/project')
 
 module.exports = class criteriaHelper {
-  static setCriteriaRubricExpressions(criteriaId, existingCriteria, criteriaRubricData, solutionLevelKeys) {
+  static setCriteriaRubricExpressions(criteriaId, existingCriteria, criteriaRubricData, solutionLevelKeys,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let expressionVariables = {};
@@ -70,14 +71,15 @@ module.exports = class criteriaHelper {
         });
 
         await database.models.criteria.findOneAndUpdate(
-          { _id: criteriaId },
+          { _id: criteriaId, 
+            tenantId: tenantData.tenantId
+          },
           {
             rubric: rubric,
             criteriaType: messageConstants.common.AUTO_RATING,
           },
         );
-
-        await criteriaQuestionsHelper.createOrUpdate(criteriaId);
+        await criteriaQuestionsHelper.createOrUpdate(criteriaId,false,tenantData);
 
         return resolve({
           success: true,
@@ -157,12 +159,12 @@ module.exports = class criteriaHelper {
    * @method
    * @name upload
    * @param {Object} criteriaData - criteria data to insert
-   * @param {String} userId - logged in user id
-   * @param {String} token - logged in user token
+   * @param {String} userDetails - logged in user details
+   * @param {String} tenantFilter - tenantFilter
    * @returns {Array} - returns created criteria.
    */
 
-  static upload(criteriaData, userId, token) {
+  static upload(criteriaData,userDetails,tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         let improvementProjectIds = [];
@@ -189,15 +191,21 @@ module.exports = class criteriaHelper {
         }
 
         if (improvementProjectIds.length > 0) {
-          let improvementProjects = await improvementProjectService.templateLists(improvementProjectIds, token);
-
-          if (improvementProjects.result && improvementProjects.result.length > 0) {
+          let improvementProjects = await projectService.templateLists(improvementProjectIds,userDetails);
+          //Error handle if the projectTemplate not found
+          if(!improvementProjects.success  || !(improvementProjects?.data?.length > 0)){            
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_FOUND,
+            };
+          }
+          if (improvementProjects.data && improvementProjects.data.length > 0) {
             let improvements = {};
 
-            improvementProjects.result.forEach((improvement) => {
+            improvementProjects.data.forEach((improvement) => {
               if (!improvements[improvement.externalId]) {
                 improvements[improvement.externalId] = {
-                  _id: ObjectId(improvement._id),
+                  _id: new ObjectId(improvement._id),
                   title: improvement.title,
                   goal: improvement.goal,
                   externalId: improvement.externalId,
@@ -276,13 +284,13 @@ module.exports = class criteriaHelper {
               criteriaDocuments = await database.models.criteria.findOneAndUpdate(
                 {
                   _id: parsedCriteria._SYSTEM_ID,
+                  tenantId: tenantFilter.tenantId
                 },
                 {
                   $set: criteriaStructure,
                 },
               );
-
-              await criteriaQuestionsHelper.createOrUpdate(parsedCriteria._SYSTEM_ID);
+              await criteriaQuestionsHelper.createOrUpdate(parsedCriteria._SYSTEM_ID,tenantFilter);
             } else {
               criteriaStructure['resourceType'] = ['Program', 'Framework', 'Criteria'];
 
@@ -339,7 +347,7 @@ module.exports = class criteriaHelper {
 
               criteriaStructure['evidences'] = [];
               criteriaStructure['deleted'] = false;
-              criteriaStructure['owner'] = userId;
+              criteriaStructure['owner'] = userDetails.userId;
               criteriaStructure['timesUsed'] = 12;
               criteriaStructure['weightage'] = 20;
               criteriaStructure['remarks'] = '';
@@ -348,7 +356,8 @@ module.exports = class criteriaHelper {
                 : messageConstants.common.MANUAL_RATING;
               criteriaStructure['score'] = '';
               criteriaStructure['flag'] = '';
-
+              criteriaStructure["tenantId"]=tenantFilter.tenantId
+              criteriaStructure["orgId"]=tenantFilter.orgId[0]
               criteriaDocuments = await database.models.criteria.create(criteriaStructure);
             }
 
@@ -383,11 +392,12 @@ module.exports = class criteriaHelper {
    * @returns {Array} - returns updated criteria.
    */
 
-  static update(criteriaExternalId, frameworkIdExists, bodyData, userId) {
+  static update(criteriaExternalId, frameworkIdExists, bodyData, userId, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let queryObject = {
           externalId: criteriaExternalId,
+          tenantId: tenantData.tenantId
         };
 
         if (frameworkIdExists) {
@@ -430,7 +440,7 @@ module.exports = class criteriaHelper {
    * @returns {Object}  old and new Mapped criteria id Object .
    */
 
-  static duplicate(themes = []) {
+  static duplicate(themes = [],tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!themes.length) {
@@ -445,6 +455,7 @@ module.exports = class criteriaHelper {
 
         let criteriaDocuments = await this.criteriaDocument({
           _id: { $in: criteriaIds },
+          tenantId: tenantData.tenantId
         });
 
         if (!criteriaDocuments.length) {
@@ -455,7 +466,7 @@ module.exports = class criteriaHelper {
         let questionIdMap = {};
         let questionExternalIdMap = {};
 
-        let duplicateQuestionsResponse = await questionsHelper.duplicate(criteriaIds);
+        let duplicateQuestionsResponse = await questionsHelper.duplicate(criteriaIds,tenantData);
 
         if (
           duplicateQuestionsResponse.success &&
@@ -521,7 +532,9 @@ module.exports = class criteriaHelper {
                 });
 
                 await database.models.criteria.updateOne(
-                  { _id: newCriteriaId._id },
+                  { _id: newCriteriaId._id ,
+                    tenantId: tenantData.tenantId
+                  },
                   {
                     $set: {
                       rubric: criteria.rubric,
@@ -534,7 +547,7 @@ module.exports = class criteriaHelper {
         );
 
         if (Object.keys(criteriaIdMap).length > 0) {
-          await criteriaQuestionsHelper.createOrUpdate(Object.values(criteriaIdMap), true);
+          await criteriaQuestionsHelper.createOrUpdate(Object.values(criteriaIdMap), true,tenantData);
         }
 
         return resolve({

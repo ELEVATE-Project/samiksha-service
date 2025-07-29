@@ -13,13 +13,12 @@ const emailClient = require(ROOT_PATH + '/generics/helpers/emailCommunications')
 const scoringHelper = require(MODULES_BASE_PATH + '/scoring/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
-const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
-const solutionHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const validateEntities = process.env.VALIDATE_ENTITIES ? process.env.VALIDATE_ENTITIES : 'OFF';
 const criteriaQuestionHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper')
-const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
+const projectService = require(ROOT_PATH + '/generics/services/project')
+
 /**
  * ObservationSubmissionsHelper
  * @class
@@ -118,29 +117,24 @@ module.exports = class ObservationSubmissionsHelper {
               solutionDocument = solutionDocument[0];
               observationSubmissionsDocument['solutionInfo'] = solutionDocument;
 
-              if (observationSubmissionsDocument.programId) {
-                let programDocument = await programsHelper.list(
-                  {
-                    _id: observationSubmissionsDocument.programId,
-                  },
-                  ['name', 'description']
-                );
-
-                programDocument = programDocument?.data?.data;
-
-                if (programDocument && Array.isArray(programDocument) && programDocument[0]) {
-                  observationSubmissionsDocument['programInfo'] = programDocument[0];
-                }
+              if (observationSubmissionsDocument.programId && observationSubmissionsDocument.programInformation) {      
+                observationSubmissionsDocument['programInfo'] = {
+                  ...observationSubmissionsDocument.programInformation,
+                  _id: observationSubmissionsDocument.programId
+                };
               }
 
               let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments({
                 name: observationSubmissionsDocument.entityType,
+                tenantId: observationSubmissionsDocument.tenantId,
+                orgIds: {$in:['ALL',observationSubmissionsDocument.orgId]}
               });
 
               if (entityTypeDocumentsAPICall?.success && Array.isArray(entityTypeDocumentsAPICall?.data) && entityTypeDocumentsAPICall.data.length > 0) {
                 observationSubmissionsDocument['entityTypeId'] = entityTypeDocumentsAPICall.data[0]._id;
               }
 
+              await this.attachEntityInformationIfExists(observationSubmissionsDocument);
               return resolve(observationSubmissionsDocument);
 
           } catch (error) {
@@ -181,11 +175,11 @@ module.exports = class ObservationSubmissionsHelper {
           );
         }
 
-        // if (observationSubmissionsDocument.referenceFrom === messageConstants.common.PROJECT) {
-        //   await this.pushSubmissionToImprovementService(
-        //     _.pick(observationSubmissionsDocument, ['project', 'status', '_id', 'completedDate']),
-        //   );
-        // }
+        if (observationSubmissionsDocument.referenceFrom === messageConstants.common.PROJECT) {
+          await this.pushSubmissionToProjectService(
+            _.pick(observationSubmissionsDocument, ['project', 'status', '_id', 'completedDate']),
+          );
+        }
 
         const kafkaMessage =
           await kafkaClient.pushCompletedObservationSubmissionToKafka(observationSubmissionsDocument);
@@ -224,7 +218,7 @@ module.exports = class ObservationSubmissionsHelper {
         }
 
         if (typeof observationSubmissionId == 'string') {
-          observationSubmissionId = ObjectId(observationSubmissionId);
+          observationSubmissionId = new ObjectId(observationSubmissionId);
         }
 
         let observationSubmissionsDocument = await database.models.observationSubmissions
@@ -234,6 +228,8 @@ module.exports = class ObservationSubmissionsHelper {
           })
           .lean();
 
+        
+
         if (!observationSubmissionsDocument) {
           throw (
             messageConstants.apiResponses.SUBMISSION_NOT_FOUND +
@@ -242,6 +238,14 @@ module.exports = class ObservationSubmissionsHelper {
           );
         }
 
+        if (observationSubmissionsDocument.programId && observationSubmissionsDocument.programInformation) {      
+          observationSubmissionsDocument['programInfo'] = {
+            ...observationSubmissionsDocument.programInformation,
+            _id: observationSubmissionsDocument.programId
+          };
+        }
+
+        await this.attachEntityInformationIfExists(observationSubmissionsDocument);
         const kafkaMessage =
           await kafkaClient.pushInCompleteObservationSubmissionToKafka(observationSubmissionsDocument);
 
@@ -546,15 +550,18 @@ module.exports = class ObservationSubmissionsHelper {
    * @param {String} - entityId
    * @param {String} - solutionId
    * @param {String} - observationId
+   * @param {Object} - tenantData
    * @returns {Object} - list of submissions
    */
 
-  static list(entityId, observationId) {
+  static list(entityId, observationId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let queryObject = {
           entityId: entityId,
           observationId: observationId,
+          tenantId: tenantData.tenantId,
+          orgId: tenantData.orgId,
         };
 
         let projection = [
@@ -644,10 +651,11 @@ module.exports = class ObservationSubmissionsHelper {
    * @param {String} submissionId - observation submissionId
    * @param {String} evidenceId - evidence id
    * @param {String} userId - logged in userId
+   * @param {Object} tenantData - tenant data
    * @returns {Json} - submission allowed or not.
    */
 
-  static isAllowed(submissionId = '', evidenceId = '', userId = '') {
+  static isAllowed(submissionId = '', evidenceId = '', userId = '',tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (submissionId == '') {
@@ -670,6 +678,8 @@ module.exports = class ObservationSubmissionsHelper {
           {
             _id: submissionId,
             evidencesStatus: { $elemMatch: { externalId: evidenceId } },
+            tenantId: tenantData.tenantId,
+            orgId: tenantData.orgId,
           },
           ['evidencesStatus.$'],
         );
@@ -744,44 +754,62 @@ module.exports = class ObservationSubmissionsHelper {
   /**
    * Push observation submission to improvement service.
    * @method
-   * @name pushSubmissionToImprovementService
-   * @param {String} observationSubmissionDocument - observation submission document.
+   * @name pushSubmissionToProjectService
+   * @param {Object} observationSubmissionDocument - observation submission document.
    * @returns {JSON} consists of kafka message whether it is pushed for reporting
    * or not.
    */
 
-  // static pushSubmissionToImprovementService(observationSubmissionDocument) {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       let observationSubmissionData = {
-  //         taskId: observationSubmissionDocument.project.taskId,
-  //         projectId: observationSubmissionDocument.project._id,
-  //         _id: observationSubmissionDocument._id,
-  //         status: observationSubmissionDocument.status,
-  //       };
+  static pushSubmissionToProjectService(observationSubmissionDocument) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let observationSubmissionData = {
+          taskId: observationSubmissionDocument.project.taskId,
+          projectId: observationSubmissionDocument.project._id,
+          _id: observationSubmissionDocument._id,
+          status: observationSubmissionDocument.status,
+        };
+  
+        if (observationSubmissionDocument.completedDate) {
+          observationSubmissionData["submissionDate"] =
+            observationSubmissionDocument.completedDate;
+        }
+        let pushSubmissionToProject;
+        if (
+          process.env.SUBMISSION_UPDATE_KAFKA_PUSH_ON_OFF === "ON" &&
+          process.env.IMPROVEMENT_PROJECT_SUBMISSION_TOPIC
+        ) {
 
-  //       if (observationSubmissionDocument.completedDate) {
-  //         observationSubmissionData['submissionDate'] = observationSubmissionDocument.completedDate;
-  //       }
-
-  //       const kafkaMessage = await kafkaClient.pushSubmissionToImprovementService(observationSubmissionData);
-
-  //       if (kafkaMessage.status != 'success') {
-  //         let errorObject = {
-  //           formData: {
-  //             submissionId: observationSubmissionDocument._id.toString(),
-  //             message: kafkaMessage.message,
-  //           },
-  //         };
-  //         slackClient.kafkaErrorAlert(errorObject);
-  //       }
-
-  //       return resolve(kafkaMessage);
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // }
+          pushSubmissionToProject = await kafkaClient.pushSubmissionToProjectService(
+            observationSubmissionData
+          );
+  
+          if (pushSubmissionToProject.status != messageConstants.common.SUCCESS) {
+            throw new Error(
+              `Failed to push submission to project. Submission ID: ${observationSubmissionDocument._id.toString()}, Message: ${pushSubmissionToProject.message}`
+            );
+          }
+        } else {
+          pushSubmissionToProject = await projectService.pushSubmissionToTask(
+            observationSubmissionDocument.project._id,
+            observationSubmissionDocument.project.taskId,
+            observationSubmissionData
+          );
+          if (!pushSubmissionToProject.success) {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message : messageConstants.apiResponses.PUSH_SUBMISSION_FAILED
+            };
+          }
+        }
+  
+        return resolve(pushSubmissionToProject);
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+  
 
   /**
    * Disable Observation Submission Based on Solution Id
@@ -861,10 +889,11 @@ module.exports = class ObservationSubmissionsHelper {
    * @name delete
    * @param {String} submissionId -observation submissions id.
    * @param {String} userId - logged in user id.
+   * @param {Object} tenantData - tenantData information
    * @returns {JSON} - message that observation submission is deleted.
    */
 
-  static delete(submissionId, userId) {
+  static delete(submissionId, userId,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let message = messageConstants.apiResponses.OBSERVATION_SUBMISSION_DELETED;
@@ -873,6 +902,8 @@ module.exports = class ObservationSubmissionsHelper {
           _id: submissionId,
           status: { $in: ['started', 'draft'] },
           createdBy: userId,
+          tenantId: tenantData.tenantId,
+          orgId: tenantData.orgId,
         });
 
         // Check if a document was deleted
@@ -902,10 +933,11 @@ module.exports = class ObservationSubmissionsHelper {
    * @param {String} submissionId -observation submissions id.
    * @param {String} userId - logged in user id.
    * @param {String} title - submission title.
+   * @param {Object} tenantData - tenantData information
    * @returns {JSON} - message that observation submission title is set.
    */
 
-  static setTitle(submissionId, userId, title) {
+  static setTitle(submissionId, userId, title,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let message = messageConstants.apiResponses.OBSERVATION_SUBMISSION_UPDATED;
@@ -914,6 +946,8 @@ module.exports = class ObservationSubmissionsHelper {
           {
             _id: submissionId,
             createdBy: userId,
+            tenantId: tenantData.tenantId,
+            orgId: tenantData.orgId,
           },
           {
             $set: {
@@ -954,10 +988,11 @@ module.exports = class ObservationSubmissionsHelper {
    * @param {String} pageSize - page size
    * @param {String} pageNo - page number
    * @param {String} search - search key
+   * @param {Object} tenantData - tenantData information
    * @returns {Json} - returns solutions, entityTypes.
    */
 
-  static solutionList(bodyData, userId = '', entityType = '', pageSize, pageNo) {
+  static solutionList(bodyData, userId = '', entityType = '', pageSize, pageNo,tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -967,9 +1002,9 @@ module.exports = class ObservationSubmissionsHelper {
         let result = {};
         // Search for user roles
         let userRoleFilterArray = new Array;
-         bodyData.role.split(",").forEach((eachRole) => {
-         userRoleFilterArray.push(new RegExp(eachRole))
-        })
+        //  bodyData.role.split(",").forEach((eachRole) => {
+        //  userRoleFilterArray.push(new RegExp(eachRole))
+        // })
 
         
         let query = {
@@ -1092,6 +1127,8 @@ module.exports = class ObservationSubmissionsHelper {
         let entitiesDetails = await entityManagementService.entityDocuments(
           {
             _id: { $in: entityIds },
+            tenantId: tenantData.tenantId,
+            orgIds: {$in:['ALL',tenantData.orgId ]}
           },
           ['metaInformation.externalId', 'metaInformation.name'],
         );
@@ -1346,5 +1383,61 @@ module.exports = class ObservationSubmissionsHelper {
           }
     
         })
-    } 
+    }
+    
+    /**
+    * Update observations submission
+     * @method
+     * @name updateMany
+     * @param {Object} query 
+     * @param {Object} update 
+     * @param {Object} options 
+     * @returns {JSON} - update observations submission.
+    */
+    static updateMany(query, update, options={}) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let observationSubmissionUpdate = await database.models.observationSubmissions.updateMany(
+                    query, 
+                    update,
+                    options
+                );
+                return resolve(observationSubmissionUpdate)
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+  /**
+   * Adds parent entity info to the project if an entityIdentifier exists in projectsInfo.
+   * @method
+   * @name attachEntityInformationIfExists
+   * @param {Object} observationSubmissionsDocument - observationSubmissionsDocument object with optional entity info.
+   * @returns {Promise<void>} - attaches parent entity information if it exists to projectsInfo variable
+   */
+  static async attachEntityInformationIfExists(observationSubmissionsDocument) {
+    try {
+      if (observationSubmissionsDocument?.entityInformation?.externalId) {
+        let entityDetailResponse = await entityManagementService.findEntityDetails(
+          observationSubmissionsDocument.tenantId,
+          observationSubmissionsDocument.entityInformation.externalId
+        );
+        if (entityDetailResponse?.success && entityDetailResponse.data?.length > 0) {
+          observationSubmissionsDocument.entityInformation.parentInformation =
+            entityDetailResponse.data[0].parentInformation;
+        }
+        // Set entityId, entityType, and typeId if they exist in the document, to inside entity information for data team
+        if (observationSubmissionsDocument.entityId) {
+          observationSubmissionsDocument.entityInformation._id = observationSubmissionsDocument.entityId;
+        }
+        if (observationSubmissionsDocument.entityType) {
+          observationSubmissionsDocument.entityInformation.type = observationSubmissionsDocument.entityType;
+        }
+        if (observationSubmissionsDocument.entityTypeId) {
+          observationSubmissionsDocument.entityInformation.typeId = observationSubmissionsDocument.entityTypeId;
+        }
+      }
+    } catch (err) {}
+  }
 };

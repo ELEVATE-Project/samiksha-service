@@ -8,11 +8,11 @@
 // Dependencies
 const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
-const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
-const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
+// const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 /**
  * SurveySubmissionsHelper
  * @class
@@ -86,29 +86,28 @@ module.exports = class SurveySubmissionsHelper {
           );
         }
 
-        if (surveySubmissionsDocument[0].programId) {
-          let programDocument = await programsHelper.list(
-            {
-              _id: surveySubmissionsDocument[0].programId,
-            },
-            ['name', 'description']
-          );
-
-          programDocument = programDocument?.data?.data;
-
-          if (programDocument && Array.isArray(programDocument) && programDocument[0]) {
-            surveySubmissionsDocument[0]['programInfo'] = programDocument[0];
-          }
+        if (surveySubmissionsDocument[0].programId && surveySubmissionsDocument[0].programInformation) {
+          surveySubmissionsDocument[0]['programInfo'] = surveySubmissionsDocument[0].programInformation;
         }
-
         let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments({
           name: surveySubmissionsDocument[0].entityType,
+          tenantId: surveySubmissionsDocument[0].tenantId,
+          orgIds: { $in: ['ALL', surveySubmissionsDocument[0].orgId] },
         });
 
-        if (entityTypeDocumentsAPICall?.success && Array.isArray(entityTypeDocumentsAPICall?.data) && entityTypeDocumentsAPICall.data.length > 0) {
+        if (
+          entityTypeDocumentsAPICall?.success &&
+          Array.isArray(entityTypeDocumentsAPICall?.data) &&
+          entityTypeDocumentsAPICall.data.length > 0
+        ) {
           surveySubmissionsDocument[0]['entityTypeId'] = entityTypeDocumentsAPICall.data[0]._id;
         }
-        
+
+        if (surveySubmissionsDocument[0].referenceFrom === messageConstants.common.PROJECT) {
+          await surveySubmissionsHelperUtils.pushSubmissionToProjectService(
+            _.pick(surveySubmissionsDocument[0], ['project', 'status', '_id', 'completedDate'])
+          );
+        }
         const kafkaMessage = await kafkaClient.pushCompletedSurveySubmissionToKafka(surveySubmissionsDocument[0]);
 
         if (kafkaMessage.status != 'success') {
@@ -132,57 +131,6 @@ module.exports = class SurveySubmissionsHelper {
     });
   }
 
-  /**
-   * Push incomplete survey submission for reporting.
-   * @method
-   * @name pushInCompleteSurveySubmissionForReporting
-   * @param {String} surveySubmissionId - survey submission id.
-   * @returns {JSON} consists of kafka message whether it is pushed for reporting
-   * or not.
-   */
-
-  static pushInCompleteSurveySubmissionForReporting(surveySubmissionId) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (surveySubmissionId == '') {
-          throw new Error(messageConstants.apiResponses.SURVEY_SUBMISSION_ID_REQUIRED);
-        }
-
-        if (typeof surveySubmissionId == 'string') {
-          surveySubmissionId = ObjectId(surveySubmissionId);
-        }
-
-        let surveySubmissionsDocument = await this.surveySubmissionDocuments({
-          _id: surveySubmissionId,
-          status: { $ne: 'completed' },
-        });
-
-        if (!surveySubmissionsDocument.length) {
-          throw (
-            messageConstants.apiResponses.SUBMISSION_NOT_FOUND +
-            'or' +
-            messageConstants.apiResponses.SUBMISSION_STATUS_NOT_COMPLETE
-          );
-        }
-
-        const kafkaMessage = await kafkaClient.pushInCompleteSurveySubmissionToKafka(surveySubmissionsDocument[0]);
-
-        if (kafkaMessage.status != 'success') {
-          let errorObject = {
-            formData: {
-              surveySubmissionId: surveySubmissionsDocument[0]._id.toString(),
-              message: kafkaMessage.message,
-            },
-          };
-          slackClient.kafkaErrorAlert(errorObject);
-        }
-
-        return resolve(kafkaMessage);
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
 
   /**
    * Check if survey submission is allowed.
@@ -191,10 +139,11 @@ module.exports = class SurveySubmissionsHelper {
    * @param {String} submissionId - survey submissionId
    * @param {String} evidenceId - evidence id
    * @param {String} userId - logged in userId
+   * @param {Object} tenantData - tenant data
    * @returns {Json} - survey list.
    */
 
-  static isAllowed(submissionId = '', evidenceId = '', userId = '') {
+  static isAllowed(submissionId = '', evidenceId = '', userId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (submissionId == '') {
@@ -217,6 +166,8 @@ module.exports = class SurveySubmissionsHelper {
           {
             _id: submissionId,
             evidencesStatus: { $elemMatch: { externalId: evidenceId } },
+            tenantId: tenantData.tenantId,
+            orgId: tenantData.orgId,
           },
           ['evidencesStatus.$', 'status', 'createdBy']
         );
@@ -263,25 +214,26 @@ module.exports = class SurveySubmissionsHelper {
    * @method
    * @name list
    * @param {String} userId - logged in userId
+   * @param {Object} tenantData - tenant data
    * @returns {Json} - survey list.
    */
 
-  static list(userId = '') {
+  static list(userId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
           throw new Error(messageConstants.apiResponses.USER_ID_REQUIRED_CHECK);
         }
-        const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
-
         let getSurveyList = [
-          solutionsHelper.solutionDocumentsByAggregateQuery([
+          solutionsQueries.getAggregate([
             {
               $match: {
                 author: userId,
                 type: messageConstants.common.SURVEY,
                 isReusable: false,
                 isDeleted: false,
+                tenantId: tenantData.tenantId,
+                orgId: { $in: ['ALL', tenantData.orgId] },
               },
             },
             {
@@ -295,7 +247,7 @@ module.exports = class SurveySubmissionsHelper {
             { $sort: { createdAt: -1 } },
           ]),
           surveySubmissionQueries.getAggregate([
-            { $match: { createdBy: userId } },
+            { $match: { createdBy: userId, tenantId: tenantData.tenantId, orgId: tenantData.orgId } },
             {
               $project: {
                 submissionId: '$_id',
@@ -350,17 +302,21 @@ module.exports = class SurveySubmissionsHelper {
    * @method
    * @name getStatus
    * @param {String} submissionId - survey submissionId
+   * @param {Object} tenantData - tenant data
    * @returns {Json} - status of survey submission.
    */
 
-  static getStatus(submissionId = '') {
+  static getStatus(submissionId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (submissionId == '') {
           throw new Error(messageConstants.apiResponses.SURVEY_SUBMISSION_ID_REQUIRED);
         }
 
-        let submissionDocument = await this.surveySubmissionDocuments({ _id: submissionId }, ['status']);
+        let submissionDocument = await this.surveySubmissionDocuments(
+          { _id: submissionId, tenantId: tenantData.tenantId, orgId: tenantData.orgId },
+          ['status']
+        );
 
         if (!submissionDocument.length) {
           throw messageConstants.apiResponses.SUBMISSION_NOT_FOUND;
@@ -391,10 +347,13 @@ module.exports = class SurveySubmissionsHelper {
    * @param {String} pageNo - page number
    * @param {String} pageSize - page size.
    * @param {String} filter - filter text.
+   * @param {String} search - search key
+   * @param {String} surveyReportPage - survey report page
+   * @param {String} tenantFilter - tenant filter
    * @returns {Json} - survey list.
    */
 
-  static surveyList(userId = '', pageNo, pageSize, search, filter, surveyReportPage = '') {
+  static surveyList(userId = '', pageNo, pageSize, search, filter, surveyReportPage = '', tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -406,7 +365,16 @@ module.exports = class SurveySubmissionsHelper {
           count: 0,
         };
         //Constructing the match query
-        let submissionMatchQuery = { $match: { createdBy: userId } };
+        let submissionMatchQuery = {
+          $match: {
+            createdBy: userId,
+            tenantId: tenantFilter.tenantId,
+            referenceFrom: { $ne: messageConstants.common.PROJECT },
+            orgId: {
+              $in: ['ALL', tenantFilter.orgId],
+            },
+          },
+        };
 
         if (gen.utils.convertStringToBoolean(surveyReportPage)) {
           submissionMatchQuery['$match']['status'] = messageConstants.common.SUBMISSION_STATUS_COMPLETED;
@@ -484,7 +452,6 @@ module.exports = class SurveySubmissionsHelper {
                 result.data.push(surveySubmission);
               } else {
                 let currentDate = new Date();
-                currentDate.setDate(currentDate.getDate() - 15);
                 if (new Date(surveySubmission.endDate) > currentDate) {
                   result.data.push(surveySubmission);
                 }
@@ -524,7 +491,7 @@ module.exports = class SurveySubmissionsHelper {
    * @returns {Json} - survey list.
    */
 
-  static surveySolutions(userId, pageNo, pageSize, search, filter = '') {
+  static surveySolutions(userId, pageNo, pageSize, search, filter = '', tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -535,8 +502,13 @@ module.exports = class SurveySubmissionsHelper {
           $match: {
             author: userId,
             type: messageConstants.common.SURVEY,
+            referenceFrom: { $ne: messageConstants.common.PROJECT },
             isReusable: false,
             isDeleted: false,
+            tenantId: tenantFilter.tenantId,
+            orgId: {
+              $in: ['ALL', tenantFilter.orgId],
+            },
           },
         };
 
@@ -556,9 +528,8 @@ module.exports = class SurveySubmissionsHelper {
             solutionMatchQuery['$match']['isAPrivateProgram'] = false;
           }
         }
-        const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
         // finding  list of created survey solutions by user
-        let result = await solutionsHelper.solutionDocumentsByAggregateQuery([
+        let result = await solutionsQueries.getAggregate([
           solutionMatchQuery,
           {
             $project: {
@@ -610,17 +581,19 @@ module.exports = class SurveySubmissionsHelper {
    * @method
    * @name update
    * @param {Object} req -request data.
+   * @param {Object} tenantData - tenant data
    * @returns {JSON} - survey submissions creation.
    */
 
-  static update(req) {
+  static update(req, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         // Check if the survey has already been submitted
         let isSubmissionAllowed = await this.isAllowed(
           req.params._id,
           req.body.evidence.externalId,
-          req.userDetails.userId
+          req.userDetails.userId,
+          tenantData
         );
 
         if (
@@ -673,6 +646,29 @@ module.exports = class SurveySubmissionsHelper {
           message: error.message || httpStatusCode.internal_server_error.message,
           errorObject: error,
         });
+      }
+    });
+  }
+
+  /**
+   * Update survey Submission
+   * @method
+   * @name updateMany
+   * @param {Object} query
+   * @param {Object} update
+   * @param {Object} options
+   * @returns {JSON} - update observations.
+   */
+  static updateMany(query, update) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let surveySubmissionUpdate = await surveySubmissionQueries.updateMany(query, update);
+
+        if (surveySubmissionUpdate) {
+          return resolve(surveySubmissionUpdate);
+        }
+      } catch (error) {
+        return reject(error);
       }
     });
   }

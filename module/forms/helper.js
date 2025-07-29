@@ -47,10 +47,11 @@ module.exports = class FormsHelper {
 	 * @param {Number} orgId
 	 * @returns {JSON} - Form creation data.
 	 */
-	static create(bodyData, orgId) {
+	static create(bodyData, tenantData) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				bodyData['organizationId'] = orgId
+				bodyData['tenantId'] = tenantData.tenantId,
+          		bodyData['orgId'] = tenantData.orgId[0]
 				const form = await formQueries.createForm(bodyData)
 				if (!form || !form._id) {
 					throw {
@@ -87,7 +88,7 @@ module.exports = class FormsHelper {
 	 * @param {Number} orgId
 	 * @returns {JSON} - Update form data.
 	 */
-	static update(_id, bodyData, orgId) {
+	static update(_id, bodyData, tenantData) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				// validate _id field
@@ -96,13 +97,13 @@ module.exports = class FormsHelper {
 				if (_id) {
 					filter = {
 						_id: new ObjectId(_id),
-						organizationId: orgId,
+						tenantId: tenantData.tenantId
 					}
 				} else {
 					filter = {
 						type: bodyData.type,
 						// subType: bodyData.subType,
-						organizationId: orgId,
+						tenantId: tenantData.tenantId
 					}
 				}
 				// create update object to pass to db query
@@ -139,16 +140,22 @@ module.exports = class FormsHelper {
 	 * @param {String} userToken
 	 * @returns {JSON} - Read form data.
 	 */
-	static read(_id, bodyData, orgId, userToken) {
+	static read(_id, bodyData, tenantData, userToken) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				// validate _id field
 				_id = _id === ':_id' ? null : _id
 				let filter = {}
 				if (_id) {
-					filter = { _id: new ObjectId(_id), organizationId: orgId }
+					filter = { 
+						_id: new ObjectId(_id), 
+						tenantId: tenantData.tenantId
+					}
 				} else {
-					filter = { ...bodyData, organizationId: orgId }
+					filter = { 
+						...bodyData, 
+						tenantId: tenantData.tenantId
+					}
 				}
 				const form = await formQueries.findOneForm(filter)
 				let defaultOrgForm
@@ -163,8 +170,8 @@ module.exports = class FormsHelper {
 						})
 					}
 					filter = _id
-						? { _id: new ObjectId(_id), organizationId: defaultOrgId }
-						: { ...bodyData, organizationId: defaultOrgId }
+						? { _id: new ObjectId(_id), orgId: [defaultOrgId] }
+						: { ...bodyData, orgId: [defaultOrgId] }
 					defaultOrgForm = await formQueries.findOneForm(filter)
 				}
 				if (!form && !defaultOrgForm) {

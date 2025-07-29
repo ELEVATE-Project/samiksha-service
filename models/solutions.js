@@ -31,7 +31,10 @@ module.exports = {
     programName: String,
     programDescription: String,
     entityProfileFieldsPerEntityTypes: Object,
-    startDate: Date,
+    startDate: {
+      type : Date,
+      index : true
+    },
     endDate: {
       type : Date,
       index : true
@@ -70,7 +73,10 @@ module.exports = {
         index : true
     },
     project : Object,
-    referenceFrom : String,
+    referenceFrom: {
+      type: String,
+      index: true,
+    },
     scope: {
 			type: Object,
 			default: {},
@@ -89,6 +95,10 @@ module.exports = {
       type: Number,
       default: 1
     },
+    availableForPrivateConsumption:{
+      type: Boolean,
+      default: false
+    },
     reportInformation : Object,
     certificateTemplateId : "ObjectId",
     rootOrganisations : Array,
@@ -96,6 +106,30 @@ module.exports = {
     projectTemplateId : {
       type : "ObjectId",
       index: true
+    },
+    orgId:{
+      type: String,
+      require: true,
+      index:true
+    },
+    tenantId: {
+      type: String,
+      require: true,
+      index:true
+    },
+    isExternalProgram:{
+      default : false,
+      type : Boolean
+    },
+    parentEntityKey: {
+      type : String,
+      default: null
     }
-  }
+  },
+  compoundIndex: [
+		{
+			name: { externalId: 1, tenantId: 1 , orgId: 1 },
+			indexType: { unique: true },
+		},
+	],
 };

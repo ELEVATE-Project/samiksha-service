@@ -4,7 +4,7 @@ module.exports = (req) => {
       req.checkBody(Object.keys(req.body)).isEmpty().withMessage('request body is required');
     },
 
-    importSurveryTemplateToSolution: function () {
+    importSurveyTemplateToSolution: function () {
       req
         .checkParams('_id')
         .exists()
@@ -14,7 +14,7 @@ module.exports = (req) => {
       req.checkQuery('appName').exists().withMessage('required appName');
     },
 
-    mapSurverySolutionToProgram: function () {
+    mapSurveySolutionToProgram: function () {
       req
         .checkParams('_id')
         .exists()

@@ -45,6 +45,29 @@ module.exports = {
     surveyInformation: Object,
     appInformation: Object,
     userRoleInformation: Object,
-    userProfile : Object
+    userProfile: Object,
+    programInformation: Object,
+    orgId: {
+      type: String,
+      require: true,
+      index: true,
+    },
+    tenantId: {
+      type: String,
+      require: true,
+      index: true,
+    },
+    project: Object,
+    referenceFrom: String,
+    isExternalProgram:{
+      default : false,
+      type : Boolean
+    }
   },
+  compoundIndex: [
+    {
+      name: { surveyId: 1, solutionId: 1, tenantId: 1, orgId: 1 },
+      indexType: { unique: true },
+    },
+  ],
 };

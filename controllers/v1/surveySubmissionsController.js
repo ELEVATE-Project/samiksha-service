@@ -7,7 +7,7 @@
 
 // Dependencies
 const surveySubmissionsHelper = require(MODULES_BASE_PATH + '/surveySubmissions/helper');
-const submissionsHelper = require(MODULES_BASE_PATH + '/submissions/helper');
+const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
 
 /**
  * SurveySubmissions
@@ -55,6 +55,7 @@ module.exports = class SurveySubmissions extends Abstract {
           req.params._id,
           req.query.evidenceId,
           req.userDetails.userId,
+          req.userDetails.tenantData
         );
 
         return resolve({
@@ -105,7 +106,7 @@ module.exports = class SurveySubmissions extends Abstract {
   async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let surveyList = await surveySubmissionsHelper.list(req.userDetails.userId);
+        let surveyList = await surveySubmissionsHelper.list(req.userDetails.userId,req.userDetails.tenantData);
 
         return resolve({
           message: surveyList.message,
@@ -151,7 +152,7 @@ module.exports = class SurveySubmissions extends Abstract {
   async getStatus(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let getStatusOfSubmission = await surveySubmissionsHelper.getStatus(req.params._id);
+        let getStatusOfSubmission = await surveySubmissionsHelper.getStatus(req.params._id,req.userDetails.tenantData);
 
         return resolve({
           message: getStatusOfSubmission.message,
@@ -354,8 +355,7 @@ module.exports = class SurveySubmissions extends Abstract {
     return new Promise(async (resolve, reject) => {
 
       try {
-        
-        let updatedSurveySubmissions = await surveySubmissionsHelper.update(req)
+        let updatedSurveySubmissions = await surveySubmissionsHelper.update(req,req.userDetails.tenantData)
         return resolve(updatedSurveySubmissions)
 
       } catch (error) {
@@ -369,5 +369,86 @@ module.exports = class SurveySubmissions extends Abstract {
       }
 
     })
+  }
+
+  /**
+   * @api {get} /v1/surveySubmissions/pushCompletedObservationSubmissionForReporting/:observationSubmissionId Push Completed Observation Submission for Reporting
+   * @apiVersion 1.0.0
+   * @apiName Push Observation Submission to Kafka
+   * @apiGroup Observation Submissions
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+  /**
+   * Push completed observation submissions to kafka for reporting.
+   * @method
+   * @name pushCompletedSurveySubmissionForReporting
+   * @param {Object} req -request data.
+   * @param {String} req.params._id -observation submissions id.
+   * @returns {JSON} - message that observation submission is pushed to kafka.
+   */
+
+  async pushCompletedSurveySubmissionForReporting(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let pushSurveySubmissionToKafka =
+          await surveySubmissionsHelper.pushCompletedSurveySubmissionForReporting(req.params._id);
+
+        if (pushSurveySubmissionToKafka.status != 'success') {
+          throw pushSurveySubmissionToKafka.message;
+        }
+
+        return resolve({
+          message: pushSurveySubmissionToKafka.message,
+        });
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+        });
+      }
+    });
+  }
+
+
+  /**
+   * @api {get} /assessment/api/v1/observationSubmissions/pushInCompleteSurveySubmissionForReporting/:observationSubmissionId Push Incomplete Observation Submission for Reporting
+   * @apiVersion 1.0.0
+   * @apiName Push Incomplete Observation Submission for Reporting
+   * @apiGroup Observation Submissions
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+  /**
+   * Push incomplete observation submissions to kafka for reporting.
+   * @method
+   * @name pushInCompleteSurveySubmissionForReporting
+   * @param {Object} req -request data.
+   * @param {String} req.params._id -observation submissions id.
+   * @returns {JSON} - message that observation submission is pushed to kafka.
+   */
+
+  async pushInCompleteSurveySubmissionForReporting(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let pushSurveySubmissionToKafka =
+          await surveySubmissionsHelperUtils.pushInCompleteSurveySubmissionForReporting(req.params._id);
+
+        if (pushSurveySubmissionToKafka.status != 'success') {
+          throw pushSurveySubmissionToKafka.message;
+        }
+
+        return resolve({
+          message: pushSurveySubmissionToKafka.message,
+        });
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+        });
+      }
+    });
   }
 };

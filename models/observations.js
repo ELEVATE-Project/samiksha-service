@@ -50,7 +50,30 @@ module.exports = {
       index: true,
     },
     project: Object,
-    referenceFrom: String,
-    userProfile : Object
+    referenceFrom: {
+      type: String,
+      index: true,
+    },
+    isExternalProgram:{
+      default : false,
+      type : Boolean
+    },
+    userProfile : Object,
+    orgId:{
+      type: String,
+      require: true,
+      index:true
+    },
+    tenantId: {
+      type: String,
+      require: true,
+      index:true
+    }
   },
+  compoundIndex: [
+    {
+        "name" :{ createdBy: 1, solutionId: 1 , tenantId: 1 , orgId: 1 },
+        "indexType" : { unique: true }
+    }
+  ]
 };

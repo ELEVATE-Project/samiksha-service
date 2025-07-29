@@ -4,7 +4,6 @@ module.exports = {
     externalId: {
       type: String,
       index: true,
-      unique: true,
     },
     question: Array,
     tip: String,
@@ -48,5 +47,21 @@ module.exports = {
     isEditable: { type: Boolean, default: true },
     showQuestionInPreview: { type: Boolean, default: false },
     createdFromQuestionId: 'ObjectId',
+    orgId: {
+      type: String,
+      require: true,
+      index: true,
+    },
+    tenantId: {
+      type: String,
+      require: true,
+      index: true,
+    },
   },
+  compoundIndex: [
+    {
+      name: { externalId: 1, tenantId: 1, orgId: 1 },
+      indexType: { unique: true },
+    },
+  ],
 };

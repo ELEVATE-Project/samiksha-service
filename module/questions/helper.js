@@ -34,6 +34,7 @@ module.exports = class QuestionsHelper {
     evidenceCollectionMethodObject,
     questionSection,
     profileFields,
+    tenantFilter
   ) {
     let csvArray = new Array();
 
@@ -225,7 +226,8 @@ module.exports = class QuestionsHelper {
           // in the csv should exists in the profileFields of the particular entityType.
 
           allValues['entityFieldName'] = '';
-
+          allValues['tenantId'] =tenantFilter.tenantId
+          allValues['orgId'] =tenantFilter.orgId[0]
           if (parsedQuestion.entityFieldName && profileFields.includes(parsedQuestion.entityFieldName)) {
             allValues['entityFieldName'] = parsedQuestion.entityFieldName;
           }
@@ -241,6 +243,7 @@ module.exports = class QuestionsHelper {
             if (parsedQuestion['parentQuestionId'] != '') {
               let queryParentQuestionObject = {
                 _id: questionCollection[parsedQuestion['parentQuestionId']]._id,
+                tenantId: tenantFilter.tenantId
               };
 
               let updateParentQuestionObject = {};
@@ -255,6 +258,7 @@ module.exports = class QuestionsHelper {
             if (parsedQuestion['instanceParentQuestionId'] != 'NA') {
               let queryInstanceParentQuestionObject = {
                 _id: questionCollection[parsedQuestion['instanceParentQuestionId']]._id,
+                tenantId: tenantFilter.tenantId
               };
 
               let updateInstanceParentQuestionObject = {};
@@ -272,6 +276,7 @@ module.exports = class QuestionsHelper {
             let newCriteria = await database.models.criteria.findOne(
               {
                 _id: criteriaObject[parsedQuestion['criteriaExternalId']]._id,
+                tenantId: tenantFilter.tenantId
               },
               {
                 evidences: 1,
@@ -307,6 +312,7 @@ module.exports = class QuestionsHelper {
 
             let queryCriteriaObject = {
               _id: newCriteria._id,
+              tenantId: tenantFilter.tenantId
             };
 
             let updateCriteriaObject = {};
@@ -316,7 +322,7 @@ module.exports = class QuestionsHelper {
 
             await database.models.criteria.findOneAndUpdate(queryCriteriaObject, updateCriteriaObject);
 
-            await criteriaQuestionsHelper.createOrUpdate(newCriteria._id, true);
+            await criteriaQuestionsHelper.createOrUpdate(newCriteria._id, true,tenantFilter);
           }
         }
 
@@ -794,14 +800,17 @@ module.exports = class QuestionsHelper {
    * @returns {Object}  old and new Mapped question id object.
    */
 
-  static duplicate(criteriaIds = []) {
+  static duplicate(criteriaIds = [],tenantAndOrgInfo) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!criteriaIds.length) {
           throw new Error(messageConstants.apiResponses.CRITERIA_ID_REQUIRED);
         }
 
-        let criteriaDocuments = await database.models.criteria.find({ _id: { $in: criteriaIds } }, ['evidences']);
+        let criteriaDocuments = await database.models.criteria.find({
+           _id: { $in: criteriaIds }, 
+           tenantId: tenantAndOrgInfo.tenantId
+         }, ['evidences']);
 
         if (!criteriaDocuments.length) {
           throw new Error(messageConstants.apiResponses.CRITERIA_NOT_FOUND);
@@ -816,7 +825,10 @@ module.exports = class QuestionsHelper {
         let questionIdMap = {};
         let questionExternalIdMap = {};
 
-        let questionDocuments = await this.questionDocument({ _id: { $in: questionIds } });
+        let questionDocuments = await this.questionDocument({
+           _id: { $in: questionIds }, 
+           tenantId: tenantAndOrgInfo.tenantId
+        });
 
         if (!questionDocuments.length) {
           throw new Error(messageConstants.apiResponses.QUESTION_NOT_FOUND);
@@ -830,7 +842,9 @@ module.exports = class QuestionsHelper {
             questionExternalIdMap[question.externalId] = newExternalId;
             question.externalId = newExternalId;
             question.createdFromQuestionId = question._id;
-            let newQuestion = await this.make(_.omit(question, ['_id']));
+            question.tenantId=tenantAndOrgInfo.tenantId
+            question.orgId = tenantAndOrgInfo.orgId[0]
+            let newQuestion = await this.make(_.omit(question, ['_id']),tenantAndOrgInfo);
 
             if (newQuestion._id) {
               questionIdMap[question._id.toString()] = newQuestion._id;
