@@ -1584,9 +1584,9 @@ module.exports = class EntitiesHelper {
               "entityType":result.entityType,
               "tenantId":req.userDetails.tenantData.tenantId
             }
-            if(result.entities.length > 0){
-              filterData['_id'] = result.entities
-            }
+            // if(result.entities.length > 0){
+            //   filterData['_id'] = result.entities
+            // }
             let entitiesDetails = await entityManagementService.entityDocuments(filterData,entityProjections,req.pageNo,req.pageSize,req.searchText);
             if ( !entitiesDetails.success ) {
                 return resolve({
