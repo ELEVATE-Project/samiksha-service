@@ -108,7 +108,7 @@ module.exports = class UserCoursesHelper {
         solutionId: new ObjectId(userCoursesData.entityId),
         userId: userCoursesData.userId,
         status: userCoursesData.status,
-        tenantId: userCoursesData.tenant_code ?? solutionDocument.tenatId,
+        tenantId: userCoursesData.tenant_code ?? solutionDocument.tenantId,
         orgId: userCoursesData.organization_id ?? solutionDocument.orgId,
         programId: solutionDocument.programId,
         programExternalId: solutionDocument.programExternalId,
@@ -183,7 +183,7 @@ module.exports = class UserCoursesHelper {
       let updateObject = { $set: updateCourseData };
 
       let updateCourse = await userCoursesQueries.updateMany(coursesfilter, updateObject, { new: true });
-      if (!updateCourse || updateCourse.modifiedCount === 0) {
+      if (!updateCourse || updateCourse.nModified === 0) {
         return {
           status: httpStatusCode.bad_request.status,
           message: messageConstants.apiResponses.USER_COURSES_NOT_UPDATED,
