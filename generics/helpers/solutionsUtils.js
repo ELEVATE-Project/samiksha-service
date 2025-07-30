@@ -374,7 +374,7 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
               let currentComponents = programDocument?.components || [];
               let programUpdate = await database.models.programs.updateOne(
                 { _id: programDocument._id },
-                { $addToSet: { components: {id:duplicateSolutionDocument._id,order:currentComponents.length + 1} } }
+                { $addToSet: { components: {_id:duplicateSolutionDocument._id,order:currentComponents.length + 1} } }
               );
               if (programUpdate.modifiedCount === 0) {
                 throw {

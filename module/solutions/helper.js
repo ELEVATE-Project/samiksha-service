@@ -181,7 +181,7 @@ module.exports = class SolutionsHelper {
             let currentComponents = programData[0]?.components || [];
             await programsQueries.findOneAndUpdate(
               { _id: solutionData.programId },
-              { $addToSet: { components: {id:solutionCreation._id,order:currentComponents.length+1} } }
+              { $addToSet: { components: {_id:solutionCreation._id,order:currentComponents.length+1} } }
             );
           }
         }

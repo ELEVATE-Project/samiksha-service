@@ -440,7 +440,7 @@ module.exports = class SurveysHelper {
             tenantId: tenantAndOrgInfo.tenantId
           },
           {
-            $addToSet: { components: {id:solutionId,order:currentComponents.length+1} },
+            $addToSet: { components: {_id:solutionId,order:currentComponents.length+1} },
           },
         );
 
@@ -1562,7 +1562,7 @@ module.exports = class SurveysHelper {
                 messageConstants.common.SURVEY,
                 solutionDocument[0].referenceFrom,
               );
-              solutionData.success = true;
+
             if (!solutionData.success) {
               throw new Error(
                 messageConstants.apiResponses.SOLUTION_DETAILS_NOT_FOUND
