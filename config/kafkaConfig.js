@@ -88,6 +88,9 @@ var _sendToKafkaConsumers = function (topic, host) {
       if (error.topics && error.topics[0] === USER_DELETE_TOPIC) {
         userDeleteConsumer.errorTriggered(error);
       }
+      if (error.topics && error.topics[0] === COURSES_TOPIC) {
+        userCoursesConsumer.errorTriggered(error);
+      }
     });
   }
 };

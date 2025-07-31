@@ -4310,7 +4310,8 @@ function _generateLink(appsPortalBaseUrl, prefix, solutionLink, solutionType) {
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_PROJECT + solutionLink;
       break;
     case messageConstants.common.COURSE:
-      link = solutionLink
+      link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_COURSES + solutionLink;
+      break;
     default:
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_SURVEY + solutionLink;
   }
