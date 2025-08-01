@@ -235,9 +235,7 @@ module.exports = class adminHelper {
           // Delete associated resources (survey, observation) related to solutions
           const associatedDeleteResult = await this.deleteAssociatedResources(
             solutionDetails,
-            tenantId,
-            orgId,
-            userToken
+            tenantId
           );
           surveyCount = associatedDeleteResult.surveyCount;
           surveySubmissionCount = associatedDeleteResult.surveySubmissionCount;

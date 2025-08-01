@@ -36,7 +36,7 @@ let enviromentVariables = {
     optional: false,
   },
   RESOURCE_DELETION_TOPIC: {
-    message: 'Required mobile application app type value',
+    message: 'Required Kafka topic for resource deletion events',
     optional: false,
     default: 'resource-deletion-topic',
   },
