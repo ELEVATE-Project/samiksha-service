@@ -403,7 +403,7 @@ module.exports = class SurveysHelper {
             externalId: programId,
             tenantId: tenantAndOrgInfo.tenantId
           },
-          ['externalId', 'name', 'description'],
+          ['externalId', 'name', 'description','components'],
           '',
           '',
           ''
@@ -432,6 +432,7 @@ module.exports = class SurveysHelper {
         if (typeof solutionId == 'string') {
           solutionId = new ObjectId(solutionId);
         }
+        let currentComponents = programDocument[0].components || [];
         // Adding solutionId in the program douments under components 
         await programsHelper.updateProgramDocument(
           {
@@ -439,7 +440,7 @@ module.exports = class SurveysHelper {
             tenantId: tenantAndOrgInfo.tenantId
           },
           {
-            $addToSet: { components: solutionId },
+            $addToSet: { components: {_id:solutionId,order:currentComponents.length+1} },
           },
         );
 
@@ -858,7 +859,7 @@ module.exports = class SurveysHelper {
             let programQueryObject = {
               _id: surveyDocument.programId,
               status: messageConstants.common.ACTIVE_STATUS,
-              components: { $in: [new ObjectId(surveyDocument.solutionId)] },
+              "components.id": { $in: [new ObjectId(surveyDocument.solutionId)] },
               tenantId:tenantData.tenantId
             };
 
@@ -1561,6 +1562,7 @@ module.exports = class SurveysHelper {
                 messageConstants.common.SURVEY,
                 solutionDocument[0].referenceFrom,
               );
+
             if (!solutionData.success) {
               throw new Error(
                 messageConstants.apiResponses.SOLUTION_DETAILS_NOT_FOUND
