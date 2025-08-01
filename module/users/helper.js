@@ -637,30 +637,31 @@ module.exports = class UserHelper {
 
         let components = programData[0].components || [];
 
-        if (components.length > 0) {
-          // Order solutions based on components order
-          let resultData = result.data;
-          
-          // Create a mapping of _id to order from components
-          const orderMap = new Map();
-          components.forEach(component => {
-              orderMap.set(component._id.toString(), component.order);
-          });
-          
-          // Sort resultData based on the order mapping
-          resultData = resultData.sort((a, b) => {
-              const aIdString = a._id.toString();
-              const bIdString = b._id.toString();
-              
-              const aOrder = orderMap.get(aIdString) || Infinity; // Items not in components go to end
-              const bOrder = orderMap.get(bIdString) || Infinity;
-              
-              return aOrder - bOrder;
-          });
-          
-          // Update the result object with sorted data
-          result.data = resultData;
-      }
+				if (components.length > 0) {
+					// Order solutions based on components order
+					let resultData = result.data
+				
+					// Create a mapping of _id to order from components
+					const orderMap = new Map()
+					components.forEach((component) => {
+						orderMap.set(component._id.toString(), component.order)
+					})
+				
+					// Sort resultData based on the order mapping
+					resultData = resultData
+						.map((item) => {
+							const order = orderMap.get(item._id.toString())
+							return { ...item, order: order !== undefined ? order : null }
+						})
+						.sort((a, b) => {
+							const aOrder = a.order !== null ? a.order : Infinity
+							const bOrder = b.order !== null ? b.order : Infinity
+							return aOrder - bOrder
+						})
+				
+					// Update the result object with sorted data
+					result.data = resultData
+				}
 
         return resolve({
           message: messageConstants.apiResponses.PROGRAM_SOLUTIONS_FETCHED,
