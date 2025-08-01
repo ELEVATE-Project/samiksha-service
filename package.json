@@ -54,6 +54,7 @@
     "keycloak-auth-utils": "^3.3.0",
     "log": "^1.4.0",
     "mathjs": "^5.10.3",
+    "minimist": "^1.2.8",
     "mkdir": "^0.0.2",
     "module-alias": "^2.2.3",
     "moment-timezone": "^0.5.43",
