@@ -271,14 +271,14 @@ const pushSubmissionToTask = function (projectId, taskId, reqBody) {
 
 
 /**
- * @function pullSolutionIdFromProgram
+ * @function pullSolutionsFromProgramComponents
  * @description Sends a POST request to the project service to remove the given solutionId
  *              from all program components that reference it.
  *
  * @param {String} solutionId - The ID of the solution to be pulled (removed) from programs.
  * @returns {Promise<Object>} - Resolves with success status and message from the project service.
  */
-const pullSolutionIdFromProgram = function (solutionId) {
+const pullSolutionsFromProgramComponents = function (solutionId) {
   return new Promise(async (resolve, reject) => {
     try {
       // Construct the URL for the project service
@@ -328,5 +328,5 @@ module.exports = {
   programDetails: programDetails,
   programUpdate: programUpdate,
   pushSubmissionToTask: pushSubmissionToTask,
-  pullSolutionIdFromProgram:pullSolutionIdFromProgram
+  pullSolutionsFromProgramComponents:pullSolutionsFromProgramComponents
 };
