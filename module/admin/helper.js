@@ -249,7 +249,7 @@ module.exports = class adminHelper {
           programDeletedCount++;
 
           // Log deletion
-          await this.addDeletionLog(resourceIdsWithType, deletedBy, resourceType);
+          await this.addDeletionLog(resourceIdsWithType, deletedBy);
 
           return resolve({
             success: true,
@@ -304,7 +304,7 @@ module.exports = class adminHelper {
           // Push Kafka deletion event
           await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
           // Log deletion
-          await this.addDeletionLog(resourceIdsWithType, deletedBy, resourceType);
+          await this.addDeletionLog(resourceIdsWithType, deletedBy);
 
           return resolve({
             success: true,
