@@ -1,8 +1,8 @@
 /**
- * name : fixOrgIdsFromPrograms.js
+ * name : updateComponentsOfAllPrograms.js
  * author : Saish R B
  * created-date : 26-May-2025
- * Description : Migration script to update components in 'programs' collection in memory-chunks
+ * Description : Migration script to transform components from arrays of IDs to objects with _id and order in 'programs' collection
  */
 
 require('dotenv').config({ path: '../.env' });
@@ -100,4 +100,7 @@ async function processBatch(docs, collection) {
   }
 }
 
-modifyProgramsCollection();
+modifyProgramsCollection().catch(error=>{
+    console.log(`Error during migration: ${error.message}`);
+    process.exit(1);
+})

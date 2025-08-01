@@ -221,10 +221,17 @@ module.exports = class ProgramsHelper {
         data.updatedAt = new Date();
         //convert components to objectedIds
         if (data.components && data.components.length > 0) {
-          const componentsWithOrder = data.components.filter(c => c._id && c.hasOwnProperty('order'));
+          const componentsWithOrder = data.components.filter((c) => {
+            return (
+              c._id &&
+              c.hasOwnProperty('order') &&
+              typeof c.order === 'number' &&
+              Number.isInteger(c.order) &&
+              c.order > 0
+            );
+          });
           data.components = componentsWithOrder.map((component) => {
-
-            return {...component,_id:gen.utils.convertStringToObjectId(component._id)}
+            return { ...component, _id: gen.utils.convertStringToObjectId(component._id) };
           });
         }
 
@@ -246,7 +253,7 @@ module.exports = class ProgramsHelper {
               };
           }
         
-          let currentComponents = [...programDocumentRecord[0].components] || []; // Create a copy
+          let currentComponents = [...(programDocumentRecord[0].components || [])]; // Create a copy
           
           // Process each component in data.components
           for(let component of data.components) {
@@ -320,7 +327,7 @@ module.exports = class ProgramsHelper {
       } catch (error) {
         return resolve({
           success: false,
-          message: error.message,
+          message: error.message, 
           data: {},
         });
       }
