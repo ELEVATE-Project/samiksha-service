@@ -381,6 +381,16 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
                   message: messageConstants.apiResponses.PROGRAM_UPDATED_FAILED,
                 };
               }
+            }else if(newSolutionDocument.isExternalProgram == true && newSolutionDocument.referenceFrom !== 'project'){
+              //call project service to update program components
+              let currentComponents = programDocument?.components || [];
+              let programUpdateStatus = await projectService.programUpdate(requestingUserAuthToken, programDocument._id,{components:[{_id:duplicateSolutionDocument._id,order:currentComponents.length + 1}]},userDetails.tenantData, userDetails);
+              if( !programUpdateStatus || !programUpdateStatus.success) {
+                throw {
+                  message: messageConstants.apiResponses.PROGRAM_UPDATED_FAILED,
+                };
+              }
+
             }
           }
           return resolve(duplicateSolutionDocument);
