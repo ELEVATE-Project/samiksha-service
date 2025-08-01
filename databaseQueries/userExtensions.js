@@ -139,6 +139,35 @@ module.exports = class userExtension {
         }
       });
     }
+
+
+ /**
+   * Remove entries from `programRoleMapping` array where programId matches the given ID,
+   * across all userExtension documents.
+   *
+   * @param {String} programId - The programId to be removed from programRoleMapping array.
+   * @returns {Promise<Object>} - MongoDB update result object.
+   */
+ static pullProgramIdFromTheProgramRoleMapping(programId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await database.models.userExtension.updateMany(
+        {
+          programRoleMapping: {
+            $elemMatch: {
+              programId: programId,
+            },
+          },
+        },
+        { $pull: { programRoleMapping: { programId: programId } } }
+      );
+
+      return resolve(result);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+}
   
-  };
+};
   
