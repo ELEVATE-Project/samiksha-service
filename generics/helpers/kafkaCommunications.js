@@ -44,6 +44,7 @@ const pushDeletedResourceTopic =
 		? process.env.RESOURCE_DELETION_TOPIC
 		: 'resource-deletion-topic'
 
+const userCoursesTopic = process.env.USER_COURSES_TOPIC
 const pushCompletedObservationSubmissionToKafka = function (message) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -278,6 +279,30 @@ const pushProgramOperationEvent = function (message) {
   });
 };
 
+/**
+ * Push userCourses event to Kafka.
+ * @function
+ * @name pushUserCoursesToKafka
+ * @param {Object} message - The message payload to be pushed to Kafka.
+ * @returns {Promise<Object>} Kafka push status response.
+ */
+const pushUserCoursesToKafka= function (message) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let kafkaPushStatus = await pushMessageToKafka([
+        {
+          topic: userCoursesTopic,
+          messages: JSON.stringify(message),
+        },
+      ]);
+
+      return resolve(kafkaPushStatus);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 
 
 /**
@@ -317,5 +342,6 @@ module.exports = {
   pushInCompleteSurveySubmissionToKafka: pushInCompleteSurveySubmissionToKafka,
   pushProgramOperationEvent:pushProgramOperationEvent,
   pushSubmissionToProjectService: pushSubmissionToProjectService,
-  pushResourceDeleteKafkaEvent:pushResourceDeleteKafkaEvent
+  pushResourceDeleteKafkaEvent:pushResourceDeleteKafkaEvent,
+  pushUserCoursesToKafka:pushUserCoursesToKafka
 };

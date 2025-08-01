@@ -87,7 +87,7 @@ module.exports = class SolutionsHelper {
           solutionData.programExternalId = programData[0].externalId;
         }
 
-        if (solutionData.type == messageConstants.common.COURSE && !solutionData.link) {
+        if (solutionData.type == messageConstants.common.COURSE && !solutionData.linkUrl) {
           return resolve({
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.COURSE_LINK_REQUIRED,
@@ -189,7 +189,8 @@ module.exports = class SolutionsHelper {
             solutionData.programId,
             solutionCreation._id,
             solutionData.scope ? solutionData.scope : {},
-            userDetails
+            userDetails,
+            solutionCreation
           );
         }
 
@@ -750,7 +751,7 @@ module.exports = class SolutionsHelper {
         // Getting program documents
         let programData;
         if (programId) {
-           if(solutionDocument.isExternalProgram){
+           if(solutionDocument?.isExternalProgram){
             programData = await projectService.programDetails(userDetails.userToken, programId, userDetails,userDetails.tenantAndOrgInfo);
             if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
               throw {
@@ -2219,30 +2220,31 @@ module.exports = class SolutionsHelper {
             };
           }
         }
-
-        // fetch tenant domain by calling  tenant details API
-        let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
-        const domains = tenantDetailsResponse?.data?.domains || [];
-        // Error handling if API failed or no domains found
-        if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
-          throw {
-            status: httpStatusCode.bad_request.status,
-            message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
-          };
-        }
-
-        // Collect all verified domains into an array
-        let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
-
         // Generate link for each domain
-        let links = allDomains.map((domain) => {
-          return _generateLink(
-            `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
-            prefix,
-            solutionLink,
-            solutionData[0].type
-          );
-        });
+           // fetch tenant domain by calling  tenant details API
+           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
+           const domains = tenantDetailsResponse?.data?.domains || [];
+           // Error handling if API failed or no domains found
+           if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
+             throw {
+               status: httpStatusCode.bad_request.status,
+               message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
+             };
+           }
+   
+           // Collect all verified domains into an array
+           let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
+   
+           // Generate link for each domain
+            let links = allDomains.map((domain) => {
+             return _generateLink(
+               `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
+               prefix,
+               solutionLink,
+               solutionData[0].type
+             );
+           });
+     
 
         return resolve({
           success: true,
@@ -4306,6 +4308,9 @@ function _generateLink(appsPortalBaseUrl, prefix, solutionLink, solutionType) {
       break;
     case messageConstants.common.IMPROVEMENT_PROJECT:
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_PROJECT + solutionLink;
+      break;
+    case messageConstants.common.COURSE:
+      link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_COURSES + solutionLink;
       break;
     default:
       link = appsPortalBaseUrl + prefix + messageConstants.common.CREATE_SURVEY + solutionLink;
