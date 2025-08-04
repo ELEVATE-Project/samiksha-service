@@ -728,6 +728,8 @@ module.exports = class SolutionsHelper {
           'entityType',
           'certificateTemplateId',
           'status',
+          "linkUrl",
+					"linkTitle"
         ]);
         return resolve({
           success: true,
