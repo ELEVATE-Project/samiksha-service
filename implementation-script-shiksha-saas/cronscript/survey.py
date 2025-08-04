@@ -44,9 +44,9 @@ currentDirectory = os.getcwd()
 
 # Read config file 
 config = ConfigParser()
+
 config.read('common_config/survey.ini')
-
-
+parser = argparse.ArgumentParser()
 # email regex
 regex = "\"?([-a-zA-Z0-9.`?{}]+@\w+\.\w+)\"?"
 
@@ -743,11 +743,23 @@ def createFileStructForProgram(programFile):
         fileNameSplit = str(programFile).split('/')[-1:]
     else:
         fileNameSplit = str(programFile)
+
+    # If it's a list, take the first element
+    if isinstance(programFile, list):
+       programFile = programFile[0]
+
+    print(programFile,'programFile')
     if ".xlsx" in fileNameSplit:
         ts = str(time.time()).replace(".", "_")
         folderName = fileNameSplit.replace(".xlsx", "-" + str(ts))
         os.mkdir('programFiles/' + str(folderName))
         path = os.path.join('programFiles', str(folderName))
+    elif directory != "None":
+        print(fileNameSplit)
+        ts = str(time.time()).replace(".", "_")
+        folderName = fileNameSplit[0];
+        folderName = folderName.replace(".xlsx", "-" + str(ts))
+        os.mkdir('programFiles/' + str(folderName))
     else:
         terminatingMessage("File Error.")
     returnPathStr = os.path.join('programFiles', str(folderName))
@@ -6063,9 +6075,12 @@ start_time = time.time()
 parser = argparse.ArgumentParser()
 parser.add_argument('--programFile', '--resourceFile', type=valid_file)
 parser.add_argument('--env', '--env')
+parser.add_argument('--directory', required=False, default=None, help="Optional directory path")
 argument = parser.parse_args()
 programFile = argument.programFile
 environment = argument.env
+directory = argument.directory
+print(directory,'<--------***************')
 millisecond = int(time.time() * 1000)
 
 if envCheck():
