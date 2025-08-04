@@ -249,7 +249,7 @@ module.exports = class ProgramsHelper {
         
           if (!programDocumentRecord[0]) {
               throw {
-                  message: messageConstants.apiResponses.PROGRAM_NOT_UPDATED,
+                  message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
               };
           }
         
@@ -257,7 +257,7 @@ module.exports = class ProgramsHelper {
           
           // Process each component in data.components
           for(let component of data.components) {
-              let componentIndex = currentComponents.findIndex(c => c._id.toString() === component._id.toString());
+              let componentIndex = currentComponents.findIndex(currentComponent => currentComponent._id.toString() === component._id.toString());
               
               if(componentIndex !== -1) {
                   // Update existing component's order (preserve other fields)

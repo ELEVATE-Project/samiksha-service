@@ -189,7 +189,7 @@ module.exports = class SolutionsHelper {
               let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},userDetails.tenantData, userDetails);
               if( !programUpdateStatus || !programUpdateStatus.success) {
                 throw {
-                  message: messageConstants.apiResponses.PROGRAM_UPDATED_FAILED,
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
                 };
               }
           }
