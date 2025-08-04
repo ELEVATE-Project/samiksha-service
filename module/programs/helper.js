@@ -221,13 +221,13 @@ module.exports = class ProgramsHelper {
         data.updatedAt = new Date();
         //convert components to objectedIds
         if (data.components && data.components.length > 0) {
-          const componentsWithOrder = data.components.filter((c) => {
+          const componentsWithOrder = data.components.filter((component) => {
             return (
-              c._id &&
-              c.hasOwnProperty('order') &&
-              typeof c.order === 'number' &&
-              Number.isInteger(c.order) &&
-              c.order > 0
+              component._id &&
+              component.hasOwnProperty('order') &&
+              typeof component.order === 'number' &&
+              Number.isInteger(component.order) &&
+              component.order > 0
             );
           });
           data.components = componentsWithOrder.map((component) => {
@@ -280,7 +280,7 @@ module.exports = class ProgramsHelper {
           
           if(hasDuplicateOrders) {
               throw {
-                  message: messageConstants.apiResponses.COMPONENT_ORDER_DUPLICATE,
+                  message: messageConstants.apiResponses.COMPONENT_ORDER_DUPLICATE_FOUND,
                   status: httpStatusCode.bad_request.status
               };
           }
