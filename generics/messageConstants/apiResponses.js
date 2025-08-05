@@ -444,4 +444,11 @@ module.exports = {
 	UPDATE_OBJECT_SUCCESSFULLY: 'Successfully generate update object',
   SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'This solution is not allowed to be consumed privately',
   PROJECT_TEMPLATE_NOT_FOUND: 'Project templates not found',
+  USER_COURSES_NOT_CREATED: 'User course not created',
+  USER_COURSES_CREATED: 'User course created successfully',
+  USER_COURSES_NOT_UPDATED: 'User course not updated',
+  USER_COURSES_UPDATED: 'User course updated successfully',
+  MISSING_SOLUTIONID_USERID_STATUS: 'SolutionId or userId or status is not found',
+  INVALID_SOLUTIONID: 'Invalid solutions id.',
+
 };
