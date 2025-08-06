@@ -72,11 +72,7 @@ module.exports = class Observations {
 
         return resolve(observationDocuments);
       } catch (error) {
-        return resolve({
-          success: false,
-          message: error.message,
-          data: false,
-        });
+        return reject(error);
       }
     });
   }

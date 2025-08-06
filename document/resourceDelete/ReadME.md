@@ -44,7 +44,7 @@ POST /survey/v1/admin/deleteResource/:id?type={program|solution}
 ### 🔁 Delete a **Program**:
 ```bash
 curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteResource/68260d66b063136922f947c9?type=program' \
---header 'x-auth-token: <user-token>;' \
+--header 'x-auth-token: <user-token>' \
 --header 'internal-access-token: <internal-access-token>' \
 --header 'Content-Type: application/json' \
 --header 'admin-auth-token: <admin-auth-token>' \
@@ -55,7 +55,7 @@ curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteReso
 ### 🔁 Delete a **Solution**:
 ```bash
 curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteResource/68260d66b063136922f947c9?type=solution' \
---header 'x-auth-token: <user-token>;' \
+--header 'x-auth-token: <user-token>' \
 --header 'internal-access-token: <internal-access-token>' \
 --header 'Content-Type: application/json' \
 --header 'admin-auth-token: <admin-auth-token>' \

@@ -327,10 +327,10 @@ module.exports = class adminHelper {
             },
           });
         } else {
-          return {
+          return resolve({
             success: false,
             message: messageConstants.apiResponses.INVALID_RESOURCE_TYPE,
-          };
+          })
         }
       } catch (error) {
         return resolve({

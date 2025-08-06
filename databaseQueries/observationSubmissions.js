@@ -48,11 +48,11 @@ module.exports = class observationSubmissions {
   ) {
     return new Promise(async (resolve, reject) => {
       try {
-        let queryObject = observationSubmissionsFilter != 'all' ? observationSubmissionsFilter : {};
+        let queryObject = observationSubmissionsFilter !== 'all' ? observationSubmissionsFilter : {};
 
         let projection = {};
 
-        if (fieldsArray != 'all') {
+        if (fieldsArray !== 'all') {
           fieldsArray.forEach((field) => {
             projection[field] = 1;
           });
@@ -79,11 +79,7 @@ module.exports = class observationSubmissions {
 
         return resolve(observationSubmissionsDocuments);
       } catch (error) {
-        return resolve({
-          success: false,
-          message: error.message,
-          data: false,
-        });
+        return reject(error);
       }
     });
   }

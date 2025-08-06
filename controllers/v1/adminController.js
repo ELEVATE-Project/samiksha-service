@@ -205,11 +205,11 @@ module.exports = class Admin {
   }
 
   /**
-   * @api {post} /survey/v1/admin/deleteResource/:resourceId?type=solution
+   * @api {post} /survey/v1/admin/deleteSolutionResource/:resourceId?type=solution
    * Deletes a resource (program/solution) after validating admin access.
    * @apiVersion 1.0.0
    * @apiGroup Admin
-   * @apiSampleRequest /survey/v1/admin/deleteResource/683867e60f8595db9c1b6c26?type=solution
+   * @apiSampleRequest /survey/v1/admin/deleteSolutionResource/683867e60f8595db9c1b6c26?type=solution
     * @apiParamExample {json} Response:
     {
     "message": "Solution and associated resources deleted successfully",
