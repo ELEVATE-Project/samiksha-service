@@ -450,5 +450,9 @@ module.exports = {
   USER_COURSES_UPDATED: 'User course updated successfully',
   MISSING_SOLUTIONID_USERID_STATUS: 'SolutionId or userId or status is not found',
   INVALID_SOLUTIONID: 'Invalid solutions id.',
-
+  LIBRARY_CATEGORY_ADDED: 'Library categories Added successfully',
+  LIBRARY_CATEGORIES_NOT_ADDED: 'Could not add library categories',
+  CATEGORY_ALREADY_EXISTS:"Library categories already exists",
+  LIBRARY_CATEGORY_UPDATED_SUCCESSFULLY:" Library categories Updated successfully",
+  LIBRARY_CATEGORY_NOT_UPDATED :" Could not update library categories",
 };
