@@ -15,7 +15,6 @@
 module.exports = class Observations {
   /**
    * Delete observations documents based on the provided MongoDB filter.
-   *entities
    * @param {Object} filter - MongoDB query filter to match documents for deletion.
    * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
    */

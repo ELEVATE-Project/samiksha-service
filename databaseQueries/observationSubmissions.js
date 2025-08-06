@@ -15,7 +15,6 @@
 module.exports = class observationSubmissions {
   /**
    * Delete observationSubmissions documents based on the provided MongoDB filter.
-   *entities
    * @param {Object} filter - MongoDB query filter to match documents for deletion.
    * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
    */
@@ -34,7 +33,7 @@ module.exports = class observationSubmissions {
    * find observationSubmissions
    * @method
    * @name observationSubmissionsDocuments
-   * @param {Array} [observationSubmissionsFilter = "all"] - observationSubmissions ids.
+   * @param {Object|String} [observationSubmissionsFilter = "all"] - MongoDB filter object or "all" for no filtering.
    * @param {Array} [fieldsArray = "all"] - projected fields.
    * @param {Array} [sortedData = "all"] - sorted field.
    * @param {Array} [skipFields = "none"] - field not to include

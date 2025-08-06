@@ -149,19 +149,19 @@ module.exports = class adminHelper {
 
   /**
    * Deletes a program or solution resource along with its associated dependencies.
-   *
+   * @method
+   * @name deletedResourceDetails
    * @param {String} resourceId - ID of the resource to delete.
    * @param {String} resourceType - Type of the resource ('program' or 'solution').
    * @param {String} tenantId - Tenant identifier for multitenancy.
    * @param {String} orgId - Organization ID performing the operation.
    * @param {String} [deletedBy='SYSTEM'] - User ID or system name that triggered the deletion.
-   * @param {String} userToken - Auth token used for downstream service calls (e.g., survey service).
    *
    * @returns {Promise<Object>} - Result object summarizing deletion impact.
    */
 
   static deletedResourceDetails(resourceId, resourceType, tenantId, orgId, deletedBy = 'SYSTEM') {
-    return new Promise(async (resolve, rejects) => {
+    return new Promise(async (resolve, reject) => {
       try {
         // Track counters for deleted resource
         let programDeletedCount = 0;
@@ -345,12 +345,13 @@ module.exports = class adminHelper {
 
   /**
  * Deletes associated survey and observation resources based on solution details and tenant ID.
- *
+ * @method
+ * @name deleteAssociatedResources
  * @param {Array<{ _id: string, type: string }>} solutionDetails - List of solution objects with `_id` and `type` (e.g., SURVEY or OBSERVATION).
  * @param {string} tenantId - Tenant identifier.
   */
   static deleteAssociatedResources(solutionDetails, tenantId) {
-    return new Promise(async (resolve, rejects) => {
+    return new Promise(async (resolve, reject) => {
       try {
         let surveyCount = 0;
         let surveySubmissionCount = 0;
@@ -486,16 +487,18 @@ module.exports = class adminHelper {
   }
 
 
-/**
-Deletes multiple solution resources and aggregates the deletion results.
-@param {Object} bodyData - Contains the solutionIds, tenantId, orgId, and userId.
-@param {string[]} bodyData.solutionIds - Array of solution IDs to delete.
-@param {string} bodyData.tenantId - Tenant identifier.
-@param {string} bodyData.orgId - Organization identifier.
-@param {string} bodyData.userId - Identifier of the user who triggered deletion.
-@param {string} resourceType - Type of the resource (e.g., 'solution').
-@returns {Promise<Object>} - Returns success status or error information.
-*/
+ /**
+  * Deletes multiple solution resources and aggregates the deletion results.
+  * @method
+  * @name deleteSolutionResource
+  * @param {Object} bodyData - Contains the solutionIds, tenantId, orgId, and userId.
+  * @param {string[]} bodyData.solutionIds - Array of solution IDs to delete.
+  * @param {string} bodyData.tenantId - Tenant identifier.
+  * @param {string} bodyData.orgId - Organization identifier.
+  * @param {string} bodyData.userId - Identifier of the user who triggered deletion.
+  * @param {string} resourceType - Type of the resource (e.g., 'solution').
+  * @returns {Promise<Object>} - Returns success status or error information.
+  */
   static deleteSolutionResource(bodyData, resourceType) {
     return new Promise(async (resolve, reject) => {
       try {

@@ -5,7 +5,6 @@
  * Description : Projcet service related information.
  */
 
-const { header } = require('express-validator/check');
 const request = require('request');
 const projectServiceUrl = process.env.IMPROVEMENT_PROJECT_BASE_URL;
 
