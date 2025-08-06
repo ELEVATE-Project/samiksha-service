@@ -453,6 +453,7 @@ module.exports = class UserHelper {
     return new Promise(async (resolve, reject) => {
       try {
         let {userId, userToken,tenantData} = userDetails;
+        let additionalFilters = {}
         let programData = await programsQueries.programDocuments(
           {
             _id: programId,
@@ -471,10 +472,9 @@ module.exports = class UserHelper {
         }
         
         if(!programData.length > 0){
-          return resolve({
-            status: httpStatusCode['bad_request'].status,
-            message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-          });
+          additionalFilters = {
+            isExternalProgram:true
+          }
         }
 
         let totalCount = 0;
@@ -489,7 +489,8 @@ module.exports = class UserHelper {
           programId, //program for solutions
           messageConstants.common.DEFAULT_PAGE_SIZE, //page size
           messageConstants.common.DEFAULT_PAGE_NO, //page no
-          search //search text
+          search, //search text
+          additionalFilters
         );
 
         let projectSolutionIdIndexMap = {};
@@ -629,20 +630,20 @@ module.exports = class UserHelper {
         }
 
         let result = {
-          programName: programData[0].name,
+          programName: programData.length > 0 ? programData[0].name : undefined,
           programId: programId,
-          programEndDate: programData[0].endDate,
-          description: programData[0].description
+          programEndDate: programData.length > 0 ? programData[0].endDate : undefined,
+          description: programData.length > 0 && programData[0].description
             ? programData[0].description
             : messageConstants.common.TARGETED_SOLUTION_TEXT,
-          rootOrganisations:
+          rootOrganisations:programData.length > 0 &&
             programData[0].rootOrganisations && programData[0].rootOrganisations.length > 0
               ? programData[0].rootOrganisations[0]
               : '',
           data: mergedData,
           count: totalCount,
         };
-        if (programData[0].hasOwnProperty('requestForPIIConsent')) {
+        if (programData.length > 0 && programData[0].hasOwnProperty('requestForPIIConsent')) {
           result.requestForPIIConsent = programData[0].requestForPIIConsent;
         }
 
