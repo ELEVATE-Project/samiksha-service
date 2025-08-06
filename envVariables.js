@@ -38,7 +38,7 @@ let enviromentVariables = {
   RESOURCE_DELETION_TOPIC: {
     message: 'Required Kafka topic for resource deletion events',
     optional: false,
-    default: 'resource-deletion-topic',
+    default: 'resource_deletion_topic',
   },
   // AUTHORIZATION: {
   //   message: 'Required Server authorization code',

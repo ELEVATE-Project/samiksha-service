@@ -224,7 +224,8 @@ module.exports = async function (req, res, next) {
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
-    'admin/deletedResourceDetails'
+    'admin/deleteResource',
+    'admin/deleteSolutionResource'
   ];
 
   let performInternalAccessTokenCheck = false;

@@ -282,7 +282,7 @@ const pullSolutionsFromProgramComponents = function (solutionId) {
   return new Promise(async (resolve, reject) => {
     try {
       // Construct the URL for the project service
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.PULL_SOLUTION_ID_FROM_PROGRAM}${solutionId}`;
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.PULL_SOLUTION_ID_FROM_PROGRAM}/${solutionId}`;
 
       // Set the options for the HTTP GET request
       let options = {

@@ -14,7 +14,7 @@ This document provides a simple reference for the **support** and **implementati
 ## 🛠️ API Endpoint
 
 ```
-POST /survey/v1/admin/deletedResourceDetails/:id?type={program|solution}
+POST /survey/v1/admin/deleteResource/:id?type={program|solution}
 ```
 
 ---
@@ -43,7 +43,7 @@ POST /survey/v1/admin/deletedResourceDetails/:id?type={program|solution}
 
 ### 🔁 Delete a **Program**:
 ```bash
-curl --location --request POST 'http://localhost:4301/survey/v1/admin/deletedResourceDetails/68260d66b063136922f947c9?type=program' \
+curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteResource/68260d66b063136922f947c9?type=program' \
 --header 'x-auth-token;' \
 --header 'internal-access-token: <internal-access-token>' \
 --header 'Content-Type: application/json' \
@@ -54,7 +54,7 @@ curl --location --request POST 'http://localhost:4301/survey/v1/admin/deletedRes
 
 ### 🔁 Delete a **Solution**:
 ```bash
-curl --location --request POST 'http://localhost:4301/survey/v1/admin/deletedResourceDetails/68260d66b063136922f947c9?type=solution' \
+curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteResource/68260d66b063136922f947c9?type=solution' \
 --header 'x-auth-token;' \
 --header 'internal-access-token: <internal-access-token>' \
 --header 'Content-Type: application/json' \

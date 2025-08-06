@@ -160,7 +160,7 @@ module.exports = class adminHelper {
    * @returns {Promise<Object>} - Result object summarizing deletion impact.
    */
 
-  static deletedResourceDetails(resourceId, resourceType, tenantId, orgId, deletedBy = 'SYSTEM', userToken) {
+  static deletedResourceDetails(resourceId, resourceType, tenantId, orgId, deletedBy = 'SYSTEM') {
     return new Promise(async (resolve, rejects) => {
       try {
         // Track counters for deleted resource
@@ -191,7 +191,7 @@ module.exports = class adminHelper {
             };
           }
           const programObjectId = typeof resourceId === 'string' ? new ObjectId(resourceId) : resourceId
-					let programRoleMappingId = await userExtensionsQueries.pullProgramIdFromTheProgramRoleMapping(
+					let programRoleMappingId = await userExtensionsQueries.pullProgramIdFromProgramRoleMapping(
 						programObjectId
 					)
 
@@ -245,6 +245,10 @@ module.exports = class adminHelper {
           // Finally delete the program
           await programsQueries.deletePrograms(filter);
           // Push deletion event to Kafka
+          // {
+					// 	"topic": "RESOURCE_DELETION_TOPIC",
+					// 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
+					//   }
           await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
           programDeletedCount++;
 
@@ -302,6 +306,10 @@ module.exports = class adminHelper {
           observationSubmissionCount = associatedDeleteResult.observationSubmissionCount;
 
           // Push Kafka deletion event
+          // {
+					// 	"topic": "RESOURCE_DELETION_TOPIC",
+					// 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
+					//   }
           await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
           // Log deletion
           await this.addDeletionLog(resourceIdsWithType, deletedBy);
@@ -328,12 +336,19 @@ module.exports = class adminHelper {
         return resolve({
           success: false,
           message: error.message,
+          status:error.status,
           data: false,
         });
       }
     });
   }
 
+  /**
+ * Deletes associated survey and observation resources based on solution details and tenant ID.
+ *
+ * @param {Array<{ _id: string, type: string }>} solutionDetails - List of solution objects with `_id` and `type` (e.g., SURVEY or OBSERVATION).
+ * @param {string} tenantId - Tenant identifier.
+  */
   static deleteAssociatedResources(solutionDetails, tenantId) {
     return new Promise(async (resolve, rejects) => {
       try {
@@ -469,4 +484,70 @@ module.exports = class adminHelper {
       }
     });
   }
+
+
+/**
+Deletes multiple solution resources and aggregates the deletion results.
+@param {Object} bodyData - Contains the solutionIds, tenantId, orgId, and userId.
+@param {string[]} bodyData.solutionIds - Array of solution IDs to delete.
+@param {string} bodyData.tenantId - Tenant identifier.
+@param {string} bodyData.orgId - Organization identifier.
+@param {string} bodyData.userId - Identifier of the user who triggered deletion.
+@param {string} resourceType - Type of the resource (e.g., 'solution').
+@returns {Promise<Object>} - Returns success status or error information.
+*/
+  static deleteSolutionResource(bodyData, resourceType) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Initialize finalResult to collect aggregated counts across all solutions
+        const finalResult = {
+          solutionDeletedCount: 0,
+          surveyCount: 0,
+          surveySubmissionCount: 0,
+          observationCount: 0,
+          observationSubmissionCount: 0,
+          pullSolutionFromProgramComponent: 0,
+        };
+  
+        // Iterate over each solution ID and delete its associated resources
+        for (const solutionId of bodyData.solutionIds) {
+          // Call internal method to handle deletion for a single solution
+          const deleteResponse = await this.deletedResourceDetails(
+            solutionId,
+            resourceType,
+            bodyData.tenantId,
+            bodyData.orgId,
+            bodyData.userId
+          );
+    
+          // If the deletion was successful, accumulate the returned stats
+          if (deleteResponse?.success) {
+            const result = deleteResponse.result || {};
+  
+            // Accumulate counts
+            finalResult.solutionDeletedCount += result.solutionDeletedCount || 0;
+            finalResult.surveyCount += result.surveyCount || 0;
+            finalResult.surveySubmissionCount += result.surveySubmissionCount || 0;
+            finalResult.observationCount += result.observationCount || 0;
+            finalResult.observationSubmissionCount += result.observationSubmissionCount || 0;
+            finalResult.pullSolutionFromProgramComponent += result.pullSolutionFromProgramComponent || 0;
+          }
+        }
+  
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.SOLUTION_RESOURCE_DELETED,
+          result: finalResult,
+        });
+  
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+  
 }
