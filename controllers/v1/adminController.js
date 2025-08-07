@@ -176,24 +176,15 @@ module.exports = class Admin {
   async deleteResource(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let deletedEntity;
-        // Check if user is authenticated and has 'admin' role
-        if (req.userDetails && req.userDetails.roles && req.userDetails.roles.includes(messageConstants.common.ADMIN)) {
           // Call adminHelper's deletedResourceDetails with required identifiers
-          deletedEntity = await adminHelper.deletedResourceDetails(
+         let deleteResource = await adminHelper.deletedResourceDetails(
             req.params._id,
             req.query.type,
             req.userDetails.tenantAndOrgInfo.tenantId,
             req.userDetails.tenantAndOrgInfo.orgId,
             req.userDetails.userId
           );
-        } else {
-          throw {
-            status: httpStatusCode.forbidden.status,
-            message: messageConstants.apiResponses.ADMIN_TOKEN_MISSING_MESSAGE,
-          };
-        }
-        return resolve(deletedEntity);
+        return resolve(deleteResource);
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,

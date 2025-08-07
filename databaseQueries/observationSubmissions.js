@@ -18,7 +18,7 @@ module.exports = class observationSubmissions {
    * @param {Object} filter - MongoDB query filter to match documents for deletion.
    * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
    */
-  static deleteObservationSubmissions(filter) {
+  static delete(filter) {
     return new Promise(async (resolve, reject) => {
       try {
         let deleteDocuments = await database.models.observationSubmissions.deleteMany(filter);

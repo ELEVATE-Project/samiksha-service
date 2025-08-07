@@ -229,7 +229,7 @@ module.exports = class adminHelper {
           resourceIdsWithType.push({ id: resourceId, type: messageConstants.common.PROGRAM_CHECK })
 
           // Delete solutions and count
-          await solutionsQueries.deleteSolutions(solutionFilter);
+          await solutionsQueries.delete(solutionFilter);
           solutionDeletedCount += solutionDetails.length;
 
           // Delete associated resources (survey, observation) related to solutions
@@ -243,7 +243,7 @@ module.exports = class adminHelper {
           observationSubmissionCount = associatedDeleteResult.observationSubmissionCount;
 
           // Finally delete the program
-          await programsQueries.deletePrograms(filter);
+          await programsQueries.delete(filter);
           // Push deletion event to Kafka
           // {
 					// 	"topic": "RESOURCE_DELETION_TOPIC",
@@ -294,7 +294,7 @@ module.exports = class adminHelper {
           // Pull the solution from other components (soft link cleanup)
           await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId));
           // Delete the solution
-          await solutionsQueries.deleteSolutions(solutionFilter);
+          await solutionsQueries.delete(solutionFilter);
           solutionDeletedCount++;
           resourceIdsWithType.push({ id: resourceId, type: messageConstants.common.SOLUTION_CHECK })
           // Delete associated resources
@@ -375,7 +375,7 @@ module.exports = class adminHelper {
 
           if (surveyDetails?.length) {
             surveyCount = surveyDetails.length;
-            await surveyQueries.deleteSurveys(surveyFilter);
+            await surveyQueries.delete(surveyFilter);
           }
 
           const surveySubmissionDetails = await surveySubmissionQueries.surveySubmissionDocuments(surveyFilter, [
@@ -384,7 +384,7 @@ module.exports = class adminHelper {
 
           if (surveySubmissionDetails?.length) {
             surveySubmissionCount = surveySubmissionDetails.length;
-            await surveySubmissionQueries.deleteSurveySubmissions(surveyFilter);
+            await surveySubmissionQueries.delete(surveyFilter);
           }
         }
 
@@ -395,7 +395,7 @@ module.exports = class adminHelper {
 
           if (observationDetails?.length) {
             observationCount = observationDetails.length;
-            await observationQueries.deleteObservations(observationFilter);
+            await observationQueries.delete(observationFilter);
           }
 
           const observationSubmissionsDetails = await observationSubmissionsQueries.observationSubmissionsDocuments(
@@ -405,7 +405,7 @@ module.exports = class adminHelper {
 
           if (observationSubmissionsDetails?.length) {
             observationSubmissionCount = observationSubmissionsDetails.length;
-            await observationSubmissionsQueries.deleteObservationSubmissions(observationFilter);
+            await observationSubmissionsQueries.delete(observationFilter);
           }
         }
 
