@@ -24,7 +24,6 @@ const fs = require('fs');
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-const projectService = require(ROOT_PATH + '/generics/services/project')
 
 /**
  * UserHelper
@@ -452,7 +451,7 @@ module.exports = class UserHelper {
   static solutions(programId, requestedData, pageSize, pageNo, search, userDetails,type) {
     return new Promise(async (resolve, reject) => {
       try {
-        let {userId, userToken,tenantData} = userDetails;
+        let {userId} = userDetails;
         let additionalFilters = {}
         let programData = await programsQueries.programDocuments(
           {
@@ -460,16 +459,6 @@ module.exports = class UserHelper {
           },
           ['name', 'requestForPIIConsent', 'rootOrganisations', 'endDate', 'description']
         );
-
-        if (!programData.length > 0) {
-          programData = await projectService.programDetails(
-            userToken,
-            programId,
-            userDetails,
-            tenantData
-          );
-          programData = programData?.result ? [programData.result] : [];
-        }
         
         if(!programData.length > 0){
           additionalFilters = {
@@ -629,22 +618,21 @@ module.exports = class UserHelper {
           }
         }
 
-        let result = {
-          programName: programData.length > 0 ? programData[0].name : undefined,
-          programId: programId,
-          programEndDate: programData.length > 0 ? programData[0].endDate : undefined,
-          description: programData.length > 0 && programData[0].description
-            ? programData[0].description
-            : messageConstants.common.TARGETED_SOLUTION_TEXT,
-          rootOrganisations:programData.length > 0 &&
-            programData[0].rootOrganisations && programData[0].rootOrganisations.length > 0
-              ? programData[0].rootOrganisations[0]
-              : '',
+        const program = programData?.[0] || {};
+
+        const result = {
+          programName: program.name,
+          programId,
+          programEndDate: program.endDate,
+          description: program.description || messageConstants.common.TARGETED_SOLUTION_TEXT,
+          rootOrganisations: program.rootOrganisations?.[0] || '',
           data: mergedData,
           count: totalCount,
         };
-        if (programData.length > 0 && programData[0].hasOwnProperty('requestForPIIConsent')) {
-          result.requestForPIIConsent = programData[0].requestForPIIConsent;
+
+        // Add requestForPIIConsent only if it exists in `program`
+        if ('requestForPIIConsent' in program) {
+          result.requestForPIIConsent = program.requestForPIIConsent;
         }
 
         return resolve({
