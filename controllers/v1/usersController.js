@@ -203,7 +203,7 @@ module.exports = class Users {
           req.pageSize,
           req.pageNo,
           req.searchText,
-          req.userDetails.userId
+          req.userDetails
         );
 
         return resolve(targetedSolutions);
