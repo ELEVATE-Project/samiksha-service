@@ -192,7 +192,8 @@ module.exports = class adminHelper {
           }
           const programObjectId = typeof resourceId === 'string' ? new ObjectId(resourceId) : resourceId
 					let programRoleMappingId = await userExtensionsQueries.pullProgramIdFromProgramRoleMapping(
-						programObjectId
+						programObjectId,
+            tenantId
 					)
 
 					if (programRoleMappingId.modifiedCount > 0) {
@@ -287,12 +288,12 @@ module.exports = class adminHelper {
           const solutionData = solutionDetails[0];
           // Remove solution from components if not reusable and is external
           if (!solutionData.isReusable && solutionData.isExternalProgram) {
-            const pullRes = await projectService.pullSolutionsFromProgramComponents(resourceId);
+            const pullRes = await projectService.pullSolutionsFromProgramComponents(resourceId,tenantId);
             if (pullRes.result.success) pullSolutionFromProgramComponent++;
           }
 
           // Pull the solution from other components (soft link cleanup)
-          await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId));
+          await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId),tenantId);
           // Delete the solution
           await solutionsQueries.delete(solutionFilter);
           solutionDeletedCount++;

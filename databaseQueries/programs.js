@@ -168,7 +168,7 @@ module.exports = class Programs {
 	 * @param {ObjectId} solutionId - The ID of the solution to be removed from program components.
 	 * @returns {Promise<Object>} - MongoDB update result containing number of modified documents.
 	 */
-  static pullSolutionsFromComponents(solutionId) {
+  static pullSolutionsFromComponents(solutionId,tenantId) {
     return new Promise(async (resolve, reject) => {
       try {
         // Build the update operation: $pull removes matching solutionId from the components array
@@ -178,7 +178,7 @@ module.exports = class Programs {
           },
         };
         // Run updateMany to apply this change to all program docs containing the solutionId
-        const result = await database.models.programs.updateMany({ [`components`]: solutionId }, updateQuery);
+        const result = await database.models.programs.updateMany({ [`components`]: solutionId, tenantId: tenantId }, updateQuery);
         return resolve(result);
       } catch (error) {
         return reject(error);

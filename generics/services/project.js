@@ -277,11 +277,11 @@ const pushSubmissionToTask = function (projectId, taskId, reqBody) {
  * @param {String} solutionId - The ID of the solution to be pulled (removed) from programs.
  * @returns {Promise<Object>} - Resolves with success status and message from the project service.
  */
-const pullSolutionsFromProgramComponents = function (solutionId) {
+const pullSolutionsFromProgramComponents = function (solutionId,tenantId) {
   return new Promise(async (resolve, reject) => {
     try {
       // Construct the URL for the project service
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.PULL_SOLUTION_ID_FROM_PROGRAM}/${solutionId}`;
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.PULL_SOLUTION_ID_FROM_PROGRAM}/${solutionId}?tenantId=${tenantId}`;
 
       // Set the options for the HTTP GET request
       let options = {

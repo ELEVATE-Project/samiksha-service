@@ -158,6 +158,7 @@ module.exports = class userExtension {
               programId: programId,
             },
           },
+          tenantId: tenantId,
         },
         { $pull: { programRoleMapping: { programId: programId } } }
       );
