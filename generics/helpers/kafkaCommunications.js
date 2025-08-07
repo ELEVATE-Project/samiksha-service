@@ -38,6 +38,12 @@ const programOperationTopic=
       : 'elevate_program_operation_dev';
 
 const improvementProjectSubmissionTopic = process.env.IMPROVEMENT_PROJECT_SUBMISSION_TOPIC 
+
+const pushDeletedResourceTopic =
+	process.env.RESOURCE_DELETION_TOPIC && process.env.RESOURCE_DELETION_TOPIC != 'OFF'
+		? process.env.RESOURCE_DELETION_TOPIC
+		: 'resource_deletion_topic'
+
 const userCoursesTopic = process.env.USER_COURSES_TOPIC
 const pushCompletedObservationSubmissionToKafka = function (message) {
   return new Promise(async (resolve, reject) => {
@@ -298,6 +304,32 @@ const pushUserCoursesToKafka= function (message) {
 };
 
 
+
+/**
+ * Push resource deleted data to kafka.
+ * @function
+ * @name pushResourceDeleteKafkaEvent
+ * @param {Object} message - Message data.
+ */
+
+const pushResourceDeleteKafkaEvent = function (message) {
+	return new Promise(async (resolve, reject) => {
+		try {			
+			let kafkaPushStatus = await pushMessageToKafka([
+				{
+					topic: pushDeletedResourceTopic,
+					messages: JSON.stringify(message),
+				},
+			])
+
+			return resolve(kafkaPushStatus)
+		} catch (error) {
+			return reject(error)
+		}
+	})
+}
+
+
 module.exports = {
   pushCompletedSubmissionToKafka: pushCompletedSubmissionToKafka,
   pushCompletedObservationSubmissionToKafka: pushCompletedObservationSubmissionToKafka,
@@ -310,5 +342,6 @@ module.exports = {
   pushInCompleteSurveySubmissionToKafka: pushInCompleteSurveySubmissionToKafka,
   pushProgramOperationEvent:pushProgramOperationEvent,
   pushSubmissionToProjectService: pushSubmissionToProjectService,
+  pushResourceDeleteKafkaEvent:pushResourceDeleteKafkaEvent,
   pushUserCoursesToKafka:pushUserCoursesToKafka
 };
