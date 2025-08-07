@@ -446,7 +446,7 @@ module.exports = class adminHelper {
 					deletedBy: userId,
 					deletedAt: new Date().toISOString(),
 				}))
-				await deletionAuditQueries.createDeletionLog(logs)
+				await deletionAuditQueries.create(logs)
 				return resolve({ success: true })
 			} catch (error) {
 				return resolve({
