@@ -226,6 +226,8 @@ module.exports = async function (req, res, next) {
     'userExtension/bulkUpload',
     '/library/categories/create',
 		'/library/categories/update',
+    '/organizationExtension/update',
+    '/organizationExtension/eventListener'
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -676,7 +678,7 @@ module.exports = async function (req, res, next) {
 
       let validateVisibleToOrganizations = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['visibletoorganizations'],token);
       if (!validateVisibleToOrganizations.success) {
-        return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
+        return res.status(responseCode['unauthorized'].status).send(respUtil(validateVisibleToOrganizations.errorObj));
       }
 
       req.headers['orgid'] = validateOrgsResult.validOrgIds;

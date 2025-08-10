@@ -1869,10 +1869,14 @@ module.exports = class SolutionsHelper {
    * @param {string} searchtext - search text based on name,description.keywords.
    * @param {string} limit - Maximum data to return
    * @param {string} page - page no
+   * @param {String} userId - Logged in user id.
+   * @param {String} token - User token.
+   * @param {String} categoryId - Category Id.
+   * @param {Object} userDetails - User details.
    * @returns {Array} - Solution templates lists.
    */
 
-  static templates(type, searchText, limit, page, userId, token) {
+  static templates(type, searchText, limit, page, userId, token,categoryId,userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let matchQuery = {};
@@ -1882,12 +1886,19 @@ module.exports = class SolutionsHelper {
           status: 'active',
         };
 
+        //Adding query based on tenantId
+        matchQuery['$match']['tenantId'] = userDetails.tenantData.tenantId
+
         if (type === messageConstants.common.OBSERVATION || type === messageConstants.common.SURVEY) {
           matchQuery['$match']['type'] = type;
         } else {
           matchQuery['$match']['type'] = messageConstants.common.ASSESSMENT;
           matchQuery['$match']['subType'] = type;
         }
+        //Adding query based on categoryId
+        if (categoryId && categoryId !== '') {
+					matchQuery['$match']['categories.externalId'] = categoryId
+				}
 
         if (process.env.USE_USER_ORGANISATION_ID_FILTER && process.env.USE_USER_ORGANISATION_ID_FILTER === 'ON') {
           let organisationAndRootOrganisation = await shikshalokamHelper.getUserOrganisation(token, userId);

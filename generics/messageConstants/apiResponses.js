@@ -455,4 +455,7 @@ module.exports = {
   CATEGORY_ALREADY_EXISTS:"Library categories already exists",
   LIBRARY_CATEGORY_UPDATED_SUCCESSFULLY:" Library categories Updated successfully",
   LIBRARY_CATEGORY_NOT_UPDATED :" Could not update library categories",
+  ORGANIZATION_EXTENSION_UPDATED_SUCCESSFULLY:"Organization extension Updated successfully",
+  ORGANIZATION_EXTENSION_NOT_UPDATED: 'Organization extension not updated',
+  ORGANIZATION_EXTENSION_NOT_FOUND: 'Organization extension not found',
 };
