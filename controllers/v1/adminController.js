@@ -152,11 +152,11 @@ module.exports = class Admin {
     "message": "Solution and associated resources deleted successfully",
     "status": 200,
     "result": {
-        "solutionDeletedCount": 1,
-        "surveyCount": 1,
-        "surveySubmissionCount": 1,
-        "observationCount": 0,
-        "observationSubmissionCount": 0,
+        "deletedSolutionsCount": 1,
+        "deletedSurveyCount": 1,
+        "deletedSurveySubmissionCount": 1,
+        "deletedObservationCount": 0,
+        "deletedObservationSubmissionCount": 0,
         "pullSolutionFromProgramComponent": 1
     }
   }
@@ -206,11 +206,11 @@ module.exports = class Admin {
     "message": "Solution and associated resources deleted successfully",
     "status": 200,
     "result": {
-        "solutionDeletedCount": 1,
-        "surveyCount": 1,
-        "surveySubmissionCount": 1,
-        "observationCount": 0,
-        "observationSubmissionCount": 0,
+        "deletedSolutionsCount": 1,
+        "deletedSurveyCount": 1,
+        "deletedSurveySubmissionCount": 1,
+        "deletedObservationCount": 0,
+        "deletedObservationSubmissionCount": 0,
         "pullSolutionFromProgramComponent": 1
     }
   }
