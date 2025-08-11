@@ -153,10 +153,10 @@ module.exports = class Admin {
     "status": 200,
     "result": {
         "deletedSolutionsCount": 1,
-        "deletedSurveyCount": 1,
-        "deletedSurveySubmissionCount": 1,
-        "deletedObservationCount": 0,
-        "deletedObservationSubmissionCount": 0,
+        "deletedSurveysCount": 1,
+        "deletedSurveySubmissionsCount": 1,
+        "deletedObservationsCount": 0,
+        "deletedObservationSubmissionsCount": 0,
         "pullSolutionFromProgramComponent": 1
     }
   }
@@ -207,10 +207,10 @@ module.exports = class Admin {
     "status": 200,
     "result": {
         "deletedSolutionsCount": 1,
-        "deletedSurveyCount": 1,
-        "deletedSurveySubmissionCount": 1,
-        "deletedObservationCount": 0,
-        "deletedObservationSubmissionCount": 0,
+        "deletedSurveysCount": 1,
+        "deletedSurveySubmissionsCount": 1,
+        "deletedObservationsCount": 0,
+        "deletedObservationSubmissionsCount": 0,
         "pullSolutionFromProgramComponent": 1
     }
   }

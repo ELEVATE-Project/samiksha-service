@@ -72,12 +72,12 @@ curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteReso
   "message": "Solution and associated resources deleted successfully",
   "status": 200,
   "result": {
-    "deletedProgramCount": 1,
+    "deletedProgramsCount": 1,
     "deletedSolutionsCount": 1,
-    "deletedSurveyCount": 0,
-    "deletedSurveySubmissionCount": 0,
-    "deletedObservationCount": 0,
-    "deletedObservationSubmissionCount": 0,
+    "deletedSurveysCount": 0,
+    "deletedSurveySubmissionsCount": 0,
+    "deletedObservationsCount": 0,
+    "deletedObservationSubmissionsCount": 0,
     "pullProgramFromUserExtensionCount": 0
   }
 }

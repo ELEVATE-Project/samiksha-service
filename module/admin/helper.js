@@ -164,12 +164,12 @@ module.exports = class adminHelper {
     return new Promise(async (resolve, reject) => {
       try {
         // Track counters for deleted resource
-        let deletedProgramCount = 0;
+        let deletedProgramsCount = 0;
         let deletedSolutionsCount = 0;
-        let deletedSurveyCount = 0;
-        let deletedSurveySubmissionCount = 0;
-        let deletedObservationCount = 0;
-        let deletedObservationSubmissionCount = 0;
+        let deletedSurveysCount = 0;
+        let deletedSurveySubmissionsCount = 0;
+        let deletedObservationsCount = 0;
+        let deletedObservationSubmissionsCount = 0;
         let pullSolutionFromProgramComponent = 0;
         let pullProgramFromUserExtensionCount = 0;
 
@@ -222,10 +222,10 @@ module.exports = class adminHelper {
 
           // Delete associated resources (survey, observation) related to solutions
           const associatedDeleteResult = await this.deleteAssociatedResources(solutionDetails, tenantId);
-          deletedSurveyCount = associatedDeleteResult.deletedSurveyCount;
-          deletedSurveySubmissionCount = associatedDeleteResult.deletedSurveySubmissionCount;
-          deletedObservationCount = associatedDeleteResult.deletedObservationCount;
-          deletedObservationSubmissionCount = associatedDeleteResult.deletedObservationSubmissionCount;
+          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
+          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
+          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
+          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
 
           // Finally delete the program
           await programsQueries.delete(ProgramFilter);
@@ -236,7 +236,7 @@ module.exports = class adminHelper {
           // 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
           //   }
           await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
-          deletedProgramCount++;
+          deletedProgramsCount++;
 
           // Log deletion
           await this.addDeletionLog(resourceIdsWithType, deletedBy);
@@ -245,12 +245,12 @@ module.exports = class adminHelper {
             success: true,
             message: messageConstants.apiResponses.PROGRAM_RESOURCE_DELETED,
             result: {
-              deletedProgramCount,
+              deletedProgramsCount,
               deletedSolutionsCount,
-              deletedSurveyCount,
-              deletedSurveySubmissionCount,
-              deletedObservationCount,
-              deletedObservationSubmissionCount,
+              deletedSurveysCount,
+              deletedSurveySubmissionsCount,
+              deletedObservationsCount,
+              deletedObservationSubmissionsCount,
               pullProgramFromUserExtensionCount,
             },
           });
@@ -286,10 +286,10 @@ module.exports = class adminHelper {
           // Delete associated resources
           const associatedDeleteResult = await this.deleteAssociatedResources([solutionData], tenantId);
 
-          deletedSurveyCount = associatedDeleteResult.deletedSurveyCount;
-          deletedSurveySubmissionCount = associatedDeleteResult.deletedSurveySubmissionCount;
-          deletedObservationCount = associatedDeleteResult.deletedObservationCount;
-          deletedObservationSubmissionCount = associatedDeleteResult.deletedObservationSubmissionCount;
+          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
+          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
+          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
+          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
 
           // Push Kafka deletion event
           // {
@@ -305,10 +305,10 @@ module.exports = class adminHelper {
             message: messageConstants.apiResponses.SOLUTION_RESOURCE_DELETED,
             result: {
               deletedSolutionsCount,
-              deletedSurveyCount,
-              deletedSurveySubmissionCount,
-              deletedObservationCount,
-              deletedObservationSubmissionCount,
+              deletedSurveysCount,
+              deletedSurveySubmissionsCount,
+              deletedObservationsCount,
+              deletedObservationSubmissionsCount,
               pullSolutionFromProgramComponent,
             },
           });
@@ -339,10 +339,10 @@ module.exports = class adminHelper {
   static deleteAssociatedResources(solutionDetails, tenantId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let deletedSurveyCount = 0;
-        let deletedSurveySubmissionCount = 0;
-        let deletedObservationCount = 0;
-        let deletedObservationSubmissionCount = 0;
+        let deletedSurveysCount = 0;
+        let deletedSurveySubmissionsCount = 0;
+        let deletedObservationsCount = 0;
+        let deletedObservationSubmissionsCount = 0;
 
         const surveyIds = [];
         const observationIds = [];
@@ -359,28 +359,28 @@ module.exports = class adminHelper {
           const surveyFilter = { solutionId: { $in: surveyIds }, tenantId };
 
           let deletedSurvey = await surveyQueries.delete(surveyFilter);
-          deletedSurveyCount += deletedSurvey.deletedCount || 0;
+          deletedSurveysCount += deletedSurvey.deletedCount || 0;
 
           let deletedSurveySubmission = await surveySubmissionQueries.delete(surveyFilter);
-          deletedSurveySubmissionCount += deletedSurveySubmission.deletedCount || 0;
+          deletedSurveySubmissionsCount += deletedSurveySubmission.deletedCount || 0;
         }
         // Delete observation documents and submissions
         if (observationIds.length) {
           const observationFilter = { solutionId: { $in: observationIds }, tenantId };
 
           let deletedObservation = await observationQueries.delete(observationFilter);
-          deletedObservationCount = deletedObservation.deletedCount || 0;
+          deletedObservationsCount = deletedObservation.deletedCount || 0;
 
           let deletedObservationSubmissions = await observationSubmissionsQueries.delete(observationFilter);
-          deletedObservationSubmissionCount = deletedObservationSubmissions.deletedCount || 0;
+          deletedObservationSubmissionsCount = deletedObservationSubmissions.deletedCount || 0;
         }
 
         return resolve({
           success: true,
-          deletedSurveyCount,
-          deletedSurveySubmissionCount,
-          deletedObservationCount,
-          deletedObservationSubmissionCount,
+          deletedSurveysCount,
+          deletedSurveySubmissionsCount,
+          deletedObservationsCount,
+          deletedObservationSubmissionsCount,
         });
       } catch (error) {
         return resolve({
@@ -470,10 +470,10 @@ module.exports = class adminHelper {
         // Initialize finalResult to collect aggregated counts across all solutions
         const finalResult = {
           deletedSolutionsCount: 0,
-          deletedSurveyCount: 0,
-          deletedSurveySubmissionCount: 0,
-          deletedObservationCount: 0,
-          deletedObservationSubmissionCount: 0,
+          deletedSurveysCount: 0,
+          deletedSurveySubmissionsCount: 0,
+          deletedObservationsCount: 0,
+          deletedObservationSubmissionsCount: 0,
           pullSolutionFromProgramComponent: 0,
         };
 
@@ -494,10 +494,10 @@ module.exports = class adminHelper {
 
             // Accumulate counts
             finalResult.deletedSolutionsCount += result.deletedSolutionsCount || 0;
-            finalResult.deletedSurveyCount += result.deletedSurveyCount || 0;
-            finalResult.deletedSurveySubmissionCount += result.deletedSurveySubmissionCount || 0;
-            finalResult.deletedObservationCount += result.deletedObservationCount || 0;
-            finalResult.deletedObservationSubmissionCount += result.deletedObservationSubmissionCount || 0;
+            finalResult.deletedSurveysCount += result.deletedSurveysCount || 0;
+            finalResult.deletedSurveySubmissionsCount += result.deletedSurveySubmissionsCount || 0;
+            finalResult.deletedObservationsCount += result.deletedObservationsCount || 0;
+            finalResult.deletedObservationSubmissionsCount += result.deletedObservationSubmissionsCount || 0;
             finalResult.pullSolutionFromProgramComponent += result.pullSolutionFromProgramComponent || 0;
           }
         }
