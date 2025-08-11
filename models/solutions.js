@@ -133,6 +133,16 @@ module.exports = {
       type: String,
       index: true,
     },
+    categories: [
+			{
+				_id: 'ObjectId',
+				externalId: {
+					type: String,
+					index: true,
+				},
+				name: String,
+			},
+		],
   },
   compoundIndex: [
     {

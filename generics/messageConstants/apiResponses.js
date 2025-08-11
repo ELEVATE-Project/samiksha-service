@@ -458,4 +458,6 @@ module.exports = {
   ORGANIZATION_EXTENSION_UPDATED_SUCCESSFULLY:"Organization extension Updated successfully",
   ORGANIZATION_EXTENSION_NOT_UPDATED: 'Organization extension not updated',
   ORGANIZATION_EXTENSION_NOT_FOUND: 'Organization extension not found',
+  LIBRARY_CATEGORY_NOT_FOUND: 'Library categories not found',
+  INVALID_POLICY :"Invalid policy"
 };

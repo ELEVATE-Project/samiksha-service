@@ -28,6 +28,8 @@ const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveyService = require(ROOT_PATH + "/generics/services/survey");
 const projectService = require(ROOT_PATH + '/generics/services/project')
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
+const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
+const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
 
 /**
  * SurveysHelper
@@ -91,11 +93,11 @@ module.exports = class SurveysHelper {
    * @param {String} solutionData - survey solution details
    * @param {String} userId - logged in userId
    * @param {Object} tenantData - tenantData
-   * @param {String} appName - name of the app
+   * @param {Object} userDetails - userDetails
    * @returns {JSON} - solutionId.
    */
 
-  static createSolutionTemplate(solutionData, userId = '',tenantData) {
+  static createSolutionTemplate(solutionData, userId = '',tenantData,userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!solutionData.name) {
@@ -186,6 +188,39 @@ module.exports = class SurveysHelper {
         }
         // Adding criteria in solution documents
         newSolutionDocument.themes = themes;
+
+           //Add orgPolicies changes
+           let getOrgExternsionDocument = await organizationExtensionUtils.getOrCreateOrgExtension(userDetails);
+
+           if(!getOrgExternsionDocument || !getOrgExternsionDocument.data._id){
+             throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
+           }
+           newSolutionDocument.visibility = getOrgExternsionDocument.data.surveyResourceVisibilityPolicy ;
+           // Add categories to the solution Template
+           if(solutionData?.categories && solutionData?.categories.length>0){
+             let matchQuery = {}
+             // matchQuery['tenantId'] = req.userDetails.tenantAndOrgInfo.tenantId
+             matchQuery['tenantId'] = tenantData.tenantId
+             matchQuery['externalId'] = { $in: solutionData.categories }
+             // what is category documents
+             let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, [
+               'externalId',
+               'name',
+             ])
+   
+             if (!categories.length > 0) {
+               throw {
+                 status: httpStatusCode.bad_request.status,
+                 message: messageConstants.apiResponses.LIBRARY_CATEGORY_NOT_FOUND,
+               }
+             }
+             // storing each category data in solutionDocument
+             newSolutionDocument.categories = categories.map(category => ({
+               _id: new ObjectId(category._id),
+               externalId: category.externalId,
+               name: category.name
+             }));
+           }
 
         let newSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
 

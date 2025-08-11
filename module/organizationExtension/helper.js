@@ -6,6 +6,7 @@
  */
 
 const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
+const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 
 module.exports = class organisationExtensionHelper {
   /**
@@ -64,44 +65,7 @@ module.exports = class organisationExtensionHelper {
       throw error;
     }
   }
-  /**
-   * createOrgExtension
-   * @method
-   * @name createOrgExtension
-   * @param {Object} [eventBody] -  eventBody .
-   * @returns {Object} - response with status
-   */
-  static async createOrgExtension(eventBody) {
-    try {
-      console.log('EVENT BODY: ', eventBody);
-      if (!eventBody || !eventBody.entityId || !eventBody.tenantId) {
-        return {
-          status: httpStatusCode.bad_request.status,
-          message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
-        };
-      }
-      let extensionData = {
-        orgId: eventBody.entityId,
-        created_by: eventBody.created_by,
-        updated_by: eventBody.created_by,
-        name: eventBody.name,
-        tenantId: eventBody.tenantId,
-      };
-      console.log('EXTENSION DATA BEFORE INSERT: ', extensionData);
-      let orgExtension = await organizationExtensionQueries.create(extensionData);
-      console.log('EXTENSION DATA AFTER INSERT: ', orgExtension);
-      return {
-        success: true,
-        data: orgExtension,
-      };
-    } catch (error) {
-      throw {
-        success: false,
-        message: error.message,
-        data: false,
-      };
-    }
-  }
+ 
   /**
    * org eventListener
    * @method
@@ -118,7 +82,7 @@ module.exports = class organisationExtensionHelper {
 			return await eventListenerRouter(eventBody, {
 				createFn: this.createOrgExtension,
 			}) */
-      return this.createOrgExtension(eventBody);
+      return organizationExtensionUtils.createOrgExtension(eventBody);
     } catch (error) {
       throw {
         success: false,

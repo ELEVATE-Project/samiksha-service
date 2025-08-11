@@ -88,7 +88,7 @@ module.exports = class  OrganizationExntension extends Abstract {
       try {
         console.log('CONTROLLER REQUEST BODY: ', req.body)
         //passing true for update userCourses doucment with isDeleted true
-        let userCoursesData = await organizationHelper.createOrgExtension(req.body,req.userDetails);
+        let userCoursesData = await organizationHelper.eventListener(req.body,req.userDetails);
         userCoursesData['result'] = userCoursesData.data;
         return resolve(userCoursesData);
       } catch (error) {

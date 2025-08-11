@@ -675,14 +675,15 @@ module.exports = async function (req, res, next) {
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
-
+      if(req.headers['visibletoorganizations']){
       let validateVisibleToOrganizations = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['visibletoorganizations'],token);
       if (!validateVisibleToOrganizations.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateVisibleToOrganizations.errorObj));
       }
+      req.headers['visibleToOrganizations'] = validateVisibleToOrganizations.validOrgIds;
+     }
 
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
-      req.headers['visibleToOrganizations'] = validateVisibleToOrganizations.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
       req.headers['tenantid'] = decodedToken.data.tenant_id.toString();
 
