@@ -675,7 +675,7 @@ module.exports = class SolutionsHelper {
    * @returns {JSON} - List of solutions based on role and location.
    */
 
-  static forUserRoleAndLocation(bodyData, type, subType = '', programId, pageSize, pageNo, searchText = '') {
+  static forUserRoleAndLocation(bodyData, type, subType = '', programId, pageSize, pageNo, searchText = '',additionalFilters = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         //Getting query based on roles and entity
@@ -711,6 +711,8 @@ module.exports = class SolutionsHelper {
           matchQuery['programId'] = new ObjectId(programId);
         }
         matchQuery['startDate'] = { $lte: new Date() };
+        
+        matchQuery = {...matchQuery, ...additionalFilters};
         //listing the solution based on type and query
         let targetedSolutions = await this.list(type, subType, matchQuery, pageNo, pageSize, searchText, [
           'name',
