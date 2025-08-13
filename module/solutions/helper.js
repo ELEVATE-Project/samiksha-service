@@ -71,7 +71,8 @@ module.exports = class SolutionsHelper {
               'scope',
               'endDate',
               'startDate',
-              "externalId"
+              "externalId",
+              "components"
             ]);
             if (!programData.length) {
               throw {
@@ -177,10 +178,20 @@ module.exports = class SolutionsHelper {
 
         if (solutionData.programExternalId) {
           if (!solutionData?.isExternalProgram) {
+            let currentComponents = programData[0]?.components || [];
             await programsQueries.findOneAndUpdate(
               { _id: solutionData.programId },
-              { $addToSet: { components: solutionCreation._id } }
+              { $addToSet: { components: {_id:solutionCreation._id,order:currentComponents.length+1} } }
             );
+          }else if(solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project'){
+              //call project service to update program components
+              let currentComponents = programData[0]?.components || [];
+              let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},userDetails.tenantData, userDetails);
+              if( !programUpdateStatus || !programUpdateStatus.success) {
+                throw {
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
+                };
+              }
           }
         }
         // adding scope to the solution document
@@ -664,7 +675,7 @@ module.exports = class SolutionsHelper {
    * @returns {JSON} - List of solutions based on role and location.
    */
 
-  static forUserRoleAndLocation(bodyData, type, subType = '', programId, pageSize, pageNo, searchText = '') {
+  static forUserRoleAndLocation(bodyData, type, subType = '', programId, pageSize, pageNo, searchText = '',additionalFilters = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         //Getting query based on roles and entity
@@ -700,6 +711,8 @@ module.exports = class SolutionsHelper {
           matchQuery['programId'] = new ObjectId(programId);
         }
         matchQuery['startDate'] = { $lte: new Date() };
+        
+        matchQuery = {...matchQuery, ...additionalFilters};
         //listing the solution based on type and query
         let targetedSolutions = await this.list(type, subType, matchQuery, pageNo, pageSize, searchText, [
           'name',
@@ -717,6 +730,8 @@ module.exports = class SolutionsHelper {
           'entityType',
           'certificateTemplateId',
           'status',
+          "linkUrl",
+					"linkTitle"
         ]);
         return resolve({
           success: true,
@@ -2959,13 +2974,11 @@ module.exports = class SolutionsHelper {
         }
 
         if (solution && solution._id) {
-          await solutionsQueries.updateSolutionDocument(
-            {
-              _id: userPrivateProgram._id,
-            },
-            {
-              $addToSet: { components: new ObjectId(solution._id) },
-            }
+          let length = userPrivateProgram.components ? userPrivateProgram.components.length : 0;
+          // Add solution to the program components
+          await programsQueries.findOneAndUpdate(
+            { _id: userPrivateProgram._id },
+            { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
           );
         }
 
