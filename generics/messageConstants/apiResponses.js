@@ -451,5 +451,6 @@ module.exports = {
   USER_COURSES_UPDATED: 'User course updated successfully',
   MISSING_SOLUTIONID_USERID_STATUS: 'SolutionId or userId or status is not found',
   INVALID_SOLUTIONID: 'Invalid solutions id.',
+  ADMIN_TOKEN_MISSING_MESSAGE: 'Admin token is missing',
 
 };

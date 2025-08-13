@@ -1,6 +1,7 @@
 let authenticator = require(ROOT_PATH + '/generics/middleware/authenticator');
 let pagination = require(ROOT_PATH + '/generics/middleware/pagination');
 let addTenantAndOrgInRequest = require(ROOT_PATH + '/generics/middleware/addTenantAndOrgInRequest');
+let checkAdminRole = require(ROOT_PATH + '/generics/middleware/checkAdminRole');
 let dataRangeFilter = require(ROOT_PATH + '/generics/middleware/dateRangeFilter');
 let userPrograms = require(ROOT_PATH + '/generics/middleware/userPrograms');
 let slackClient = require(ROOT_PATH + '/generics/helpers/slackCommunications');
@@ -16,7 +17,8 @@ module.exports = function (app) {
   app.use(applicationBaseUrl, addTenantAndOrgInRequest);
   app.use(applicationBaseUrl, dataRangeFilter);
   app.use(applicationBaseUrl, userPrograms);
-
+  app.use(applicationBaseUrl, checkAdminRole);
+  
   var router = async function (req, res, next) {
     //req.params.controller = (req.params.controller).toLowerCase();
     if (req.params.file) {
