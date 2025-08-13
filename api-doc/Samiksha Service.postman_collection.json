@@ -5115,6 +5115,107 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "createIndex",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "appname",
+										"value": "mentored"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"keys\": [\n  \n  \"scope.state\",\n  \"scope.district\",\n  \"scope.block\",\n  \"scope.cluster\",\n  \"scope.school\",\n  \"scope.roles\",\n  \"scope.professional_role\",\n  \"scope.professional_subroles\",\n    \"scope.organizations\"\n  ]\n    \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SamikshaUrl}}/v1/admin/createIndex/programs",
+									"host": [
+										"{{SamikshaUrl}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"createIndex",
+										"programs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteResource",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "{{token}}",
+										"type": "text"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}",
+										"type": "text"
+									},
+									{
+										"key": "admin-auth-token",
+										"value": "{{admin-auth-token}}",
+										"type": "text"
+									},
+									{
+										"key": "tenantId",
+										"value": "{{tenantId}}",
+										"type": "text"
+									},
+									{
+										"key": "orgId",
+										"value": "{{orgId}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SamikshaUrl}}/v1/admin/createIndex/deleteResource/_id?type=program",
+									"host": [
+										"{{SamikshaUrl}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"createIndex",
+										"deleteResource",
+										"_id"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "program"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}

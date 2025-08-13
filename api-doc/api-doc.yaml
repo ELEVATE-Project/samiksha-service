@@ -2168,16 +2168,16 @@ paths:
           example: '{{token}}'
         - in: header
           name: "admin-auth-token\t"
-          description: "Admin-specific auth token"
+          description: Admin-specific auth token
           schema: &ref_0
             type: string
         - in: header
           name: tenantId
-          description: "Tenant identifier"
+          description: Tenant identifier
           schema: *ref_0
         - in: header
           name: orgId
-          description: "Organization ID"
+          description: Organization ID
           schema: *ref_0
       responses:
         '200':
@@ -6729,5 +6729,124 @@ paths:
                       errMsg: 'Missing ''url'' for enabled service: mongodb'
                     status: 400
                     result: {}
+  /survey/v1/admin/deleteResource/:resourceId?type=solution:
+    post:
+      description: >-
+        API can be used to delete the solution and program resources based on
+        the id passed.
+      operationId: ''
+      tags:
+        - Admin
+      parameters:
+        - in: path
+          name: type
+          description: 'Need to pass Resource Type that we need to delete Ex: solution or program'
+          schema: &ref_1
+            type: string
+        - in: header
+          name: X-auth-token
+          description: >-
+            Every request to the API requires an x-auth-token in the header for
+            authentication. This token is generated when a user logs in and must
+            be included in each subsequent request to verify the user’s session
+            and permissions.
+          schema: *ref_1
+        - in: header
+          name: internal-access-token
+          description: 'internal-access-token '
+          schema: *ref_1
+        - in: header
+          name: admin-auth-token
+          description: admin-auth-token
+          schema: *ref_1
+        - in: header
+          name: tenantId
+          description: tenantId
+          schema: *ref_1
+        - in: header
+          name: orgId
+          description: orgId
+          schema: *ref_1
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      deletedProgramCount:
+                        type: number
+                      deletedSolutionsCount:
+                        type: number
+                      deletedSurveyCount:
+                        type: number
+                      deletedSurveySubmissionCount:
+                        type: number
+                      deletedObservationCount:
+                        type: number
+                      deletedObservationSubmissionCount:
+                        type: number
+                      pullProgramFromUserExtensionCount:
+                        type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Program and associated resources deleted successfully
+                    status: 200
+                    result:
+                      deletedProgramCount: 1
+                      deletedSolutionsCount: 2
+                      deletedSurveyCount: 4
+                      deletedSurveySubmissionCount: 4
+                      deletedObservationCount: 5
+                      deletedObservationSubmissionCount: 4
+                      pullProgramFromUserExtensionCount: 0
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        location:
+                          type: string
+                        param:
+                          type: string
+                        msg:
+                          type: string
+                      required:
+                        - location
+                        - param
+                        - msg
+              examples:
+                Failure response:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required resource id
+                      - location: query
+                        param: type
+                        msg: Resource type is required (program/solution)
+                      - location: query
+                        param: type
+                        msg: Invalid resource type. Must be "program" or "solution"
 components:
   securitySchemes: {}
