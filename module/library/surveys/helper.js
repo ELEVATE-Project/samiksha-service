@@ -21,10 +21,15 @@ module.exports = class SurveyHelper {
    * @param {String} search - Search Data.
    * @param {Number} limit - limitting value.
    * @param {Number} pageNo
+   * @param {String} userId - Logged in user id.
+   * @param {String} token - User token.
+   * @param {String} categoryId - Category Id.
+   * @param {Object} userDetails - User details.
+   * @returns {Array} - Solution templates lists.
    * @returns {Object} returns list of survey solutions
    */
 
-  static list(search, limit, pageNo, userId, token) {
+  static list(search, limit, pageNo, userId, token,categoryId ="",userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let librarySolution = await solutionsHelper.templates(
@@ -34,6 +39,8 @@ module.exports = class SurveyHelper {
           pageNo,
           userId,
           token,
+          categoryId,
+          userDetails
         );
 
         return resolve({

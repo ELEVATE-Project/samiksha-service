@@ -24,11 +24,11 @@ module.exports = class LibraryCategories extends Abstract {
   }
 
   /**
-    * @api {get} /assessment/api/v1/library/categories/list List of library categories.
+    * @api {get} /survey/v1/library/categories/list List of library categories.
     * @apiVersion 1.0.0
     * @apiName List of library categories
     * @apiGroup Library Categories
-    * @apiSampleRequest /assessment/api/v1/library/categories/list
+    * @apiSampleRequest /survey/v1/library/categories/list
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -69,13 +69,14 @@ module.exports = class LibraryCategories extends Abstract {
    * List of library categories
    * @method
    * @name list
+   * @param {Object} req - requested data
    * @returns {JSON} returns a list of library categories.
    */
 
-  async list() {
+  async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let libraryCategories = await libraryCategoriesHelper.list();
+        let libraryCategories = await libraryCategoriesHelper.list(req);
         return resolve(libraryCategories);
       } catch (error) {
         return reject({
@@ -86,4 +87,93 @@ module.exports = class LibraryCategories extends Abstract {
       }
     });
   }
+
+	/**
+	 * @api {post} /survey/api/v1/library/categories/create
+	 * List of library projects.
+	 * @apiVersion 1.0.0
+	 * @apiGroup Library Categories
+	 * @apiSampleRequest /survey/api/v1/library/categories/create
+	 * {json} Request body
+	 * @apiParamExample {json} Response:
+	 *   
+   * {
+       "message": "Library categories Added successfully",
+       "status": 200,
+       "result": "68935c603f35011fa5f76fee"
+    }
+	 * @apiUse successBody
+	 * @apiUse errorBody
+	 */
+
+	/**
+	 *Create new library-category.
+	 * @method
+	 * @name create
+	 * @param {Object} req - requested data
+	 * @returns {Object} Library project category details .
+	 */
+
+	async create(req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const libraryProjectcategory = await libraryCategoriesHelper.create(
+					req.body,
+					req.files,
+					req.userDetails
+				)
+				return resolve({
+					message: libraryProjectcategory.message,
+					result: libraryProjectcategory.data,
+				})
+			} catch (error) {
+				return reject(error)
+			}
+		})
+	}
+
+  
+  	/**
+	 * @api {post} /survey/v1/library/categories/update/_id
+	 * List of library projects.
+	 * @apiVersion 1.0.0
+	 * @apiGroup Library Categories
+	 * @apiSampleRequest /survey/api/v1/library/categories/update
+	 * {json} Request body
+	 * @apiParamExample {json} Response:
+	 *
+	 * @apiUse successBody
+	 * @apiUse errorBody
+	 */
+
+	/**
+	 *Create new project-category.
+	 * @method
+	 * @name update
+	 * @param {Object} req - requested data
+	 * @returns {Array} Library Categories project.
+	 */
+
+	async update(req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const findQuery = {
+					_id: req.params._id,
+				}
+				const libraryProjectcategory = await libraryCategoriesHelper.update(
+					findQuery,
+					req.body,
+					req.files,
+					req.userDetails
+				)
+
+				return resolve({
+					message: libraryProjectcategory.message,
+					result: libraryProjectcategory.data,
+				})
+			} catch (error) {
+				return reject(error)
+			}
+		})
+	}
 };

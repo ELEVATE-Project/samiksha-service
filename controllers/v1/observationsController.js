@@ -19,6 +19,9 @@ const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const validateEntities = process.env.VALIDATE_ENTITIES ? process.env.VALIDATE_ENTITIES : 'OFF';
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
+const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
+const userService = require(ROOT_PATH + '/generics/services/users');
 
 /**
  * Observations
@@ -1275,6 +1278,47 @@ module.exports = class Observations extends Abstract {
         newSolutionDocument.tenantId = tenantFilter.tenantId;
         newSolutionDocument.orgId = tenantFilter.orgId[0];
         newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false
+        //Add orgPolicies changes
+        let getOrgExternsionDocument = await organizationExtensionUtils.getOrCreateOrgExtension(req.userDetails);
+
+        if(!getOrgExternsionDocument || !getOrgExternsionDocument.data._id){
+          throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
+        }
+        newSolutionDocument.visibility = getOrgExternsionDocument.data.observationResourceVisibilityPolicy ;
+        // Add categories to the solution Template
+        if(req?.body?.categories && req?.body?.categories.length>0){
+          let matchQuery = {}
+          matchQuery['tenantId'] = tenantFilter.tenantId;
+					matchQuery['externalId'] = { $in: req.body.categories }
+					// what is category documents
+					let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, [
+						'externalId',
+						'name',
+					])
+
+					if (!categories.length > 0) {
+						throw {
+							status: httpStatusCode.bad_request.status,
+							message: messageConstants.apiResponses.LIBRARY_CATEGORY_NOT_FOUND,
+						}
+					}
+          // storing each category data in solutionDocument
+					newSolutionDocument.categories = categories.map(category => ({
+            _id: new ObjectId(category._id),
+            externalId: category.externalId,
+            name: category.name
+          }));
+        }
+        //get the related orgs for the solutions
+        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantFilter.orgId[0],req.userDetails,tenantFilter.tenantId);
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+          throw ({
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+          });
+        }
+        let visibleOrg=getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue)=> {return eachValue.code})
+        newSolutionDocument.visibleToOrganizations =visibleOrg
         let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
 
         if (newBaseSolution._id) {
