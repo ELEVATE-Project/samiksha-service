@@ -75,10 +75,11 @@ const profile = function ( userId = "",userToken="" ) {
  * Fetches the default organization details for a given organization code/id.
  * @param {string} organisationIdentifier - The code/id of the organization.
  * @param {String} userToken - user token
+ * @param {String} tenantId - tenantId
  * @returns {Promise} A promise that resolves with the organization details or rejects with an error.
  */
 
-const fetchDefaultOrgDetails = function (organisationIdentifier, userToken) {
+const fetchDefaultOrgDetails = function (organisationIdentifier, userToken,tenantId) {
 	return new Promise(async (resolve, reject) => {
 		try {
 			let url
@@ -90,10 +91,10 @@ const fetchDefaultOrgDetails = function (organisationIdentifier, userToken) {
 					organisationIdentifier
 			} else {
 				url =
-                    userServiceUrl +
+				    userServiceUrl +
 					messageConstants.endpoints.ORGANIZATION_READ +
 					'?organisation_code=' +
-					organisationIdentifier
+					organisationIdentifier + "&tenant_code=" + tenantId
 			}
 			const options = {
 				headers: {

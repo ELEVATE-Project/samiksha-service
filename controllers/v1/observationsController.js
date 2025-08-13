@@ -21,6 +21,7 @@ const entityManagementService = require(ROOT_PATH + '/generics/services/entity-m
 const projectService = require(ROOT_PATH + '/generics/services/project')
 const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
+const userService = require(ROOT_PATH + '/generics/services/users');
 
 /**
  * Observations
@@ -1308,6 +1309,16 @@ module.exports = class Observations extends Abstract {
             name: category.name
           }));
         }
+        //get the related orgs for the solutions
+        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantFilter.orgId[0],req.userDetails,tenantFilter.tenantId);
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+          throw ({
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+          });
+        }
+        let visibleOrg=getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue)=> {return eachValue.code})
+        newSolutionDocument.visibleToOrganizations =visibleOrg
         let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
 
         if (newBaseSolution._id) {

@@ -30,6 +30,7 @@ const projectService = require(ROOT_PATH + '/generics/services/project')
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
 const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
+const userService = require(ROOT_PATH + '/generics/services/users');
 
 /**
  * SurveysHelper
@@ -221,7 +222,17 @@ module.exports = class SurveysHelper {
                name: category.name
              }));
            }
-
+       //get the related orgs for the solutions
+        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantData.orgId[0],userDetails,tenantData.tenantId);
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+         throw ({
+           status: httpStatusCode.internal_server_error.status,
+           message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+         });
+        }
+        //get the codes only for the solution
+        let visibleOrg = getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue)=> {return eachValue.code})
+        newSolutionDocument.visibleToOrganizations = visibleOrg ;
         let newSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
 
         if (newSolution._id) {
