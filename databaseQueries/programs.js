@@ -173,12 +173,17 @@ module.exports = class Programs {
       try {
         // Build the update operation: $pull removes matching solutionId from the components array
         const updateQuery = {
-          $pull: {
-            [`components`]: solutionId,
-          },
-        };
-        // Run updateMany to apply this change to all program docs containing the solutionId
-        const result = await database.models.programs.updateMany({ [`components`]: solutionId, tenantId: tenantId }, updateQuery);
+					$pull: {
+						components: { _id: solutionId },
+					},
+				}
+				// Filter: Find programs that contain components._id = solutionId
+				const filterQuery = {
+					'components._id': solutionId,
+					tenantId: tenantId,
+				}
+				// Run updateMany to apply this change to all program docs
+				const result = await database.models.programs.updateMany(filterQuery, updateQuery)
         return resolve(result);
       } catch (error) {
         return reject(error);
