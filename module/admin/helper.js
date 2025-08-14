@@ -278,7 +278,8 @@ module.exports = class adminHelper {
           }
 
           // Pull the solution from other components (soft link cleanup)
-          await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          let pullResult =  await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0
           // Delete the solution
           await solutionsQueries.delete(solutionFilter);
           deletedSolutionsCount++;
