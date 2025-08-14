@@ -14,6 +14,16 @@
 
 
 const ConfigurationsHelper = require(MODULES_BASE_PATH+"/configurations/helper");
+const userExtensionsQueries = require(DB_QUERY_BASE_PATH + '/userExtensions');
+const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
+const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
+const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
+const projectService = require(ROOT_PATH + '/generics/services/project')
+const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs')
+let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
+const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
+const observationSubmissionsQueries = require(DB_QUERY_BASE_PATH + '/observationSubmissions');
 
 module.exports = class adminHelper {
   /**
@@ -135,4 +145,376 @@ module.exports = class adminHelper {
   }
 
 }
-}
+
+
+  /**
+   * Deletes a program or solution resource along with its associated dependencies.
+   * @method
+   * @name deletedResourceDetails
+   * @param {String} resourceId - ID of the resource to delete.
+   * @param {String} resourceType - Type of the resource ('program' or 'solution').
+   * @param {String} tenantId - Tenant identifier for multitenancy.
+   * @param {String} orgId - Organization ID performing the operation.
+   * @param {String} [deletedBy='SYSTEM'] - User ID or system name that triggered the deletion.
+   *
+   * @returns {Promise<Object>} - Result object summarizing deletion impact.
+   */
+
+  static deletedResourceDetails(resourceId, resourceType, tenantId, orgId, deletedBy = 'SYSTEM') {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Track counters for deleted resource
+        let deletedProgramsCount = 0;
+        let deletedSolutionsCount = 0;
+        let deletedSurveysCount = 0;
+        let deletedSurveySubmissionsCount = 0;
+        let deletedObservationsCount = 0;
+        let deletedObservationSubmissionsCount = 0;
+        let pullSolutionFromProgramComponent = 0;
+        let pullProgramFromUserExtensionCount = 0;
+
+        let resourceIdsWithType = [];
+        // Handle deletion of a PROGRAM
+        if (resourceType === messageConstants.common.PROGRAM_CHECK) {
+          const ProgramFilter = {
+            _id: resourceId,
+            tenantId,
+            isAPrivateProgram: false,
+          };
+
+          // Fetch program details to ensure it exists and has components
+          const programDetails = await programsQueries.programDocuments(ProgramFilter, ['components']);
+          if (!programDetails?.length) {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+            };
+          }
+          const programObjectId = typeof resourceId === 'string' ? new ObjectId(resourceId) : resourceId;
+          let programRoleMappingId = await userExtensionsQueries.pullProgramIdFromProgramRoleMapping(
+            programObjectId,
+            tenantId
+          );
+
+          pullProgramFromUserExtensionCount = programRoleMappingId.modifiedCount || 0;
+
+          // Extract solution IDs from components
+          const solutionComponents = programDetails[0]?.components || [];
+
+          const solutionIds = solutionComponents.map((comp) => (typeof comp === 'object' ? comp._id : comp));
+
+          const solutionFilter = { _id: { $in: solutionIds }, tenantId };
+          // Fetch solution documents for deletion
+          const solutionDetails = await solutionsQueries.solutionDocuments(solutionFilter, ['_id', 'type']);
+
+          if (solutionIds && solutionIds.length) {
+            for (const Id of solutionIds) {
+              resourceIdsWithType.push({ id: Id, type: messageConstants.common.SOLUTION_CHECK });
+            }
+          }
+          // Track deleted resource IDs
+          resourceIdsWithType.push({ id: resourceId, type: messageConstants.common.PROGRAM_CHECK });
+
+          // Delete solutions and count
+          await solutionsQueries.delete(solutionFilter);
+
+          deletedSolutionsCount += solutionDetails.length;
+
+          // Delete associated resources (survey, observation) related to solutions
+          const associatedDeleteResult = await this.deleteAssociatedResources(solutionDetails, tenantId);
+          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
+          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
+          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
+          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
+
+          // Finally delete the program
+          await programsQueries.delete(ProgramFilter);
+
+          // Push deletion event to Kafka
+          // {
+          // 	"topic": "RESOURCE_DELETION_TOPIC",
+          // 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
+          //   }
+          await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
+          deletedProgramsCount++;
+
+          // Log deletion
+          await this.addDeletionLog(resourceIdsWithType, deletedBy);
+
+          return resolve({
+            success: true,
+            message: messageConstants.apiResponses.PROGRAM_RESOURCE_DELETED,
+            result: {
+              deletedProgramsCount,
+              deletedSolutionsCount,
+              deletedSurveysCount,
+              deletedSurveySubmissionsCount,
+              deletedObservationsCount,
+              deletedObservationSubmissionsCount,
+              pullProgramFromUserExtensionCount,
+            },
+          });
+        } else if (resourceType === messageConstants.common.SOLUTION_CHECK) {
+          // Handle deletion of a SOLUTION
+          const solutionFilter = { _id: resourceId, tenantId };
+          const solutionDetails = await solutionsQueries.solutionDocuments(solutionFilter, [
+            'type',
+            'isExternalProgram',
+            'isReusable',
+          ]);
+
+          if (!solutionDetails?.length) {
+            throw {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+            };
+          }
+
+          const solutionData = solutionDetails[0];
+          // Remove solution from components if not reusable and is external
+          if (!solutionData.isReusable && solutionData.isExternalProgram) {
+            const pullRes = await projectService.pullSolutionsFromProgramComponents(resourceId, tenantId);
+            if (pullRes.result.success) pullSolutionFromProgramComponent++;
+          }
+
+          // Pull the solution from other components (soft link cleanup)
+          let pullResult =  await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0
+          // Delete the solution
+          await solutionsQueries.delete(solutionFilter);
+          deletedSolutionsCount++;
+          resourceIdsWithType.push({ id: resourceId, type: messageConstants.common.SOLUTION_CHECK });
+          // Delete associated resources
+          const associatedDeleteResult = await this.deleteAssociatedResources([solutionData], tenantId);
+
+          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
+          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
+          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
+          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
+
+          // Push Kafka deletion event
+          // {
+          // 	"topic": "RESOURCE_DELETION_TOPIC",
+          // 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
+          //   }
+          await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
+          // Log deletion
+          await this.addDeletionLog(resourceIdsWithType, deletedBy);
+
+          return resolve({
+            success: true,
+            message: messageConstants.apiResponses.SOLUTION_RESOURCE_DELETED,
+            result: {
+              deletedSolutionsCount,
+              deletedSurveysCount,
+              deletedSurveySubmissionsCount,
+              deletedObservationsCount,
+              deletedObservationSubmissionsCount,
+              pullSolutionFromProgramComponent,
+            },
+          });
+        } else {
+          return resolve({
+            success: false,
+            message: messageConstants.apiResponses.INVALID_RESOURCE_TYPE,
+          });
+        }
+      } catch (error) {
+        return resolve({
+          success: false,
+          message: error.message,
+          status: error.status,
+          data: false,
+        });
+      }
+    });
+  }
+
+  /**
+   * Deletes associated survey and observation resources based on solution details and tenant ID.
+   * @method
+   * @name deleteAssociatedResources
+   * @param {Array<{ _id: string, type: string }>} solutionDetails - List of solution objects with `_id` and `type` (e.g., SURVEY or OBSERVATION).
+   * @param {string} tenantId - Tenant identifier.
+   */
+  static deleteAssociatedResources(solutionDetails, tenantId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let deletedSurveysCount = 0;
+        let deletedSurveySubmissionsCount = 0;
+        let deletedObservationsCount = 0;
+        let deletedObservationSubmissionsCount = 0;
+
+        const surveyIds = [];
+        const observationIds = [];
+        // Categorize solution types into survey/observation
+        for (const solutionType of solutionDetails) {
+          if (solutionType.type === messageConstants.common.SURVEY) {
+            surveyIds.push(solutionType._id);
+          } else if (solutionType.type === messageConstants.common.OBSERVATION) {
+            observationIds.push(solutionType._id);
+          }
+        }
+        // Delete survey documents and submissions
+        if (surveyIds.length > 0) {
+          const surveyFilter = { solutionId: { $in: surveyIds }, tenantId };
+
+          let deletedSurvey = await surveyQueries.delete(surveyFilter);
+          deletedSurveysCount += deletedSurvey.deletedCount || 0;
+
+          let deletedSurveySubmission = await surveySubmissionQueries.delete(surveyFilter);
+          deletedSurveySubmissionsCount += deletedSurveySubmission.deletedCount || 0;
+        }
+        // Delete observation documents and submissions
+        if (observationIds.length) {
+          const observationFilter = { solutionId: { $in: observationIds }, tenantId };
+
+          let deletedObservation = await observationQueries.delete(observationFilter);
+          deletedObservationsCount = deletedObservation.deletedCount || 0;
+
+          let deletedObservationSubmissions = await observationSubmissionsQueries.delete(observationFilter);
+          deletedObservationSubmissionsCount = deletedObservationSubmissions.deletedCount || 0;
+        }
+
+        return resolve({
+          success: true,
+          deletedSurveysCount,
+          deletedSurveySubmissionsCount,
+          deletedObservationsCount,
+          deletedObservationSubmissionsCount,
+        });
+      } catch (error) {
+        return resolve({
+          success: false,
+          message: error.message,
+          data: false,
+        });
+      }
+    });
+  }
+
+  /**
+   * Logs deletion entries for one or more entities into the `deletionAuditLogs` collection.
+   *
+   * @method
+   * @name addDeletionLog
+   * @param {Array<String|ObjectId>} entityIds - Array of entity IDs (as strings or ObjectIds) to log deletion for.
+   * @param {String|Number} deletedBy - User ID (or 'SYSTEM') who performed the deletion.
+   *
+   * @returns {Promise<Object>} - Returns success status or error information.
+   */
+  static addDeletionLog(resourceIdsWithType = [], userId = 'SYSTEM') {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const logs = resourceIdsWithType.map(({ id, type }) => ({
+          resourceId: typeof id === 'string' ? new ObjectId(id) : id,
+          resourceType: type,
+          deletedBy: userId,
+          deletedAt: new Date().toISOString(),
+        }));
+        await deletionAuditQueries.create(logs);
+        return resolve({ success: true });
+      } catch (error) {
+        return resolve({
+          success: false,
+          message: error.message,
+          data: false,
+        });
+      }
+    });
+  }
+
+  /**
+   * Pushes a Kafka event for resource deletion (program/solution).
+   *
+   * @param {string} resourceType - Type of the resource ('program' or 'solution').
+   * @param {ObjectId|string} resourceId - ID of the deleted resource.
+   * @param {string|number} deletedBy - User ID or 'SYSTEM'.
+   * @param {string} tenantId - Tenant code.
+   * @param {string|number|null} [organizationId=null] - Organization ID (optional).
+   */
+  static pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, organizationId = null) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const kafkaMessage = {
+          entity: 'resource',
+          type: resourceType,
+          eventType: 'delete',
+          entityId: resourceId.toString(),
+          deleted_By: parseInt(deletedBy) || deletedBy,
+          tenant_code: tenantId,
+          organization_id: organizationId,
+        };
+        await kafkaClient.pushResourceDeleteKafkaEvent(kafkaMessage);
+        return resolve();
+      } catch (error) {
+        console.error(`Kafka push failed for ${resourceType} ${resourceId}:`, error.message);
+      }
+    });
+  }
+
+  /**
+   * Deletes multiple solution resources and aggregates the deletion results.
+   * @method
+   * @name deleteSolutionResource
+   * @param {Object} bodyData - Contains the solutionIds, tenantId, orgId, and userId.
+   * @param {string[]} bodyData.solutionIds - Array of solution IDs to delete.
+   * @param {string} bodyData.tenantId - Tenant identifier.
+   * @param {string} bodyData.orgId - Organization identifier.
+   * @param {string} bodyData.userId - Identifier of the user who triggered deletion.
+   * @param {string} resourceType - Type of the resource (e.g., 'solution').
+   * @returns {Promise<Object>} - Returns success status or error information.
+   */
+  static deleteSolutionResource(bodyData, resourceType) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Initialize finalResult to collect aggregated counts across all solutions
+        const finalResult = {
+          deletedSolutionsCount: 0,
+          deletedSurveysCount: 0,
+          deletedSurveySubmissionsCount: 0,
+          deletedObservationsCount: 0,
+          deletedObservationSubmissionsCount: 0,
+          pullSolutionFromProgramComponent: 0,
+        };
+
+        // Iterate over each solution ID and delete its associated resources
+        for (const solutionId of bodyData.solutionIds) {
+          // Call internal method to handle deletion for a single solution
+          const deleteResponse = await this.deletedResourceDetails(
+            solutionId,
+            resourceType,
+            bodyData.tenantId,
+            bodyData.orgId,
+            bodyData.userId
+          );
+
+          // If the deletion was successful, accumulate the returned stats
+          if (deleteResponse?.success) {
+            const result = deleteResponse.result || {};
+
+            // Accumulate counts
+            finalResult.deletedSolutionsCount += result.deletedSolutionsCount || 0;
+            finalResult.deletedSurveysCount += result.deletedSurveysCount || 0;
+            finalResult.deletedSurveySubmissionsCount += result.deletedSurveySubmissionsCount || 0;
+            finalResult.deletedObservationsCount += result.deletedObservationsCount || 0;
+            finalResult.deletedObservationSubmissionsCount += result.deletedObservationSubmissionsCount || 0;
+            finalResult.pullSolutionFromProgramComponent += result.pullSolutionFromProgramComponent || 0;
+          }
+        }
+
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.SOLUTION_RESOURCE_DELETED,
+          result: finalResult,
+        });
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+};

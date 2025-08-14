@@ -25,7 +25,6 @@ const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
 
-
 /**
  * UserHelper
  * @class
@@ -444,26 +443,27 @@ module.exports = class UserHelper {
    * @param {String} pageSize page size.
    * @param {String} pageNo page no.
    * @param {String} search search text.
-   * @param {String} token user token.
-   * @param {String} userId user userId.
+   * @param {String} userDetails this will contain userId, userToken and tenantData information.
+   * @param {String} type type of solution user is looking for (survey/observation).
    * @returns {Object} targeted user solutions.
    */
 
-  static solutions(programId, requestedData, pageSize, pageNo, search, userId, type) {
+  static solutions(programId, requestedData, pageSize, pageNo, search, userDetails,type) {
     return new Promise(async (resolve, reject) => {
       try {
+        let {userId} = userDetails;
+        let additionalFilters = {}
         let programData = await programsQueries.programDocuments(
           {
             _id: programId,
           },
-          ['name', 'requestForPIIConsent', 'rootOrganisations', 'endDate', 'description']
+          ['name', 'requestForPIIConsent', 'rootOrganisations', 'endDate', 'description','components']
         );
-
-        if (!programData.length > 0) {
-          return resolve({
-            status: httpStatusCode['bad_request'].status,
-            message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-          });
+        
+        if(!programData.length > 0){
+          additionalFilters = {
+            isExternalProgram:true
+          }
         }
 
         let totalCount = 0;
@@ -478,7 +478,8 @@ module.exports = class UserHelper {
           programId, //program for solutions
           messageConstants.common.DEFAULT_PAGE_SIZE, //page size
           messageConstants.common.DEFAULT_PAGE_NO, //page no
-          search //search text
+          search, //search text
+          additionalFilters
         );
 
         let projectSolutionIdIndexMap = {};
@@ -617,23 +618,50 @@ module.exports = class UserHelper {
           }
         }
 
-        let result = {
-          programName: programData[0].name,
-          programId: programId,
-          programEndDate: programData[0].endDate,
-          description: programData[0].description
-            ? programData[0].description
-            : messageConstants.common.TARGETED_SOLUTION_TEXT,
-          rootOrganisations:
-            programData[0].rootOrganisations && programData[0].rootOrganisations.length > 0
-              ? programData[0].rootOrganisations[0]
-              : '',
+        const program = programData?.[0] || {};
+        let components = program.components || [];
+
+        const result = {
+          programName: program.name,
+          programId,
+          programEndDate: program.endDate,
+          description: program.description || messageConstants.common.TARGETED_SOLUTION_TEXT,
+          rootOrganisations: program.rootOrganisations?.[0] || '',
           data: mergedData,
           count: totalCount,
+          components:components
         };
-        if (programData[0].hasOwnProperty('requestForPIIConsent')) {
-          result.requestForPIIConsent = programData[0].requestForPIIConsent;
+
+        // Add requestForPIIConsent only if it exists in `program`
+        if ('requestForPIIConsent' in program) {
+          result.requestForPIIConsent = program.requestForPIIConsent;
         }
+
+				if (components.length > 0) {
+					// Order solutions based on components order
+					let resultData = result.data
+				
+					// Create a mapping of _id to order from components
+					const orderMap = new Map()
+					components.forEach((component) => {
+						orderMap.set(component._id.toString(), component.order)
+					})
+				
+					// Sort resultData based on the order mapping
+					resultData = resultData
+						.map((item) => {
+							const order = orderMap.get(item._id.toString())
+							return { ...item, order: order !== undefined ? order : null }
+						})
+						.sort((aSolution, bSolution) => {
+							const aOrder = aSolution.order !== null ? aSolution.order : Infinity
+							const bOrder = bSolution.order !== null ? bSolution.order : Infinity
+							return aOrder - bOrder
+						})
+				
+					// Update the result object with sorted data
+					result.data = resultData
+				}
 
         return resolve({
           message: messageConstants.apiResponses.PROGRAM_SOLUTIONS_FETCHED,

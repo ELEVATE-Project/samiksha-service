@@ -223,7 +223,9 @@ module.exports = async function (req, res, next) {
     'solutions/removeEntitiesInScope',
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
-    'userExtension/bulkUpload'
+    'userExtension/bulkUpload',
+    'admin/deleteResource',
+    'admin/deleteSolutionResource'
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -521,7 +523,7 @@ module.exports = async function (req, res, next) {
    */
   async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);
+    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
     let validOrgIds = null;
 
     if (

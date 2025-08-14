@@ -83,7 +83,7 @@ module.exports = {
   CREATE_SURVEY: "/create-survey/",
   CREATE_OBSERVATION: "/create-observation/",
   CREATE_PROJECT: "/create-project/",
-
+  CREATE_COURSES: "/create-course/",
   PRIVATE: 'private',
 	WRITE_PERMISSION: 'w',
 	READ_PERMISSION: 'r',
@@ -119,5 +119,7 @@ module.exports = {
   DEFAULT_PROGRAM_USER_MAPPING_TOPIC:'elevate_program_operation',
   DELETE:"DELETE",
   POST:"POST",
-  ALL: 'all'
+  ALL: 'all',
+  PROGRAM_CHECK : 'program',
+  SOLUTION_CHECK : 'solution',
 };
