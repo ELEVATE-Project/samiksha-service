@@ -57,6 +57,10 @@ module.exports = {
       require: true,
       index: true,
     },
+    reportType : {
+      type : String,
+      default : "default"
+    }
   },
   compoundIndex: [
     {
