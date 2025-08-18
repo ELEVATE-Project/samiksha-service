@@ -186,7 +186,7 @@ module.exports = class SolutionsHelper {
           }else if(solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project'){
               //call project service to update program components
               let currentComponents = programData[0]?.components || [];
-              let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},userDetails.tenantData, userDetails);
+              let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},tenantData, userDetails);
               if( !programUpdateStatus || !programUpdateStatus.success) {
                 throw {
                   message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
