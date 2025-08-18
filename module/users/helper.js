@@ -619,6 +619,7 @@ module.exports = class UserHelper {
         }
 
         const program = programData?.[0] || {};
+        let components = program.components || [];
 
         const result = {
           programName: program.name,
@@ -628,14 +629,13 @@ module.exports = class UserHelper {
           rootOrganisations: program.rootOrganisations?.[0] || '',
           data: mergedData,
           count: totalCount,
+          components:components
         };
 
         // Add requestForPIIConsent only if it exists in `program`
         if ('requestForPIIConsent' in program) {
           result.requestForPIIConsent = program.requestForPIIConsent;
         }
-
-        let components = programData[0].components || [];
 
 				if (components.length > 0) {
 					// Order solutions based on components order

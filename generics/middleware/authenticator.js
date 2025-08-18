@@ -224,6 +224,8 @@ module.exports = async function (req, res, next) {
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
+    'admin/deleteResource',
+    'admin/deleteSolutionResource',
     '/library/categories/create',
 		'/library/categories/update',
     '/organizationExtension/update',
@@ -525,7 +527,7 @@ module.exports = async function (req, res, next) {
    */
   async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);
+    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
     let validOrgIds = null;
 
     if (

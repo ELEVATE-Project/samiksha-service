@@ -140,4 +140,107 @@ module.exports = class Admin {
       }
     });
   }
+
+  /**
+   * @api {post} /survey/v1/admin/deleteResource/:resourceId?type=solution
+   * Deletes a resource (program/solution) after validating admin access.
+   * @apiVersion 1.0.0
+   * @apiGroup Admin
+   * @apiSampleRequest /survey/v1/admin/deleteResource/683867e60f8595db9c1b6c26?type=solution
+    * @apiParamExample {json} Response:
+   {
+    "message": "Solution and associated resources deleted successfully",
+    "status": 200,
+    "result": {
+        "deletedSolutionsCount": 1,
+        "deletedSurveysCount": 1,
+        "deletedSurveySubmissionsCount": 1,
+        "deletedObservationsCount": 0,
+        "deletedObservationSubmissionsCount": 0,
+        "pullSolutionFromProgramComponent": 1
+    }
+  }
+    * @apiUse successBody
+    * @apiUse errorBody
+  */
+  /**
+   * Deletes a resource (program/solution) after validating admin access.
+   *
+   * @param {Object} req - Express request object containing user details, params, and query.
+   * @param {Object} req.params - Contains route parameters, specifically `_id` of the resource.
+   * @param {Object} req.query - Contains query parameters, specifically `type` (program/solution).
+   * @param {Object} req.userDetails - Contains user roles and tenant/org info.
+   * @returns {Promise<Object>} - Returns a success or failure response from the adminHelper.
+   * @throws {Object} - Throws an error object with status, message, and error details if validation or deletion fails.
+   */
+  async deleteResource(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+          // Call adminHelper's deletedResourceDetails with required identifiers
+         let deleteResource = await adminHelper.deletedResourceDetails(
+            req.params._id,
+            req.query.type,
+            req.userDetails.tenantAndOrgInfo.tenantId,
+            req.userDetails.tenantAndOrgInfo.orgId,
+            req.userDetails.userId
+          );
+        return resolve(deleteResource);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
+  /**
+   * @api {post} /survey/v1/admin/deleteSolutionResource/:resourceId?type=solution
+   * Deletes a resource (program/solution) after validating admin access.
+   * @apiVersion 1.0.0
+   * @apiGroup Admin
+   * @apiSampleRequest /survey/v1/admin/deleteSolutionResource/683867e60f8595db9c1b6c26?type=solution
+    * @apiParamExample {json} Response:
+    {
+    "message": "Solution and associated resources deleted successfully",
+    "status": 200,
+    "result": {
+        "deletedSolutionsCount": 1,
+        "deletedSurveysCount": 1,
+        "deletedSurveySubmissionsCount": 1,
+        "deletedObservationsCount": 0,
+        "deletedObservationSubmissionsCount": 0,
+        "pullSolutionFromProgramComponent": 1
+    }
+  }
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+  /**
+   * Controller method to handle solution resource deletion request.
+   * Delegates deletion logic to the adminHelper and returns the result to the client.
+   *
+   * @param {Object} req - The Express request object containing:
+   *   - body: { solutionIds, tenantId, orgId, deletedBy }
+   *   - query: { type } – The type of resource being deleted (e.g., 'solution')
+   *
+   * @returns {Promise<Object>} Deletion result including summary of affected records
+   */
+  async deleteSolutionResource(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Call the helper function to perform deletion logic
+        let deleteSolutionResource = await adminHelper.deleteSolutionResource(req.body, req.query.type);
+        // Return the result from the helper
+        return resolve(deleteSolutionResource);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
 };

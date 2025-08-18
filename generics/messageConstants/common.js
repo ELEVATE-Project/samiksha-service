@@ -120,6 +120,8 @@ module.exports = {
   DELETE:"DELETE",
   POST:"POST",
   ALL: 'all',
+  PROGRAM_CHECK : 'program',
+  SOLUTION_CHECK : 'solution',
   CURRENT: "CURRENT",
   ASSOCIATED:"ASSOCIATED",
 };

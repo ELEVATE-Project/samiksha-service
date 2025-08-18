@@ -35,7 +35,11 @@ let enviromentVariables = {
     message: 'Required mobile application app type value',
     optional: false,
   },
-
+  RESOURCE_DELETION_TOPIC: {
+    message: 'Required Kafka topic for resource deletion events',
+    optional: false,
+    default: 'resource_deletion_topic',
+  },
   // AUTHORIZATION: {
   //   message: 'Required Server authorization code',
   //   optional: false,
