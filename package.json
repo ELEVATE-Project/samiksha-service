@@ -37,7 +37,7 @@
     "dotenv": "^6.2.0",
     "ejs": "^3.1.10",
     "elevate-logger": "^3.1.0",
-    "elevate-services-health-check": "^0.0.3",
+    "elevate-services-health-check": "^0.0.5",
     "express": "^4.18.2",
     "express-cassandra": "^2.9.0",
     "express-fileupload": "^0.4.0",
