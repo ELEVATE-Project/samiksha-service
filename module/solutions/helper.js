@@ -838,7 +838,44 @@ module.exports = class SolutionsHelper {
         //if program documents has scope update the scope in solution document
         let currentSolutionScope;
         if (programId && programData[0].scope) {
-          scopeData = JSON.parse(JSON.stringify(programData[0].scope));
+          //scopeData = JSON.parse(JSON.stringify(programData[0].scope));
+
+          let programScope = JSON.parse(JSON.stringify(programData[0].scope));
+          let solutionScope = scopeData;
+
+          function filterSolution(programScope, solutionScope) {
+            if (Array.isArray(programScope) && Array.isArray(solutionScope)) {
+              // Case 1: Both arrays → intersection
+              return solutionScope.filter(item => programScope.includes(item) || programScope.includes('ALL'));
+            }
+          
+            if (
+              programScope && solutionScope &&
+              typeof programScope === 'object' && typeof solutionScope === 'object'
+            ) {
+              // Case 2: Both objects → recursive filter
+              return Object.keys(solutionScope).reduce((filteredObj, key) => {
+                if (programScope.hasOwnProperty(key)) {
+                  filteredObj[key] = filterSolution(programScope[key], solutionScope[key]);
+                }
+                return filteredObj;
+              }, {});
+            }
+          
+            if (typeof programScope === 'string' && typeof solutionScope === 'string') {
+              // Case 3: Both strings → take from programScope
+              return programScope;
+            }
+          
+            // Default: return solutionScope unchanged
+            return solutionScope;
+          }
+          
+          // Usage
+          scopeData = filterSolution(programScope, solutionScope);
+          
+          console.log(scopeData,'scopeData')
+
         }
         // if (validateEntity !== messageConstants.common.OFF) {
         // if (Object.keys(scopeData).length > 0) {
@@ -1003,6 +1040,8 @@ module.exports = class SolutionsHelper {
         //   currentSolutionScope = scopeData;
         // }
 
+        console.log(updateObject,'updateObject')
+
         let updateSolution = await solutionsQueries.updateSolutionDocument(
           {
             _id: solutionId,
@@ -1010,6 +1049,10 @@ module.exports = class SolutionsHelper {
           updateObject,
           { new: true }
         );
+
+
+        console.log(updateSolution,'updateSolution 1052')
+
         if (!updateSolution._id) {
           throw {
             status: messageConstants.apiResponses.SOLUTION_SCOPE_NOT_ADDED,
