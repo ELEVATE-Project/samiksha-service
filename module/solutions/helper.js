@@ -838,7 +838,11 @@ module.exports = class SolutionsHelper {
         //if program documents has scope update the scope in solution document
         let currentSolutionScope;
         if (programId && programData[0].scope) {
-          scopeData = JSON.parse(JSON.stringify(programData[0].scope));
+          let programScope = JSON.parse(JSON.stringify(programData[0].scope));
+          let solutionScope = scopeData;
+          // Usage
+          scopeData = filterSolutionScope(programScope, solutionScope);
+
         }
         // if (validateEntity !== messageConstants.common.OFF) {
         // if (Object.keys(scopeData).length > 0) {
@@ -1010,6 +1014,7 @@ module.exports = class SolutionsHelper {
           updateObject,
           { new: true }
         );
+
         if (!updateSolution._id) {
           throw {
             status: messageConstants.apiResponses.SOLUTION_SCOPE_NOT_ADDED,
@@ -4434,4 +4439,51 @@ function _createSolutionData(
   }
 
   return solutionData;
+}
+
+/**
+ * Filters solutionScope based on programScope. Returns undefined for empty results or type mismatches.
+ * 
+ * @param {Array|Object|string} programScope - Reference scope for filtering
+ * @param {Array|Object|string} solutionScope - Scope to be filtered
+ * @returns {Array|Object|string|undefined} Filtered result or undefined to delete key
+ */
+function filterSolutionScope(programScope, solutionScope) {
+  if (Array.isArray(programScope) && Array.isArray(solutionScope)) {
+    // Case 1: Both arrays → intersection
+    const filtered = solutionScope.filter(
+      (item) => programScope.includes(item) || programScope.includes(messageConstants.common.ALL_SCOPE_VALUE)
+    );
+    return filtered.length > 0 ? filtered : undefined; // delete key if empty
+  }
+
+  if (
+    programScope &&
+    solutionScope &&
+    typeof programScope === 'object' &&
+    typeof solutionScope === 'object' &&
+    !Array.isArray(programScope) &&
+    !Array.isArray(solutionScope)
+  ) {
+    // Case 2: Both objects → recursive filter
+    const filteredObj = Object.keys(solutionScope).reduce((result, key) => {
+      if (programScope.hasOwnProperty(key)) {
+        const filteredValue = filterSolutionScope(programScope[key], solutionScope[key]);
+        if (filteredValue !== undefined) {
+          result[key] = filteredValue;
+        }
+      }
+      return result;
+    }, {});
+
+    // Return undefined if empty object (similar to empty array handling)
+    return Object.keys(filteredObj).length > 0 ? filteredObj : undefined;
+  }
+
+  if (typeof programScope === 'string' && typeof solutionScope === 'string') {
+    // Case 3: Strings → override with programScope value
+    return programScope;
+  }
+
+  return undefined;
 }
