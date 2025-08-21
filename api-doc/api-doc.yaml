@@ -6472,8 +6472,7 @@ paths:
       tags:
         - userExtension
       summary: >-
-        Bulk processes CSV data to assign/update user roles across programs with
-        validation and event notifications.
+        Bulk user role management API
       description: >-
         Bulk user role management API that processes CSV data to create or
         update user-program role assignments with support for multiple
