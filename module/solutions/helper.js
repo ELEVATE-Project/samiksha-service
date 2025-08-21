@@ -838,8 +838,6 @@ module.exports = class SolutionsHelper {
         //if program documents has scope update the scope in solution document
         let currentSolutionScope;
         if (programId && programData[0].scope) {
-          //scopeData = JSON.parse(JSON.stringify(programData[0].scope));
-
           let programScope = JSON.parse(JSON.stringify(programData[0].scope));
           let solutionScope = scopeData;
           // Usage
@@ -4468,14 +4466,14 @@ function filterSolutionScope(programScope, solutionScope) {
     !Array.isArray(solutionScope)
   ) {
     // Case 2: Both objects → recursive filter
-    const filteredObj = Object.keys(solutionScope).reduce((acc, key) => {
+    const filteredObj = Object.keys(solutionScope).reduce((result, key) => {
       if (programScope.hasOwnProperty(key)) {
         const filteredValue = filterSolutionScope(programScope[key], solutionScope[key]);
         if (filteredValue !== undefined) {
-          acc[key] = filteredValue;
+          result[key] = filteredValue;
         }
       }
-      return acc;
+      return result;
     }, {});
 
     // Return undefined if empty object (similar to empty array handling)
