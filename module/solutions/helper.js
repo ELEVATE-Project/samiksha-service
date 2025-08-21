@@ -842,39 +842,8 @@ module.exports = class SolutionsHelper {
 
           let programScope = JSON.parse(JSON.stringify(programData[0].scope));
           let solutionScope = scopeData;
-
-          function filterSolution(programScope, solutionScope) {
-            if (Array.isArray(programScope) && Array.isArray(solutionScope)) {
-              // Case 1: Both arrays → intersection
-              return solutionScope.filter(item => programScope.includes(item) || programScope.includes('ALL'));
-            }
-          
-            if (
-              programScope && solutionScope &&
-              typeof programScope === 'object' && typeof solutionScope === 'object'
-            ) {
-              // Case 2: Both objects → recursive filter
-              return Object.keys(solutionScope).reduce((filteredObj, key) => {
-                if (programScope.hasOwnProperty(key)) {
-                  filteredObj[key] = filterSolution(programScope[key], solutionScope[key]);
-                }
-                return filteredObj;
-              }, {});
-            }
-          
-            if (typeof programScope === 'string' && typeof solutionScope === 'string') {
-              // Case 3: Both strings → take from programScope
-              return programScope;
-            }
-          
-            // Default: return solutionScope unchanged
-            return solutionScope;
-          }
-          
           // Usage
-          scopeData = filterSolution(programScope, solutionScope);
-          
-          console.log(scopeData,'scopeData')
+          scopeData = filterSolutionScope(programScope, solutionScope);
 
         }
         // if (validateEntity !== messageConstants.common.OFF) {
@@ -1040,8 +1009,6 @@ module.exports = class SolutionsHelper {
         //   currentSolutionScope = scopeData;
         // }
 
-        console.log(updateObject,'updateObject')
-
         let updateSolution = await solutionsQueries.updateSolutionDocument(
           {
             _id: solutionId,
@@ -1049,9 +1016,6 @@ module.exports = class SolutionsHelper {
           updateObject,
           { new: true }
         );
-
-
-        console.log(updateSolution,'updateSolution 1052')
 
         if (!updateSolution._id) {
           throw {
@@ -4477,4 +4441,51 @@ function _createSolutionData(
   }
 
   return solutionData;
+}
+
+/**
+ * Filters solutionScope based on programScope. Returns undefined for empty results or type mismatches.
+ * 
+ * @param {Array|Object|string} programScope - Reference scope for filtering
+ * @param {Array|Object|string} solutionScope - Scope to be filtered
+ * @returns {Array|Object|string|undefined} Filtered result or undefined to delete key
+ */
+function filterSolutionScope(programScope, solutionScope) {
+  if (Array.isArray(programScope) && Array.isArray(solutionScope)) {
+    // Case 1: Both arrays → intersection
+    const filtered = solutionScope.filter(
+      (item) => programScope.includes(item) || programScope.includes(messageConstants.common.ALL_SCOPE_VALUE)
+    );
+    return filtered.length > 0 ? filtered : undefined; // delete key if empty
+  }
+
+  if (
+    programScope &&
+    solutionScope &&
+    typeof programScope === 'object' &&
+    typeof solutionScope === 'object' &&
+    !Array.isArray(programScope) &&
+    !Array.isArray(solutionScope)
+  ) {
+    // Case 2: Both objects → recursive filter
+    const filteredObj = Object.keys(solutionScope).reduce((acc, key) => {
+      if (programScope.hasOwnProperty(key)) {
+        const filteredValue = filterSolutionScope(programScope[key], solutionScope[key]);
+        if (filteredValue !== undefined) {
+          acc[key] = filteredValue;
+        }
+      }
+      return acc;
+    }, {});
+
+    // Return undefined if empty object (similar to empty array handling)
+    return Object.keys(filteredObj).length > 0 ? filteredObj : undefined;
+  }
+
+  if (typeof programScope === 'string' && typeof solutionScope === 'string') {
+    // Case 3: Strings → override with programScope value
+    return programScope;
+  }
+
+  return undefined;
 }
