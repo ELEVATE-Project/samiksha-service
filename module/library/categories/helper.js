@@ -5,10 +5,14 @@
  * Description : Library categories helper functionality.
  */
 
+
 // Dependencies
 let kendraService = require(ROOT_PATH + '/generics/services/kendra');
 let sessionHelpers = require(ROOT_PATH + '/generics/helpers/sessions');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
+const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
+
 
 /**
  * libraryCategoriesHelper
@@ -126,7 +130,6 @@ module.exports = class libraryCategoriesHelper {
           result: result,
         });
       } catch (error) {
-        console.error('error', error);
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,
           message: error.message || httpStatusCode.internal_server_error.message,
@@ -284,4 +287,43 @@ module.exports = class libraryCategoriesHelper {
 			}
 		})
 	}
+
+  static importFromLibrary (parentSolutionId , reqBody , isATargetedSolution , userDetails) {
+    return new Promise(async (resolve, reject) => {
+
+    try {
+        
+      let tenantId = userDetails.tenantData.tenantId
+      let orgId = userDetails. tenantData.orgId
+      let solutionDocument = await solutionsQueries.solutionDocuments({ _id: parentSolutionId ,isReusable:true ,tenantId:tenantId})
+
+      if (!solutionDocument || solutionDocument.length == 0) {
+        throw {
+          status: httpStatusCode.bad_request.status,
+          message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+        }
+      }
+      solutionDocument = solutionDocument[0]
+      solutionDocument.programName = reqBody?.programName? reqBody.programName :"PRIVATEPROGRAM"
+      solutionDocument.solutionName = reqBody?.solutionName? reqBody.solutionName : solutionDocument.name
+      solutionDocument ={...solutionDocument ,reqBody}
+      let createProgramAndSolution = await solutionsHelper.createProgramAndSolution(userDetails.userId,solutionDocument,true,userDetails.tenantData)
+      if (!createProgramAndSolution.success) {
+        throw {
+          status: httpStatusCode.bad_request.status,
+          message: messageConstants.apiResponses.SOLUTION_PROGRAMS_NOT_CREATED,
+        };
+      }
+      return resolve(createProgramAndSolution)
+    }catch (error) {
+      return resolve({
+        success: false,
+        message: error.message,
+        data: {},
+      })
+
+    }
+  })
+  }
+
 };

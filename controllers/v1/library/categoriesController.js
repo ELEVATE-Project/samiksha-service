@@ -176,4 +176,20 @@ module.exports = class LibraryCategories extends Abstract {
 			}
 		})
 	}
-};
+
+	async importFromLibrary(req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const privateSolutions = await libraryCategoriesHelper.importFromLibrary(
+					req.params._id,
+					req.body,
+					req.query.isATargetedSolution ? req.query.isATargetedSolution : false,
+					req.userDetails
+				)
+
+				return resolve (privateSolutions)
+			} catch (error) {
+				return reject(error)
+			}
+		})
+	}};

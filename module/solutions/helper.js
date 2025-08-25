@@ -2915,7 +2915,30 @@ module.exports = class SolutionsHelper {
           //   solutionDataToBeUpdated['entities'] = entitiesData;
           // }
         }
+        
+        // entities for new solution
 
+        if(data.entityType &&  data.entityType !== ''){
+          solutionDataToBeUpdated.entityType = data.entityType
+
+          if(data.reqBody){
+              
+           let entityId = data.reqBody[`${data.entityType}`];
+           let filterData = {
+            _id: {$in:[entityId]},
+            tenantId:tenantData.tenantId,
+            // orgId: {$in:['ALL',tenantData.orgId]}
+           };
+         
+          //Retrieving the entity from the Entity Management Service
+           let entitiesDocument = await entityManagementService.entityDocuments(
+             filterData,["_id"]
+           );
+           if (entitiesDocument.success || entitiesDocument?.data > 0) {
+            solutionDataToBeUpdated.entities = [entitiesDocument.data[0]._id];
+          }
+          }
+         }
         //solution part
         let solution = '';
         if (data.solutionId && data.solutionId !== '') {
@@ -2976,6 +2999,7 @@ module.exports = class SolutionsHelper {
             _.merge(duplicateSolution, solutionDataToBeUpdated);
             duplicateSolution.tenantId = tenantData.tenantId;
             duplicateSolution.orgId = tenantData.orgId;
+            duplicateSolution.parentSolutionId =data._id;
             solution = await this.create(_.omit(duplicateSolution, ['_id', 'link']));
             parentSolutionInformation.solutionId = duplicateSolution._id;
             parentSolutionInformation.link = duplicateSolution.link;
@@ -3029,7 +3053,7 @@ module.exports = class SolutionsHelper {
           );
           _.merge(solutionDataToBeUpdated, createSolutionData);
           solutionDataToBeUpdated.tenantId = tenantData.tenantId;
-          solutionDataToBeUpdated.orgId = tenantData.orgId;
+          solutionDataToBeUpdated.orgId = tenantData.orgId;       
           solution = await this.create(solutionDataToBeUpdated);
         }
 
