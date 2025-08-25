@@ -1026,7 +1026,8 @@ module.exports = class QuestionsHelper {
                 if ( submissionDocument && submissionDocument.answers && Object.keys(submissionDocument.answers).length > 0) {
 
                     let questionIds = [];
-                    for (let questionKey in submissionDocument.answers) { 
+                    for (let questionKey in submissionDocument.answers) {
+                        if(gen.utils.isValidMongoId(questionKey))
                         questionIds.push(questionKey);
                     }
 
@@ -1035,7 +1036,7 @@ module.exports = class QuestionsHelper {
                             $in : gen.utils.arrayIdsTobjectIdsNew(questionIds)
                         }
                     }, [ 
-                        "options","externalId", "question","questionNumber"
+                        "options","externalId", "question","questionNumber", "reportType"
                     ]);
 
                     if ( questionDocuments.length > 0 ) {
@@ -1043,7 +1044,7 @@ module.exports = class QuestionsHelper {
                         for ( let pointerToQuestion = 0; pointerToQuestion < questionDocuments.length; pointerToQuestion++ ) {
                           let currentQuestion = questionDocuments[pointerToQuestion];
                           if ( submissionDocument.answers[currentQuestion._id] != undefined ) {
-                              Object.assign(submissionDocument.answers[currentQuestion._id], {options: currentQuestion.options, externalId: currentQuestion.externalId, question: currentQuestion.question,questionNumber:currentQuestion.questionNumber});
+                              Object.assign(submissionDocument.answers[currentQuestion._id], {options: currentQuestion.options, externalId: currentQuestion.externalId, question: currentQuestion.question,questionNumber:currentQuestion.questionNumber, reportType : currentQuestion.reportType});
                           }
                         }
                     }

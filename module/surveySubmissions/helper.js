@@ -13,6 +13,7 @@ const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
+const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 /**
  * SurveySubmissionsHelper
  * @class
@@ -108,8 +109,11 @@ module.exports = class SurveySubmissionsHelper {
             _.pick(surveySubmissionsDocument[0], ['project', 'status', '_id', 'completedDate'])
           );
         }
+        //adding question options, externalId to answers array 
+        if ( surveySubmissionsDocument[0].answers && Object.keys(surveySubmissionsDocument[0].answers).length > 0 ) {
+          surveySubmissionsDocument[0] = await questionsHelper.addOptionsToSubmission(surveySubmissionsDocument[0]);
+        }
         const kafkaMessage = await kafkaClient.pushCompletedSurveySubmissionToKafka(surveySubmissionsDocument[0]);
-
         if (kafkaMessage.status != 'success') {
           let errorObject = {
             formData: {
