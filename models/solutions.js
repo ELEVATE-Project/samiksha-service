@@ -45,11 +45,9 @@ module.exports = {
     registry: Array,
     frameworkId: 'ObjectId',
     frameworkExternalId: String,
-    parentSolutionId: 'ObjectId',
     noOfRatingLevels: Number,
     isRubricDriven: { type: Boolean, default: false },
     enableQuestionReadOut: { type: Boolean, default: false },
-    isReusable: Boolean,
     roles: Object,
     observationMetaFormKey: String,
     updatedBy: String,
@@ -132,6 +130,8 @@ module.exports = {
     visibility: {
       type: String,
       index: true,
+      enum: ['CURRENT', 'ASSOCIATED', 'ALL'], 
+      default: 'CURRENT'
     },
     categories: [
 			{

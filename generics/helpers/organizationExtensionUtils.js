@@ -53,15 +53,15 @@ async function createOrgExtension(eventBody) {
 
 async function getOrCreateOrgExtension(userDetails) {
  try {
-      // Query to get the orgExternsion document
-      let orgExternsionfilter = {
+      // Query to get the orgExtension document
+      let orgExtensionfilter = {
         tenantId: userDetails.tenantAndOrgInfo.tenantId,
         orgId: userDetails.tenantAndOrgInfo.orgId[0],
       };
 
       // Getting organizationExtension document 
       let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
-        orgExternsionfilter
+        orgExtensionfilter
       );
       // Check if the organizationExtension document exists or else create new one
       if (organizationExtensionDocuments.length > 0) {

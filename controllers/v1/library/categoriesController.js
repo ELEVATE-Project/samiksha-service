@@ -180,6 +180,9 @@ module.exports = class LibraryCategories extends Abstract {
 	async importFromLibrary(req) {
 		return new Promise(async (resolve, reject) => {
 			try {
+				if(req?.query?.isATargetedSolution) {
+                  req.query.isATargetedSolution =  gen.utils.convertStringToBoolean(req.query.isATargetedSolution)
+				}
 				const privateSolutions = await libraryCategoriesHelper.importFromLibrary(
 					req.params._id,
 					req.body,

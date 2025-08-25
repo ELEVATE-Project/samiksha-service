@@ -1927,9 +1927,9 @@ module.exports = class SolutionsHelper {
             matchQuery['$match']['visibility'] = messageConstants.common.CURRENT
             matchQuery['$match']['orgId'] = userDetails.tenantData.orgId
             break
-          case messageConstants.common.ALL.toUpperCase():
+          case messageConstants.common.ALL_POLICY:
             visibilityQuery = [
-              { visibility: messageConstants.common.ALL.toUpperCase() },
+              { visibility: messageConstants.common.ALL_POLICY },
               { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
               { visibility: messageConstants.common.CURRENT, orgId: userDetails.tenantData.orgId }
             ];
@@ -3004,7 +3004,7 @@ module.exports = class SolutionsHelper {
             _.merge(duplicateSolution, solutionDataToBeUpdated);
             duplicateSolution.tenantId = tenantData.tenantId;
             duplicateSolution.orgId = tenantData.orgId;
-            duplicateSolution.parentSolutionId =data._id;
+            duplicateSolution.isReusable =false;
             solution = await this.create(_.omit(duplicateSolution, ['_id', 'link']));
             parentSolutionInformation.solutionId = duplicateSolution._id;
             parentSolutionInformation.link = duplicateSolution.link;

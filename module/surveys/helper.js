@@ -205,6 +205,7 @@ module.exports = class SurveysHelper {
              matchQuery['externalId'] = { $in: solutionData.categories }
              // what is category documents
              let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, [
+              "_id",
                'externalId',
                'name',
              ])
@@ -217,13 +218,13 @@ module.exports = class SurveysHelper {
              }
              // storing each category data in solutionDocument
              newSolutionDocument.categories = categories.map(category => ({
-               _id: new ObjectId(category._id),
+               _id: category._id,
                externalId: category.externalId,
                name: category.name
              }));
            }
-       //get the related orgs for the solutions
-        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantData.orgId[0],userDetails,tenantData.tenantId);
+         //get the related orgs for the solutions
+         let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantData.orgId[0],userDetails,tenantData.tenantId);
         if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
          throw ({
            status: httpStatusCode.internal_server_error.status,
@@ -381,7 +382,7 @@ module.exports = class SurveysHelper {
           let link = await gen.utils.md5Hash(userId + '###' + newSolution._id);
 
           await solutionsQueries.updateSolutionDocument(
-            { _id: newSolution._id },
+            { _id: newSolution.data._id },
             {
               $set: { link: link },
             },

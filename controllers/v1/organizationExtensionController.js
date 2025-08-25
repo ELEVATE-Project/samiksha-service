@@ -3,7 +3,7 @@
  * name : organizationExtension.js
  * author : PraveenDass
  * created-date : 07-Aug-2025
- * Description : organizationExntension
+ * Description : organizationExtension
  */
 
 const organizationHelper = require(MODULES_BASE_PATH + '/organizationExtension/helper');
@@ -12,7 +12,7 @@ const organizationHelper = require(MODULES_BASE_PATH + '/organizationExtension/h
  * userCourses
  * @class
  */
-module.exports = class  OrganizationExntension extends Abstract {
+module.exports = class  OrganizationExtension extends Abstract {
   constructor() {
     super(organizationExtensionSchema);
   }
@@ -38,17 +38,17 @@ module.exports = class  OrganizationExntension extends Abstract {
   /**
    * update  organizationExtension.
    * @method
-   * @name create
+   * @name update
    * @param {Object} req - requested data.
-   * @returns {JSON} update  organizationExtension data.
+   * @returns {JSON} update organizationExtension data.
    */
 
   async update(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let userCoursesData = await organizationHelper.update(req.body,req.params._id, req.userDetails);
-        userCoursesData['result'] = userCoursesData.data;
-        return resolve(userCoursesData);
+        let organizationExtensionData = await organizationHelper.update(req.body,req.params._id, req.userDetails);
+        organizationExtensionData['result'] = organizationExtensionData.data;
+        return resolve(organizationExtensionData);
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,
@@ -76,9 +76,9 @@ module.exports = class  OrganizationExntension extends Abstract {
     */
 
   /**
-   *  Create  organizationExtension.
+   *  eventListener for organizationExtension create.
    * @method
-   * @name delete
+   * @name eventListener
    * @param {Object} req - requested data.
    * @returns {JSON}  Created organizationExtension data.
    */
@@ -88,9 +88,9 @@ module.exports = class  OrganizationExntension extends Abstract {
       try {
         console.log('CONTROLLER REQUEST BODY: ', req.body)
         //passing true for update userCourses doucment with isDeleted true
-        let userCoursesData = await organizationHelper.eventListener(req.body,req.userDetails);
-        userCoursesData['result'] = userCoursesData.data;
-        return resolve(userCoursesData);
+        let organizationExtensionData = await organizationHelper.eventListener(req.body,req.userDetails);
+        organizationExtensionData['result'] = organizationExtensionData.data;
+        return resolve(organizationExtensionData);
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,

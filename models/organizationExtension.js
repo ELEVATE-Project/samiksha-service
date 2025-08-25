@@ -7,7 +7,6 @@ module.exports = {
               type: String,
               required: true,
               index: true,
-              unique: true,
           },
           observationResourceVisibilityPolicy: {
               type: String,
