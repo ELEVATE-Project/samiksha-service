@@ -23,6 +23,7 @@ const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSol
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
 const solutionsUtils = require("../../generics/helpers/solutionsUtils");
+const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 
 
 
@@ -1887,10 +1888,14 @@ module.exports = class SolutionsHelper {
    * @param {string} searchtext - search text based on name,description.keywords.
    * @param {string} limit - Maximum data to return
    * @param {string} page - page no
+   * @param {String} userId - Logged in user id.
+   * @param {String} token - User token.
+   * @param {String} categoryId - Category Id.
+   * @param {Object} userDetails - User details.
    * @returns {Array} - Solution templates lists.
    */
 
-  static templates(type, searchText, limit, page, userId, token) {
+  static templates(type, searchText, limit, page, userId, token,categoryId,userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let matchQuery = {};
@@ -1900,13 +1905,62 @@ module.exports = class SolutionsHelper {
           status: 'active',
         };
 
+        //Adding query based on tenantId
+        matchQuery['$match']['tenantId'] = userDetails.tenantData.tenantId
+
+        // Query to get the orgExternsion document
+        userDetails.tenantAndOrgInfo = {
+           tenantId: userDetails.tenantData.tenantId,
+           orgId: [userDetails.tenantData.orgId],
+         };
+
+         // Getting organizationExtension document or create a newOne if not exists
+         let organizationExtensionDocuments = await organizationExtensionUtils.getOrCreateOrgExtension(
+            userDetails
+         );
+         //get orgPolicy based on solutionType from orgExtension
+         let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.data.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.data.externalSurveyResourceVisibilityPolicy
+         let visibilityQuery =[]
+         // Generate a Query based on policies
+         switch (orgPolicies) {
+          case messageConstants.common.CURRENT:
+            matchQuery['$match']['visibility'] = messageConstants.common.CURRENT
+            matchQuery['$match']['orgId'] = userDetails.tenantData.orgId
+            break
+          case messageConstants.common.ALL_POLICY:
+            visibilityQuery = [
+              { visibility: messageConstants.common.ALL_POLICY },
+              { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility: messageConstants.common.CURRENT, orgId: userDetails.tenantData.orgId }
+            ];
+            break
+          case messageConstants.common.ASSOCIATED:
+            visibilityQuery = [
+              { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility: messageConstants.common.CURRENT, orgId: userDetails.tenantData.orgId },      
+            ]        
+            break
+            default:
+               resolve({
+                message: messageConstants.apiResponses.INVALID_POLICY,
+                result: [],
+                success:false
+               })
+         }
+       
+
         if (type === messageConstants.common.OBSERVATION || type === messageConstants.common.SURVEY) {
           matchQuery['$match']['type'] = type;
         } else {
           matchQuery['$match']['type'] = messageConstants.common.ASSESSMENT;
           matchQuery['$match']['subType'] = type;
         }
-
+        //Adding query based on categoryId
+        if (categoryId && categoryId !== '') {
+					matchQuery['$match']['categories.externalId'] = categoryId
+				}
+        
+        
         if (process.env.USE_USER_ORGANISATION_ID_FILTER && process.env.USE_USER_ORGANISATION_ID_FILTER === 'ON') {
           let organisationAndRootOrganisation = await shikshalokamHelper.getUserOrganisation(token, userId);
 
@@ -1914,19 +1968,25 @@ module.exports = class SolutionsHelper {
             $in: organisationAndRootOrganisation.createdFor,
           };
         }
+        
+         let matchAndQuery = [];
+         // Add visibility OR block if it has conditions
+         if (visibilityQuery.length > 0) {
+          matchAndQuery.push({ $or: visibilityQuery });
+         }
 
-        matchQuery['$match']['$or'] = [
-          {
-            name: new RegExp(searchText, 'i'),
-          },
-          {
-            description: new RegExp(searchText, 'i'),
-          },
-          {
-            keywords: new RegExp(searchText, 'i'),
-          },
-        ];
-
+         // 2️⃣ Build search OR conditions
+         if (searchText && searchText.trim()) {
+            let searchOr = [
+              { name: new RegExp(searchText, 'i') },
+              { description: new RegExp(searchText, 'i') },
+              { keywords: new RegExp(searchText, 'i') }
+            ];
+            matchAndQuery.push({ $or: searchOr });
+          }
+        if (matchAndQuery.length >0){
+            matchQuery['$match'] ["$and"] =  matchAndQuery 
+        }
         let solutionDocument = await this.search(matchQuery, limit, page, {
           name: 1,
           description: 1,
@@ -2860,7 +2920,30 @@ module.exports = class SolutionsHelper {
           //   solutionDataToBeUpdated['entities'] = entitiesData;
           // }
         }
+        
+        // entities for new solution
 
+        if(data.entityType &&  data.entityType !== ''){
+          solutionDataToBeUpdated.entityType = data.entityType
+
+          if(data.reqBody){
+              
+           let entityId = data.reqBody[`${data.entityType}`];
+           let filterData = {
+            _id: {$in:[entityId]},
+            tenantId:tenantData.tenantId,
+            // orgId: {$in:['ALL',tenantData.orgId]}
+           };
+         
+          //Retrieving the entity from the Entity Management Service
+           let entitiesDocument = await entityManagementService.entityDocuments(
+             filterData,["_id"]
+           );
+           if (entitiesDocument.success || entitiesDocument?.data > 0) {
+            solutionDataToBeUpdated.entities = [entitiesDocument.data[0]._id];
+          }
+          }
+         }
         //solution part
         let solution = '';
         if (data.solutionId && data.solutionId !== '') {
@@ -2921,6 +3004,7 @@ module.exports = class SolutionsHelper {
             _.merge(duplicateSolution, solutionDataToBeUpdated);
             duplicateSolution.tenantId = tenantData.tenantId;
             duplicateSolution.orgId = tenantData.orgId;
+            duplicateSolution.isReusable =false;
             solution = await this.create(_.omit(duplicateSolution, ['_id', 'link']));
             parentSolutionInformation.solutionId = duplicateSolution._id;
             parentSolutionInformation.link = duplicateSolution.link;
@@ -2974,7 +3058,7 @@ module.exports = class SolutionsHelper {
           );
           _.merge(solutionDataToBeUpdated, createSolutionData);
           solutionDataToBeUpdated.tenantId = tenantData.tenantId;
-          solutionDataToBeUpdated.orgId = tenantData.orgId;
+          solutionDataToBeUpdated.orgId = tenantData.orgId;       
           solution = await this.create(solutionDataToBeUpdated);
         }
 

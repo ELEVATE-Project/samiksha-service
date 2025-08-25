@@ -225,7 +225,11 @@ module.exports = async function (req, res, next) {
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
     'admin/deleteResource',
-    'admin/deleteSolutionResource'
+    'admin/deleteSolutionResource',
+    '/library/categories/create',
+		'/library/categories/update',
+    '/organizationExtension/update',
+    '/organizationExtension/eventListener'
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -673,6 +677,13 @@ module.exports = async function (req, res, next) {
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
+      if(req.headers['visibletoorganizations']){
+      let validateVisibleToOrganizations = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['visibletoorganizations'],token);
+      if (!validateVisibleToOrganizations.success) {
+        return res.status(responseCode['unauthorized'].status).send(respUtil(validateVisibleToOrganizations.errorObj));
+      }
+      req.headers['visibleToOrganizations'] = validateVisibleToOrganizations.validOrgIds;
+     }
 
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
@@ -697,6 +708,7 @@ module.exports = async function (req, res, next) {
     } else if (userRoles.includes(messageConstants.common.ORG_ADMIN)) {
       req.headers['tenantid'] = userInformation.tenantId.toString();
       req.headers['orgid'] = [userInformation.organizationId.toString()];
+      req.headers['visibleToOrganizations'] = [userInformation.organizationId.toString()];
     } else {
       rspObj.errCode = reqMsg.INVALID_ROLE.INVALID_CODE;
       rspObj.errMsg = reqMsg.INVALID_ROLE.INVALID_MESSAGE;
@@ -707,6 +719,7 @@ module.exports = async function (req, res, next) {
     userInformation.tenantAndOrgInfo = {};
     userInformation.tenantAndOrgInfo.tenantId = req.headers['tenantid'];
     userInformation.tenantAndOrgInfo.orgId = req.headers['orgid'];
+    userInformation.tenantAndOrgInfo.visibleToOrganizations = req.headers['visibleToOrganizations'];
   }
 
   // Update user details object

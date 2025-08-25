@@ -21,10 +21,14 @@ module.exports = class ObservationHelper {
    * @param {String} search - Search Data.
    * @param {Number} limit - limitting value.
    * @param {Number} pageNo
+   * @param {String} userId - Logged in user id.
+   * @param {String} token - User token.
+   * @param {String} categoryId - Category Id.
+   * @param {Object} userDetails - User details.
    * @returns {Object} returns list of observation solutions
    */
 
-  static list(search, limit, pageNo, userId, token) {
+  static list(search, limit, pageNo, userId, token,categoryId ="",userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let observationSolution = await solutionsHelper.templates(
@@ -34,6 +38,8 @@ module.exports = class ObservationHelper {
           pageNo,
           userId,
           token,
+          categoryId,
+          userDetails
         );
 
         return resolve({

@@ -95,6 +95,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
         //   program._id = programData._id;
         // }
+
+        // need to handle survey and observation both in the same function we will have solutionData.type which will contains type of resource
         let duplicateSolution = await this.importFromSolution(
           templateId,
           program._id ? program._id.toString() : '',
