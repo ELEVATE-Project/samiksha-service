@@ -152,6 +152,11 @@ module.exports = class Questions extends Abstract {
         questionData.forEach((eachQuestionData) => {
           let parsedQuestion = gen.utils.valueParser(eachQuestionData);
 
+          // set default reportType if missing/empty
+          if (!parsedQuestion.reportType || parsedQuestion.reportType.trim() === "") {
+            parsedQuestion.reportType = "default";
+          }
+
           if (solutionDocument.type == messageConstants.common.SURVEY) {
             parsedQuestion['criteriaExternalId'] = defaultSurveyCriteriaExternalId;
           }
@@ -264,6 +269,11 @@ module.exports = class Questions extends Abstract {
 
         for (let pointerToQuestionData = 0; pointerToQuestionData < questionData.length; pointerToQuestionData++) {
           let parsedQuestion = gen.utils.valueParser(questionData[pointerToQuestionData]);
+
+          // set default reportType if missing/empty
+          if (!parsedQuestion.reportType || parsedQuestion.reportType.trim() === "") {
+            parsedQuestion.reportType = "default";
+          }
 
           let criteria = {};
           let ecm = {};
