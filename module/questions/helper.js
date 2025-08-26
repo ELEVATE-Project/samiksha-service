@@ -1030,6 +1030,10 @@ module.exports = class QuestionsHelper {
                         if(gen.utils.isValidMongoId(questionKey))
                         questionIds.push(questionKey);
                     }
+                    // return if no valid question-ids are available 
+                    if (questionIds.length === 0) {
+                      return resolve(submissionDocument);
+                    }
 
                     let questionDocuments = await this.questionDocument({
                         _id : {
