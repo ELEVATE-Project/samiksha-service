@@ -1011,15 +1011,15 @@ module.exports = class QuestionsHelper {
       }
     });
   }
-      /**
-   * Add Question Options to Submission Answers
+  /**
+   * Add Question MetaData to Submission Answers
    * @method
-   * @name addOptionsToSubmission
+   * @name addQuestionMetadataToSubmission
    * @param {Object} submission - observation/survey submission.
    * @returns {JSON} - observation/survey submission details
    */
 
-      static addOptionsToSubmission(submissionDocument) {
+      static addQuestionMetadataToSubmission(submissionDocument) {
         return new Promise(async (resolve, reject) => {
             try {
 

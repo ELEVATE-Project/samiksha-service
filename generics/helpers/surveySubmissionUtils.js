@@ -73,9 +73,9 @@ const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
           );
         }
 
-        //adding question options, externalId to answers array 
+        // Adding question metadata to submission
         if ( surveySubmissionsDocument[0].answers && Object.keys(surveySubmissionsDocument[0].answers).length > 0 ) {
-          surveySubmissionsDocument[0] = await questionsHelper.addOptionsToSubmission(surveySubmissionsDocument[0]);
+          surveySubmissionsDocument[0] = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument[0]);
         }
 
         const kafkaMessage = await kafkaClient.pushInCompleteSurveySubmissionToKafka(surveySubmissionsDocument[0]);

@@ -109,9 +109,9 @@ module.exports = class SurveySubmissionsHelper {
             _.pick(surveySubmissionsDocument[0], ['project', 'status', '_id', 'completedDate'])
           );
         }
-        //adding question options, externalId to answers array 
+        // Adding question metadata to submission
         if ( surveySubmissionsDocument[0].answers && Object.keys(surveySubmissionsDocument[0].answers).length > 0 ) {
-          surveySubmissionsDocument[0] = await questionsHelper.addOptionsToSubmission(surveySubmissionsDocument[0]);
+          surveySubmissionsDocument[0] = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument[0]);
         }
         const kafkaMessage = await kafkaClient.pushCompletedSurveySubmissionToKafka(surveySubmissionsDocument[0]);
         if (kafkaMessage.status != 'success') {
