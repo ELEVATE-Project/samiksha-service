@@ -95,7 +95,13 @@ module.exports = class ReportsHelper {
 
       // Adding question metadata to submission
       if (surveySubmissionsDocument.answers && Object.keys(surveySubmissionsDocument.answers).length > 0) {
-        surveySubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument);
+        try{
+          surveySubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument);
+        }
+        catch(error){                  
+          // Log and proceed without metadata to keep report generation resilient
+          console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+        }
       }
 
       let solutionDocument = await solutionsQueries.solutionDocuments(

@@ -75,7 +75,13 @@ const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 
         // Adding question metadata to submission
         if ( surveySubmissionsDocument[0].answers && Object.keys(surveySubmissionsDocument[0].answers).length > 0 ) {
-          surveySubmissionsDocument[0] = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument[0]);
+          try{
+            surveySubmissionsDocument[0] = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument[0]);
+          }
+          catch(error){
+            // Log and proceed without metadata to keep report generation resilient
+            console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+          }
         }
 
         const kafkaMessage = await kafkaClient.pushInCompleteSurveySubmissionToKafka(surveySubmissionsDocument[0]);

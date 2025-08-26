@@ -103,7 +103,13 @@ module.exports = class ObservationSubmissionsHelper {
 
               // Adding question metadata to submission
               if ( observationSubmissionsDocument.answers && Object.keys(observationSubmissionsDocument.answers).length > 0 ) {
+                try{
                   observationSubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(observationSubmissionsDocument);
+                }
+                catch(error){                  
+                  // Log and proceed without metadata to keep report generation resilient
+                  console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+                }
               }
 
               let solutionDocument = await solutionsQueries.solutionDocuments({
@@ -249,7 +255,13 @@ module.exports = class ObservationSubmissionsHelper {
 
         // Adding question metadata to submission
         if ( observationSubmissionsDocument.answers && Object.keys(observationSubmissionsDocument.answers).length > 0 ) {
-          observationSubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(observationSubmissionsDocument);
+          try{
+            observationSubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(observationSubmissionsDocument);
+          }
+          catch(error){                  
+            // Log and proceed without metadata to keep report generation resilient
+            console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+          }
         }
 
         const kafkaMessage = await kafkaClient.pushInCompleteObservationSubmissionToKafka(observationSubmissionsDocument);
