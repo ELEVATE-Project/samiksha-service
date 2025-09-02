@@ -51,7 +51,7 @@ async function createOrgExtension(eventBody) {
   }
 }
 
-async function getOrCreateOrgExtension(userDetails) {
+async function getOrgExtension(userDetails) {
  try {
       // Query to get the orgExtension document
       let orgExtensionfilter = {
@@ -63,25 +63,13 @@ async function getOrCreateOrgExtension(userDetails) {
       let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
         orgExtensionfilter
       );
+
       // Check if the organizationExtension document exists or else create new one
       if (organizationExtensionDocuments.length > 0) {
         return {
           success: true,
           data: organizationExtensionDocuments[0],
         };
-      } else {
-        let extensionData = {
-            entityId: userDetails.tenantAndOrgInfo.orgId[0],
-            created_by: userDetails.userId,
-            updated_by: userDetails.userId,
-            tenantId: userDetails.tenantAndOrgInfo.tenantId,
-          };
-
-          let orgExtension = await createOrgExtension(extensionData);
-          return {
-            success: true,
-            data: orgExtension.data,
-          };
       }
 
  } catch (error) {
@@ -95,5 +83,5 @@ async function getOrCreateOrgExtension(userDetails) {
 
 module.exports = {
   createOrgExtension: createOrgExtension,
-  getOrCreateOrgExtension: getOrCreateOrgExtension,
+  getOrgExtension: getOrgExtension,
 };

@@ -1914,10 +1914,13 @@ module.exports = class SolutionsHelper {
            orgId: [userDetails.tenantData.orgId],
          };
 
-         // Getting organizationExtension document or create a newOne if not exists
-         let organizationExtensionDocuments = await organizationExtensionUtils.getOrCreateOrgExtension(
+         // Getting organizationExtension document
+         let organizationExtensionDocuments = await organizationExtensionUtils.getOrgExtension(
             userDetails
          );
+         if(!organizationExtensionDocuments || !organizationExtensionDocuments?.data?._id){
+          throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
+        }
          //get orgPolicy based on solutionType from orgExtension
          let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.data.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.data.externalSurveyResourceVisibilityPolicy
          let visibilityQuery =[]

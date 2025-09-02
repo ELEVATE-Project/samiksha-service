@@ -69,11 +69,11 @@ module.exports = class organisationExtensionHelper {
   /**
    * org eventListener
    * @method
-   * @name eventListener
+   * @name create
    * @param {Object} [eventBody] -  eventBody .
    * @returns {Object} - response with status
    */
-  static async eventListener(eventBody) {
+  static async create(eventBody) {
     try {
       //EventBody Validation - TODO: Check if this should be a middleware
       /* const { entity, eventType, entityId } = eventBody

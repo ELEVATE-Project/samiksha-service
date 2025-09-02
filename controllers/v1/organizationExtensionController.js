@@ -27,10 +27,29 @@ module.exports = class  OrganizationExtension extends Abstract {
     * @apiGroup organizationExtension
     * @apiSampleRequest /survey/v1/organizationExtension/update
     * @apiParamExample {json} Request:
-    * 
-
+    * {   
+      "observationResourceVisibilityPolicy": "ALL"    
+       }
     * @apiParamExample {json} Response:
-   
+      {
+        "message": "Organization extension Updated successfully",
+        "status": 200,
+        "result": {
+        "_id": "689c4b1d3752d47770713d97",
+        "orgId": "mys",
+        "observationResourceVisibilityPolicy": "ALL",
+        "externalObservationResourceVisibilityPolicy": "CURRENT",
+        "surveyResourceVisibilityPolicy": "CURRENT",
+        "externalSurveyResourceVisibilityPolicy": "CURRENT",
+        "createdBy": "SYSTEM",
+        "updatedBy": "1",
+        "tenantId": "shikshagraha",
+        "deleted": false,
+        "updatedAt": "2025-09-02T07:06:53.661Z",
+        "createdAt": "2025-08-13T08:21:49.524Z",
+        "__v": 0
+       }
+      }
     * @apiUse successBody
     * @apiUse errorBody
     */
@@ -67,28 +86,52 @@ module.exports = class  OrganizationExtension extends Abstract {
     * @apiGroup organizationExtension
     * @apiSampleRequest /survey/v1/organizationExtension/eventListener
     * @apiParamExample {json} Request:
-    *
+    * {   
+         "externalId": "test_green_school_yojane_03_556789",
+          "name": "Test courses",
+         "description": "Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities.",
+         "tenantId":"shikshalokam",
+         "entityId":"SLOrg3"
+       }
 
     * @apiParamExample {json} Response:
+      {
+       "status": 200,
+        "result": {
+        "orgId": "SLOrg3",
+        "observationResourceVisibilityPolicy": "CURRENT",
+        "externalObservationResourceVisibilityPolicy": "CURRENT",
+        "surveyResourceVisibilityPolicy": "CURRENT",
+        "externalSurveyResourceVisibilityPolicy": "CURRENT",
+        "createdBy": "SYSTEM",
+        "updatedBy": "SYSTEM",
+        "tenantId": "shikshalokam",
+        "_id": "68b698cc000046ee20489fbc",
+        "deleted": false,
+        "updatedAt": "2025-09-02T07:12:12.279Z",
+        "createdAt": "2025-09-02T07:12:12.279Z",
+        "__v": 0
+      }
+     }
    
     * @apiUse successBody
     * @apiUse errorBody
     */
 
   /**
-   *  eventListener for organizationExtension create.
+   * organizationExtension create.
    * @method
-   * @name eventListener
+   * @name create
    * @param {Object} req - requested data.
    * @returns {JSON}  Created organizationExtension data.
    */
 
-  async eventListener(req) {
+  async create(req) {
     return new Promise(async (resolve, reject) => {
       try {
         console.log('CONTROLLER REQUEST BODY: ', req.body)
         //passing true for update userCourses doucment with isDeleted true
-        let organizationExtensionData = await organizationHelper.eventListener(req.body,req.userDetails);
+        let organizationExtensionData = await organizationHelper.create(req.body,req.userDetails);
         organizationExtensionData['result'] = organizationExtensionData.data;
         return resolve(organizationExtensionData);
       } catch (error) {

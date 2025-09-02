@@ -95,13 +95,18 @@ module.exports = class LibraryCategories extends Abstract {
 	 * @apiGroup Library Categories
 	 * @apiSampleRequest /survey/api/v1/library/categories/create
 	 * {json} Request body
+	 * {   
+         "externalId": "test_green_school_yojane_03_556789",
+         "name": "Test courses",
+         "description": "Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities."
+        }
 	 * @apiParamExample {json} Response:
 	 *   
-   * {
+     * {
        "message": "Library categories Added successfully",
        "status": 200,
        "result": "68935c603f35011fa5f76fee"
-    }
+       }
 	 * @apiUse successBody
 	 * @apiUse errorBody
 	 */
@@ -141,7 +146,15 @@ module.exports = class LibraryCategories extends Abstract {
 	 * @apiSampleRequest /survey/api/v1/library/categories/update
 	 * {json} Request body
 	 * @apiParamExample {json} Response:
-	 *
+	 * {   
+         "name": "Test courses2",
+         "description": "Summa ulalali."    
+       }
+	* @apiParamExample {json} Response:
+	* {
+    *     success: true,
+    *     message: "Library categories Updated successfully" ",
+        }
 	 * @apiUse successBody
 	 * @apiUse errorBody
 	 */
@@ -177,22 +190,4 @@ module.exports = class LibraryCategories extends Abstract {
 		})
 	}
 
-	async importFromLibrary(req) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				if(req?.query?.isATargetedSolution) {
-                  req.query.isATargetedSolution =  gen.utils.convertStringToBoolean(req.query.isATargetedSolution)
-				}
-				const privateSolutions = await libraryCategoriesHelper.importFromLibrary(
-					req.params._id,
-					req.body,
-					req.query.isATargetedSolution ? req.query.isATargetedSolution : false,
-					req.userDetails
-				)
-
-				return resolve (privateSolutions)
-			} catch (error) {
-				return reject(error)
-			}
-		})
-	}};
+};

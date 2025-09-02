@@ -34,6 +34,8 @@ const topLevelEntityType = process.env.TOP_LEVEL_ENTITY_TYPE;
 const surveyService = require(ROOT_PATH + "/generics/services/survey");
 const userService = require(ROOT_PATH + '/generics/services/users');
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
+const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
 
 /**
  * ObservationsHelper
@@ -3017,5 +3019,169 @@ module.exports = class ObservationsHelper {
             return reject(error);
         }
     })
+  }
+  
+   /**
+   * create a parentSolution From framework
+   * @method
+   * @name importFromFrameWork
+   * @param {Object} req 
+   * @returns {JSON} - parentSolution Id.
+  */
+  static importFromFrameWork(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let tenantFilter = req.userDetails.tenantAndOrgInfo;
+        let frameworkDocument = await database.models.frameworks
+          .findOne({
+            externalId: req.query.frameworkId,
+            tenantId: tenantFilter.tenantId,
+          })
+          .lean();
+
+        if (!frameworkDocument._id) {
+          throw messageConstants.apiResponses.FRAMEWORK_NOT_FOUND;
+        }
+
+        // let entityTypeDocument = await database.models.entityTypes.findOne({
+        //     name: req.query.entityType,
+        //     isObservable: true
+        // }, {
+        //         _id: 1,
+        //         name: 1
+        //     }).lean();
+
+        // if (!entityTypeDocument._id) {
+        //     throw messageConstants.apiResponses.ENTITY_TYPES_NOT_FOUND;
+        // }
+
+        let criteriasIdArray = gen.utils.getCriteriaIds(frameworkDocument.themes);
+
+        let frameworkCriteria = await database.models.criteria
+          .find({
+            _id: { $in: criteriasIdArray },
+            tenantId: tenantFilter.tenantId,
+          })
+          .lean();
+
+        let solutionCriteriaToFrameworkCriteriaMap = {};
+
+        await Promise.all(
+          frameworkCriteria.map(async (criteria) => {
+            criteria.frameworkCriteriaId = criteria._id;
+
+            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
+
+            if (newCriteriaId._id) {
+              solutionCriteriaToFrameworkCriteriaMap[criteria._id.toString()] = newCriteriaId._id;
+            }
+          })
+        );
+
+        let updateThemes = function (themes) {
+          themes.forEach((theme) => {
+            let criteriaIdArray = new Array();
+            let themeCriteriaToSet = new Array();
+            if (theme.children) {
+              updateThemes(theme.children);
+            } else {
+              criteriaIdArray = theme.criteria;
+              criteriaIdArray.forEach((eachCriteria) => {
+                eachCriteria.criteriaId = solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
+                  ? solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
+                  : eachCriteria.criteriaId;
+                themeCriteriaToSet.push(eachCriteria);
+              });
+              theme.criteria = themeCriteriaToSet;
+            }
+          });
+          return true;
+        };
+
+        let newSolutionDocument = _.cloneDeep(frameworkDocument);
+
+        updateThemes(newSolutionDocument.themes);
+
+        newSolutionDocument.type = 'observation';
+        newSolutionDocument.subType =
+          frameworkDocument.subType && frameworkDocument.subType != '' ? frameworkDocument.subType : '';
+
+        newSolutionDocument.externalId = frameworkDocument.externalId + '-OBSERVATION-TEMPLATE';
+
+        newSolutionDocument.frameworkId = frameworkDocument._id;
+        newSolutionDocument.frameworkExternalId = frameworkDocument.externalId;
+
+        // newSolutionDocument.entityTypeId = entityTypeDocument._id;
+        // newSolutionDocument.entityType = entityTypeDocument.name;
+        newSolutionDocument.isReusable = true;
+        newSolutionDocument.tenantId = tenantFilter.tenantId;
+        newSolutionDocument.orgId = tenantFilter.orgId[0];
+        newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false;
+        //Add orgPolicies changes
+        let getOrgExternsionDocument = await organizationExtensionUtils.getOrgExtension(req.userDetails);
+
+        if (!getOrgExternsionDocument || !getOrgExternsionDocument.data._id) {
+          resolve({
+              status: httpStatusCode.bad_request.status,
+              message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND
+          })
+        }
+        newSolutionDocument.visibility = getOrgExternsionDocument.data.observationResourceVisibilityPolicy;
+        // Add categories to the solution Template
+        if (req?.body?.categories && req?.body?.categories.length > 0) {
+          let matchQuery = {};
+          matchQuery['tenantId'] = tenantFilter.tenantId;
+          matchQuery['externalId'] = { $in: req.body.categories };
+          // what is category documents
+          let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, ['externalId', 'name']);
+
+          if (!categories.length > 0) {
+            resolve({
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.LIBRARY_CATEGORY_NOT_FOUND,
+            });
+          }
+          // storing each category data in solutionDocument
+          newSolutionDocument.categories = categories.map((category) => ({
+            _id: new ObjectId(category._id),
+            externalId: category.externalId,
+            name: category.name,
+          }));
+        }
+        //get the related orgs for the solutions
+        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(
+          tenantFilter.orgId[0],
+          req.userDetails,
+          tenantFilter.tenantId
+        );
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+          resolve( {
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+          });
+        }
+        let visibleOrg = getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue) => {
+          return eachValue.code;
+        });
+        newSolutionDocument.visibleToOrganizations = visibleOrg;
+        let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
+
+        if (newBaseSolution._id) {
+          let result = {
+            templateId: newBaseSolution._id,
+          };
+
+          let response = {
+            message: messageConstants.apiResponses.OBSERVATION_SOLUTION,
+            result: result,
+          };
+          return resolve(response);
+        } else {
+          throw messageConstants.apiResponses.ERROR_CREATING_OBSERVATION;
+        }
+      } catch (error) {
+        return reject(error);
+      }
+    });
   }
 };

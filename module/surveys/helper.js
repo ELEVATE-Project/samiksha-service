@@ -191,7 +191,7 @@ module.exports = class SurveysHelper {
         newSolutionDocument.themes = themes;
 
            //Add orgPolicies changes
-           let getOrgExternsionDocument = await organizationExtensionUtils.getOrCreateOrgExtension(userDetails);
+           let getOrgExternsionDocument = await organizationExtensionUtils.getOrgExtension(userDetails);
 
            if(!getOrgExternsionDocument || !getOrgExternsionDocument.data._id){
              throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
