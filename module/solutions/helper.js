@@ -1944,7 +1944,7 @@ module.exports = class SolutionsHelper {
             ]        
             break
             default:
-               resolve({
+               return resolve({
                 message: messageConstants.apiResponses.INVALID_POLICY,
                 result: [],
                 success:false

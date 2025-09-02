@@ -89,24 +89,23 @@ module.exports = class LibraryCategories extends Abstract {
   }
 
 	/**
-	 * @api {post} /survey/api/v1/library/categories/create
-	 * List of library projects.
+	 * @api {post} /survey/v1/library/categories/create
+	 * create  library categories.
 	 * @apiVersion 1.0.0
 	 * @apiGroup Library Categories
-	 * @apiSampleRequest /survey/api/v1/library/categories/create
+	 * @apiSampleRequest /survey/v1/library/categories/create
 	 * {json} Request body
 	 * {   
          "externalId": "test_green_school_yojane_03_556789",
          "name": "Test courses",
          "description": "Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities."
-        }
+      }
 	 * @apiParamExample {json} Response:
-	 *   
-     * {
+   * {
        "message": "Library categories Added successfully",
        "status": 200,
        "result": "68935c603f35011fa5f76fee"
-       }
+     }
 	 * @apiUse successBody
 	 * @apiUse errorBody
 	 */
@@ -140,10 +139,10 @@ module.exports = class LibraryCategories extends Abstract {
   
   	/**
 	 * @api {post} /survey/v1/library/categories/update/_id
-	 * List of library projects.
+	 * update library categories.
 	 * @apiVersion 1.0.0
 	 * @apiGroup Library Categories
-	 * @apiSampleRequest /survey/api/v1/library/categories/update
+	 * @apiSampleRequest /survey/v1/library/categories/update
 	 * {json} Request body
 	 * @apiParamExample {json} Response:
 	 * {   
@@ -153,7 +152,7 @@ module.exports = class LibraryCategories extends Abstract {
 	* @apiParamExample {json} Response:
 	* {
     *     success: true,
-    *     message: "Library categories Updated successfully" ",
+    *     message: "Library categories updated successfully" ",
         }
 	 * @apiUse successBody
 	 * @apiUse errorBody

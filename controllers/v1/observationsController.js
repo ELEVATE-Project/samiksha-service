@@ -1153,22 +1153,19 @@ module.exports = class Observations extends Abstract {
   }
 
   /**
-   * @api {get} /assessment/api/v1/observations/importFromFramework?frameworkId:frameworkExternalId&entityType=entityType Create observation solution from framework.
+   * @api {post} /survey/v1/observations/importFromFramework?frameworkId:frameworkExternalId&entityType=entityType Create observation solution from framework.
    * @apiVersion 1.0.0
    * @apiName Create observation solution from framework.
    * @apiGroup Observations
    * @apiHeader {String} X-authenticated-user-token Authenticity token
    * @apiParam {String} frameworkId Framework External ID.
    * @apiParam {String} entityType Entity Type.
-   * @apiSampleRequest /assessment/api/v1/observations/importFromFramework?frameworkId=CRO-VERSION2-2019&entityType=school
-   * 
+   * @apiSampleRequest /survey/v1/observations/importFromFramework?frameworkId=CRO-VERSION2-2019&entityType=school
+   * {json} Request-Body
    * {
        "categories":["test_green_school_yojane_03_556789","test_green_school_yojane_03_5567","test"]
       }
-
-   * 
    * @apiSampleResponse
-   * 
    * {
       "message": "Observation Solution generated.",
        "status": 200,

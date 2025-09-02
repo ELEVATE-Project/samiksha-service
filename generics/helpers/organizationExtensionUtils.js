@@ -22,18 +22,18 @@ const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organization
 async function createOrgExtension(eventBody) {
   try {
     console.log('EVENT BODY: ', eventBody);
-    if (!eventBody || !eventBody.entityId || !eventBody.tenantId) {
+    if (!eventBody || !eventBody.orgCode || !eventBody.tenantCode) {
       return {
         status: httpStatusCode.bad_request.status,
         message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
       };
     }
     let extensionData = {
-      orgId: eventBody.entityId,
+      orgId: eventBody.orgCode,
       created_by: eventBody.created_by,
       updated_by: eventBody.created_by,
       name: eventBody.name,
-      tenantId: eventBody.tenantId,
+      tenantId: eventBody.tenantCode,
     };
     console.log('EXTENSION DATA BEFORE INSERT: ', extensionData);
     let orgExtension = await organizationExtensionQueries.create(extensionData);
@@ -70,6 +70,14 @@ async function getOrgExtension(userDetails) {
           success: true,
           data: organizationExtensionDocuments[0],
         };
+      } else {
+        return {
+          success: false,
+          status: httpStatusCode.bad_request.status,
+          message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND,
+          data:false
+        };
+
       }
 
  } catch (error) {

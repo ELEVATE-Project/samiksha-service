@@ -26,18 +26,49 @@ module.exports = class libraryCategoriesHelper {
   static list(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let result = '';
-        let libraryData = sessionHelpers.get(`libraryCategories-${req.userDetails.userId}`);
 
-        if (libraryData && libraryData.length > 0) {
-          result = libraryData;
-        } else {
-          result = await this.setLibraryCategories(req);
+        // let result = '';
+        // let libraryData = sessionHelpers.get(`libraryCategories-${req.userDetails.userId}`);
+
+        // if (libraryData && libraryData.length > 0) {
+        //   result = libraryData;
+        // } else {
+        //   result = await this.setLibraryCategories(req);
+        // }
+
+        let query = {};
+
+        // create query to fetch assets
+        query['tenantId'] = req.userDetails.tenantData.tenantId;
+        query['visibleToOrganizations'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
+
+        // handle currentOrgOnly filter
+        if (req.query['currentOrgOnly']) {
+          let currentOrgOnly = gen.utils.convertStringToBoolean(req.query['currentOrgOnly']);
+          if (currentOrgOnly) {
+            query['orgId'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
+          }
+        }
+        query['status'] = messageConstants.common.ACTIVE_STATUS;
+        let libraryCategories = await libraryCategoriesQueries.categoryDocuments(query, [
+          'externalId',
+          'name',
+          'icon',
+          'updatedAt',
+          'noOfSolutions',
+        ]);
+
+        if (!libraryCategories.length > 0) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.LIBRARY_CATEGORIES_NOT_FOUND,
+            result: [],
+          };
         }
 
         return resolve({
           message: messageConstants.apiResponses.LIBRARY_CATEGORY_FETCHED,
-          result: result,
+          result: libraryCategories,
         });
       } catch (error) {
         return reject({
@@ -69,7 +100,7 @@ module.exports = class libraryCategoriesHelper {
         if (req.query['currentOrgOnly']) {
           let currentOrgOnly = gen.utils.convertStringToBoolean(req.query['currentOrgOnly']);
           if (currentOrgOnly) {
-            query['orgId'] = { $in: ['ALL', req.userDetails.userInformation.organizationId] };
+            query['orgId'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
           }
         }
         query['status'] = messageConstants.common.ACTIVE_STATUS;
@@ -120,10 +151,7 @@ module.exports = class libraryCategoriesHelper {
 
         let result = await sessionHelpers.set(`libraryCategories-${req.userDetails.userId}`, libraryCategories);
 
-        return resolve({
-          message: messageConstants.apiResponses.LIBRARY_CATEGORY_FETCHED,
-          result: result,
-        });
+        return resolve(result);
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,

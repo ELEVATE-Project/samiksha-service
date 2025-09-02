@@ -191,12 +191,12 @@ module.exports = class SurveysHelper {
         newSolutionDocument.themes = themes;
 
            //Add orgPolicies changes
-           let getOrgExternsionDocument = await organizationExtensionUtils.getOrgExtension(userDetails);
+           let getOrgExtensionDocument = await organizationExtensionUtils.getOrgExtension(userDetails);
 
-           if(!getOrgExternsionDocument || !getOrgExternsionDocument.data._id){
+           if(!getOrgExtensionDocument || !getOrgExtensionDocument?.data?._id){
              throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
            }
-           newSolutionDocument.visibility = getOrgExternsionDocument.data.surveyResourceVisibilityPolicy ;
+           newSolutionDocument.visibility = getOrgExtensionDocument.data.surveyResourceVisibilityPolicy ;
            // Add categories to the solution Template
            if(solutionData?.categories && solutionData?.categories.length>0){
              let matchQuery = {}

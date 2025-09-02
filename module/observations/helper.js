@@ -3039,7 +3039,7 @@ module.exports = class ObservationsHelper {
           })
           .lean();
 
-        if (!frameworkDocument._id) {
+        if (!frameworkDocument || !frameworkDocument._id) {
           throw messageConstants.apiResponses.FRAMEWORK_NOT_FOUND;
         }
 
@@ -3118,32 +3118,32 @@ module.exports = class ObservationsHelper {
         newSolutionDocument.orgId = tenantFilter.orgId[0];
         newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false;
         //Add orgPolicies changes
-        let getOrgExternsionDocument = await organizationExtensionUtils.getOrgExtension(req.userDetails);
+        let getOrgExtensionDocument = await organizationExtensionUtils.getOrgExtension(req.userDetails);
 
-        if (!getOrgExternsionDocument || !getOrgExternsionDocument.data._id) {
+        if (!getOrgExtensionDocument || !getOrgExtensionDocument?.data?._id) {
           resolve({
               status: httpStatusCode.bad_request.status,
               message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND
           })
         }
-        newSolutionDocument.visibility = getOrgExternsionDocument.data.observationResourceVisibilityPolicy;
+        newSolutionDocument.visibility = getOrgExtensionDocument.data.observationResourceVisibilityPolicy;
         // Add categories to the solution Template
         if (req?.body?.categories && req?.body?.categories.length > 0) {
           let matchQuery = {};
           matchQuery['tenantId'] = tenantFilter.tenantId;
           matchQuery['externalId'] = { $in: req.body.categories };
           // what is category documents
-          let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, ['externalId', 'name']);
+          let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, ['_id','externalId', 'name']);
 
           if (!categories.length > 0) {
-            resolve({
+            return resolve({
               status: httpStatusCode.bad_request.status,
               message: messageConstants.apiResponses.LIBRARY_CATEGORY_NOT_FOUND,
             });
           }
           // storing each category data in solutionDocument
           newSolutionDocument.categories = categories.map((category) => ({
-            _id: new ObjectId(category._id),
+            _id: category._id,
             externalId: category.externalId,
             name: category.name,
           }));
@@ -3155,7 +3155,7 @@ module.exports = class ObservationsHelper {
           tenantFilter.tenantId
         );
         if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
-          resolve( {
+          return resolve( {
             status: httpStatusCode.internal_server_error.status,
             message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
           });
