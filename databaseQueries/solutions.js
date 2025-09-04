@@ -175,4 +175,22 @@ module.exports = class Solutions {
 			}
 		})
 	}
+
+    /**
+	 * update solutions documents based on the provided MongoDB filter.
+	 * @param {Object} filter - MongoDB query filter to match documents for update.
+   * @param {Object} updateQuery - MongoDB update query to apply to matching documents.
+	 * @returns {Promise<Object>} - MongoDB  result containing  updated count.
+	 */
+	static update(filterQuery, updateQuery) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				// Run updateMany to apply this change to all program docs
+				const result = await database.models.solutions.updateMany(filterQuery, updateQuery)
+        return resolve(result);
+			} catch (error) {
+        return reject(error);
+			}
+		})
+	}
 };

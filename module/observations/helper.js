@@ -3154,13 +3154,14 @@ module.exports = class ObservationsHelper {
           req.userDetails,
           tenantFilter.tenantId
         );
-        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.related_org_details) {
           return resolve( {
             status: httpStatusCode.internal_server_error.status,
             message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
           });
         }
-        let visibleOrg = getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue) => {
+        //get the code to store it in  visibleToOrganizations key
+        let visibleOrg = getRelatedOrgs.data.related_org_details.map((eachValue) => {
           return eachValue.code;
         });
         newSolutionDocument.visibleToOrganizations = visibleOrg;

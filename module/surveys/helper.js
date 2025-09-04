@@ -225,14 +225,14 @@ module.exports = class SurveysHelper {
            }
          //get the related orgs for the solutions
          let getRelatedOrgs = await userService.fetchDefaultOrgDetails(tenantData.orgId[0],userDetails,tenantData.tenantId);
-        if (!getRelatedOrgs.success || !getRelatedOrgs.data.relatedOrgsIdAndCode) {
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.related_org_details) {
          throw ({
            status: httpStatusCode.internal_server_error.status,
            message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
          });
         }
         //get the codes only for the solution
-        let visibleOrg = getRelatedOrgs.data.relatedOrgsIdAndCode.map((eachValue)=> {return eachValue.code})
+        let visibleOrg = getRelatedOrgs.data.related_org_details.map((eachValue)=> {return eachValue.code})
         newSolutionDocument.visibleToOrganizations = visibleOrg ;
         let newSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
 

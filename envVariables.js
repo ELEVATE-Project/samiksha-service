@@ -411,6 +411,12 @@ let enviromentVariables = {
 		optional: false,
 		default: 'survey-health-check-topic-check',
 	},
+
+  ORG_EXTENSION_TOPIC: {
+		message: 'Required ORG_EXTENSION_TOPIC',
+		optional: true,
+		default: 'elevate_org_extension_dev',
+	},
 };
 
 let success = true;

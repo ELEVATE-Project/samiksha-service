@@ -229,7 +229,8 @@ module.exports = async function (req, res, next) {
     '/library/categories/create',
 		'/library/categories/update',
     '/organizationExtension/update',
-    '/organizationExtension/eventListener'
+    '/organizationExtension/eventListener',
+    'admin/updateRelatedOrgs',
   ];
 
   let performInternalAccessTokenCheck = false;

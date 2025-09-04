@@ -12,15 +12,14 @@
  * @class
  */
 
-
-const ConfigurationsHelper = require(MODULES_BASE_PATH+"/configurations/helper");
+const ConfigurationsHelper = require(MODULES_BASE_PATH + '/configurations/helper');
 const userExtensionsQueries = require(DB_QUERY_BASE_PATH + '/userExtensions');
 const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-const projectService = require(ROOT_PATH + '/generics/services/project')
-const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs')
+const projectService = require(ROOT_PATH + '/generics/services/project');
+const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
 const observationSubmissionsQueries = require(DB_QUERY_BASE_PATH + '/observationSubmissions');
@@ -42,7 +41,7 @@ module.exports = class adminHelper {
     skipFields = 'none',
     limitingValue = 100,
     skippingValue = 0,
-    sortedData = '',
+    sortedData = ''
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -111,7 +110,7 @@ module.exports = class adminHelper {
    * @param {Array} [keys] - keys in array to be indexed.
    * @returns {Object} returns a object.
    */
-  static async createIndex(collection,keys){
+  static async createIndex(collection, keys) {
     let presentIndex = await database.models[collection].listIndexes({}, { key: 1 });
     let indexes = presentIndex.map((indexedKeys) => {
       return Object.keys(indexedKeys.key)[0];
@@ -126,26 +125,23 @@ module.exports = class adminHelper {
         // Filter keys that start with "scope." and extract the part after "scope."
         const scopeKeys = keys
           .filter((key) => key.startsWith('scope.')) // Filter out keys that start with "scope."
-          .map((key) => key.split('scope.')[1]) // Extract the part after "scope."
+          .map((key) => key.split('scope.')[1]); // Extract the part after "scope."
         if (scopeKeys.length > 0) {
-           await ConfigurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys)
+          await ConfigurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys);
         }
       }
 
       return {
         message: messageConstants.apiResponses.KEYS_INDEXED_SUCCESSFULL,
         success: true,
-      }
-
-  }else{
-    return {
-      message: messageConstants.apiResponses.KEYS_ALREADY_INDEXED_SUCCESSFULL,
-      success: true,
+      };
+    } else {
+      return {
+        message: messageConstants.apiResponses.KEYS_ALREADY_INDEXED_SUCCESSFULL,
+        success: true,
+      };
     }
   }
-
-}
-
 
   /**
    * Deletes a program or solution resource along with its associated dependencies.
@@ -278,8 +274,8 @@ module.exports = class adminHelper {
           }
 
           // Pull the solution from other components (soft link cleanup)
-          let pullResult =  await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
-          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0
+          let pullResult = await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0;
           // Delete the solution
           await solutionsQueries.delete(solutionFilter);
           deletedSolutionsCount++;
@@ -509,6 +505,63 @@ module.exports = class adminHelper {
           result: finalResult,
         });
       } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
+  static updateRelatedOrgs(bodyData, userDetails) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!bodyData || !bodyData.code || !bodyData.tenant_code) {
+          return {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
+          };
+        }
+        //get org and tenantId for userDetails if its admin updating relatedOrgs
+        let org_code = userDetails?.tenantAndOrgInfo?.orgId?.[0] || bodyData.code;
+        let tenant_code = userDetails?.tenantAndOrgInfo?.tenantId || bodyData.tenant_code;
+        let userId = userDetails?.userId || bodyData.updated_by;
+        let solutionUpdate = {};
+        if (
+          bodyData?.changes?.hasOwnProperty('related_orgs') &&
+          bodyData?.changes.hasOwnProperty('related_org_details')
+        ) {
+          //get the code to store it in  visibleToOrganizations key
+          let visibleOrg = bodyData.changes.related_org_details?.map((eachValue) => {
+            return eachValue.code;
+          });
+
+          //  update query
+          const filterQuery = { orgId: org_code, tenantId: tenant_code, isReusable: true };
+          const updateQuery = {
+            $set: { visibleToOrganizations: visibleOrg, updatedAt: new Date(), updatedBy: userId },
+          };
+
+          //update the solutions
+          solutionUpdate = await solutionsQueries.update(filterQuery, updateQuery);
+
+          if (!solutionUpdate || !solutionUpdate.acknowledged) {
+            return resolve({
+              status: httpStatusCode.internal_server_error.status,
+              message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+              result: solutionUpdate,
+            });
+          }
+        }
+
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.SOLUTION_UPDATED,
+          result: solutionUpdate,
+        });
+      } catch (error) {
+        console.log(error,"this is error")
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,
           message: error.message || httpStatusCode.internal_server_error.message,
