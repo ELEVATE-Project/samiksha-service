@@ -2942,7 +2942,7 @@ module.exports = class SolutionsHelper {
            let entitiesDocument = await entityManagementService.entityDocuments(
              filterData,["_id"]
            );
-           if (entitiesDocument.success || entitiesDocument?.data > 0) {
+           if (entitiesDocument.success && entitiesDocument?.data?.length > 0) {
             solutionDataToBeUpdated.entities = [entitiesDocument.data[0]._id];
           }
           }

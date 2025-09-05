@@ -17,7 +17,7 @@ const adminHelper = require(MODULES_BASE_PATH + '/admin/helper');
  *   key:null
  *   offset:62
  *   partition:0
- *   topic:'elevate-user-courses-dev'
+ *   topic:'elevate_org_extension_dev'
  *   value:{
         "entity": "organization",
         "eventType": "create",
@@ -42,7 +42,6 @@ const adminHelper = require(MODULES_BASE_PATH + '/admin/helper');
 var messageReceived = function (message) {
   return new Promise(async function (resolve, reject) {
     try {
-      console.log(message,"this is message")
       let parsedMessage = JSON.parse(message.value);
       let orgExtensionStatus;
       if (parsedMessage.eventType && parsedMessage.eventType === 'create') {

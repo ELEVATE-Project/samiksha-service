@@ -246,7 +246,7 @@ module.exports = class Admin {
 
    /**
      * @api {post} /survey/v1/admin/updateRelatedOrgs
-     * List of data based on collection
+     * update related organizations for solutions (visibleToOrganizations).     
      * @apiVersion 1.0.0
      * @apiGroup Admin
      * @apiSampleRequest /survey/v1/admin/updateRelatedOrgs

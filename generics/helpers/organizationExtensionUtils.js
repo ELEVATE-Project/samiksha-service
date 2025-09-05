@@ -21,7 +21,6 @@ const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organization
  */
 async function createOrgExtension(eventBody) {
   try {
-    console.log('EVENT BODY: ', eventBody);
     if (!eventBody || !eventBody.code || !eventBody.tenant_code) {
       return {
         status: httpStatusCode.bad_request.status,
@@ -35,9 +34,7 @@ async function createOrgExtension(eventBody) {
       name: eventBody.name,
       tenantId: eventBody.tenant_code,
     };
-    console.log('EXTENSION DATA BEFORE INSERT: ', extensionData);
     let orgExtension = await organizationExtensionQueries.create(extensionData);
-    console.log('EXTENSION DATA AFTER INSERT: ', orgExtension);
     return {
       success: true,
       data: orgExtension,
@@ -54,14 +51,14 @@ async function createOrgExtension(eventBody) {
 async function getOrgExtension(userDetails) {
  try {
       // Query to get the orgExtension document
-      let orgExtensionfilter = {
+      let orgExtensionFilter = {
         tenantId: userDetails.tenantAndOrgInfo.tenantId,
         orgId: userDetails.tenantAndOrgInfo.orgId[0],
       };
 
       // Getting organizationExtension document 
       let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
-        orgExtensionfilter
+        orgExtensionFilter
       );
 
       // Check if the organizationExtension document exists or else create new one
