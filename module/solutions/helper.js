@@ -696,6 +696,7 @@ module.exports = class SolutionsHelper {
             };
             matchQuery['$or'].push(singleType);
           });
+          matchQuery['endDate'] = { $gte: new Date() };
         } else {
           if (type !== '') {
             matchQuery['type'] = type;
