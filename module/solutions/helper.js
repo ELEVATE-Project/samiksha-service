@@ -696,6 +696,7 @@ module.exports = class SolutionsHelper {
             };
             matchQuery['$or'].push(singleType);
           });
+          matchQuery['endDate'] = { $gte: new Date() };
         } else {
           if (type !== '') {
             matchQuery['type'] = type;
@@ -3531,6 +3532,8 @@ module.exports = class SolutionsHelper {
             $arrayElemAt: ['$totalCount.count', 0],
           },
         };
+
+        console.log(matchQuery,'matchQuery')
         let solutionDocuments = await solutionsQueries.getAggregate([
           { $match: matchQuery },
           {
