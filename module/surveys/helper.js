@@ -767,7 +767,7 @@ module.exports = class SurveysHelper {
           return resolve(validateSurvey);
         }
        // Get the details of the survey
-        let surveyDetails = await this.details(surveyId, userId, validateSurvey.data.submissionId, roleInformation);
+        let surveyDetails = await this.details(surveyId, userId, validateSurvey.data.submissionId, roleInformation,token,tenantData);
 
         if (!surveyDetails.success) {
           return resolve(surveyDetails);
