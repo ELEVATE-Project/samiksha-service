@@ -24,7 +24,7 @@ const fs = require('fs');
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-
+const surveysHelper = require(MODULES_BASE_PATH + '/surveys/helper');
 /**
  * UserHelper
  * @class
@@ -529,9 +529,9 @@ module.exports = class UserHelper {
 
         // getting all the targted solutionIds from targted solutions
         const allTargetedSolutionIds = gen.utils.convertArrayObjectIdtoStringOfObjectId(mergedData);
-
+        let solutionIdsSerialized = gen.utils.convertArrayObjectIdtoStringOfObjectId(solutionIds)
         //finding solutions which are not targtted but user has submitted.
-        const resourcesWithPreviousProfile = _.differenceWith(solutionIds, allTargetedSolutionIds);
+        const resourcesWithPreviousProfile = _.differenceWith(solutionIdsSerialized, allTargetedSolutionIds);
 
         /**
          * @function solutionDocuments

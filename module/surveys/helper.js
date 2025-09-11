@@ -828,8 +828,8 @@ module.exports = class SurveysHelper {
         if (!validateSurvey.success) {
           return resolve(validateSurvey);
         }
-        // Get the details of the survey
-        let surveyDetails = await this.details(surveyId, userId, validateSurvey.data.submissionId, roleInformation);
+       // Get the details of the survey
+        let surveyDetails = await this.details(surveyId, userId, validateSurvey.data.submissionId, roleInformation,token,tenantData);
 
         if (!surveyDetails.success) {
           return resolve(surveyDetails);
