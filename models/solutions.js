@@ -126,6 +126,7 @@ module.exports = {
     visibleToOrganizations: {
       type: Array,
       default: [],
+      index: true,
     },
     visibility: {
       type: String,

@@ -415,7 +415,7 @@ let enviromentVariables = {
   ORG_EXTENSION_TOPIC: {
 		message: 'Required ORG_EXTENSION_TOPIC',
 		optional: true,
-		default: 'elevate_org_extension_dev',
+		default: 'dev.organizationEvent',
 	},
 };
 

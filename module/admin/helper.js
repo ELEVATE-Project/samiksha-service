@@ -12,7 +12,7 @@
  * @class
  */
 
-const ConfigurationsHelper = require(MODULES_BASE_PATH + '/configurations/helper');
+const configurationsHelper = require(MODULES_BASE_PATH + '/configurations/helper');
 const userExtensionsQueries = require(DB_QUERY_BASE_PATH + '/userExtensions');
 const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
@@ -127,7 +127,7 @@ module.exports = class adminHelper {
           .filter((key) => key.startsWith('scope.')) // Filter out keys that start with "scope."
           .map((key) => key.split('scope.')[1]); // Extract the part after "scope."
         if (scopeKeys.length > 0) {
-          await ConfigurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys);
+          await configurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys);
         }
       }
 
@@ -513,7 +513,18 @@ module.exports = class adminHelper {
       }
     });
   }
-
+   
+    /**
+   * update multiple library solutions resources based on related_orgs changes.
+   * @method
+   * @name updateRelatedOrgs
+   * @param {Object} bodyData - Contains the  tenantId, orgId, and userId.
+   * @param {string} bodyData.tenant_code - Tenant identifier.
+   * @param {string} bodyData.code - Organization identifier.
+   * @param {string} bodyData.updated_by - Identifier of the user who triggered deletion.
+   * @param {Object} userDetails - logged in userDetails
+   * @returns {Promise<Object>} - Returns success status or error information.
+   */
   static updateRelatedOrgs(bodyData, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {

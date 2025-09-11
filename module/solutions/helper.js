@@ -1919,7 +1919,10 @@ module.exports = class SolutionsHelper {
             userDetails
          );
          if(!organizationExtensionDocuments || !organizationExtensionDocuments?.data?._id){
-          throw messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND;
+          reject({
+            status: httpStatusCode.bad_request.status,
+            message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND
+        })
         }
          //get orgPolicy based on solutionType from orgExtension
          let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.data.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.data.externalSurveyResourceVisibilityPolicy
@@ -1927,20 +1930,19 @@ module.exports = class SolutionsHelper {
          // Generate a Query based on policies
          switch (orgPolicies) {
           case messageConstants.common.CURRENT:
-            matchQuery['$match']['visibility'] = messageConstants.common.CURRENT
             matchQuery['$match']['orgId'] = userDetails.tenantData.orgId
             break
           case messageConstants.common.ALL_POLICY:
             visibilityQuery = [
               { visibility: messageConstants.common.ALL_POLICY },
               { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
-              { visibility: messageConstants.common.CURRENT, orgId: userDetails.tenantData.orgId }
+              { orgId: userDetails.tenantData.orgId }
             ];
             break
           case messageConstants.common.ASSOCIATED:
             visibilityQuery = [
               { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
-              { visibility: messageConstants.common.CURRENT, orgId: userDetails.tenantData.orgId },      
+              { orgId: userDetails.tenantData.orgId },      
             ]        
             break
             default:
@@ -1990,7 +1992,7 @@ module.exports = class SolutionsHelper {
         if (matchAndQuery.length >0){
             matchQuery['$match'] ["$and"] =  matchAndQuery 
         }
-        let solutionDocument = await this.search(matchQuery, limit, page, {
+        let solutionDocument =  await this.search(matchQuery, limit, page, {
           name: 1,
           description: 1,
           externalId: 1,

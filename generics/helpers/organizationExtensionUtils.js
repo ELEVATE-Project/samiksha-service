@@ -27,6 +27,27 @@ async function createOrgExtension(eventBody) {
         message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
       };
     }
+    
+     // Query to get the orgExtension document
+     let orgExtensionFilter = {
+      tenantId: eventBody.tenant_code,
+      orgId: eventBody.code,
+    };
+
+    // Getting organizationExtension document 
+    let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
+      orgExtensionFilter
+    );
+     
+    //Check orgExtension already exists or else create new one
+    if(organizationExtensionDocuments.length > 0) {
+      return {
+        success: false,
+        status: httpStatusCode.bad_request.status,
+        message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_ALREADY_EXISTS,
+      };
+
+    }
     let extensionData = {
       orgId: eventBody.code,
       created_by: eventBody.created_by,

@@ -80,11 +80,11 @@ module.exports = class  OrganizationExtension extends Abstract {
 
 
   /**
-    * @api {post} /survey/v1/organizationExtension/eventListener
+    * @api {post} /survey/v1/organizationExtension/create
     * Create  organizationExtension.
     * @apiVersion 1.0.0
     * @apiGroup organizationExtension
-    * @apiSampleRequest /survey/v1/organizationExtension/eventListener
+    * @apiSampleRequest /survey/v1/organizationExtension/create
     * @apiParamExample {json} Request:
     * {   
          "externalId": "test_green_school_yojane_03_556789",
@@ -129,7 +129,6 @@ module.exports = class  OrganizationExtension extends Abstract {
   async create(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('CONTROLLER REQUEST BODY: ', req.body)
         //passing true for update userCourses doucment with isDeleted true
         let organizationExtensionData = await organizationHelper.create(req.body,req.userDetails);
         organizationExtensionData['result'] = organizationExtensionData.data;

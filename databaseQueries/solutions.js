@@ -194,7 +194,7 @@ module.exports = class Solutions {
         if (Object.keys(updateQuery).length == 0) {
           throw new Error(messageConstants.apiResponses.UPDATE_OBJECT_REQUIRED);
         }
-        // Run updateMany to apply this change to all program docs
+        // Run updateMany to apply this change to all solution docs
         const result = await database.models.solutions.updateMany(filterQuery, updateQuery);
         return resolve(result);
       } catch (error) {

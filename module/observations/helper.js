@@ -3161,12 +3161,12 @@ module.exports = class ObservationsHelper {
           });
         }
         //get the code to store it in  visibleToOrganizations key
-        let visibleOrg = getRelatedOrgs.data.related_org_details.map((eachValue) => {
+        let visibleOrg = getRelatedOrgs?.data?.related_org_details.map((eachValue) => {
           return eachValue.code;
         });
         newSolutionDocument.visibleToOrganizations = visibleOrg;
-        let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
-
+        let newBaseSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
+        console.log(newBaseSolution)
         if (newBaseSolution._id) {
           let result = {
             templateId: newBaseSolution._id,

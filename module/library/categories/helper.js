@@ -42,14 +42,8 @@ module.exports = class libraryCategoriesHelper {
         query['tenantId'] = req.userDetails.tenantData.tenantId;
         query['visibleToOrganizations'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
 
-        // handle currentOrgOnly filter
-        if (req.query['currentOrgOnly']) {
-          let currentOrgOnly = gen.utils.convertStringToBoolean(req.query['currentOrgOnly']);
-          if (currentOrgOnly) {
-            query['orgId'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
-          }
-        }
         query['status'] = messageConstants.common.ACTIVE_STATUS;
+
         let libraryCategories = await libraryCategoriesQueries.categoryDocuments(query, [
           'externalId',
           'name',
@@ -84,6 +78,9 @@ module.exports = class libraryCategoriesHelper {
    * Set library categories.
    * @method
    * @name setLibraryCategories
+   * @param {Object} req - request object.
+   * @param {Object} req.userDetails - loggedIn user Details.
+   * 
    * @returns {Object} Set library categories lists.
    */
 
@@ -96,13 +93,6 @@ module.exports = class libraryCategoriesHelper {
         query['tenantId'] = req.userDetails.tenantData.tenantId;
         query['visibleToOrganizations'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
 
-        // handle currentOrgOnly filter
-        if (req.query['currentOrgOnly']) {
-          let currentOrgOnly = gen.utils.convertStringToBoolean(req.query['currentOrgOnly']);
-          if (currentOrgOnly) {
-            query['orgId'] = { $in: ['ALL', req.userDetails.tenantData.orgId] };
-          }
-        }
         query['status'] = messageConstants.common.ACTIVE_STATUS;
         let libraryCategories = await libraryCategoriesQueries.categoryDocuments(query, [
           'externalId',
@@ -197,11 +187,6 @@ module.exports = class libraryCategoriesHelper {
             message: messageConstants.apiResponses.CATEGORY_ALREADY_EXISTS,
           };
         }
-
-        // Fetch the signed urls from handleEvidenceUpload function
-        // Commented for now as not required
-        // const evidences = await handleEvidenceUpload(files, userDetails.userInformation.userId)
-        // categoryData['evidences'] = evidences.data
 
         // add tenantId and orgId
         categoryData['tenantId'] = userDetails.tenantAndOrgInfo.tenantId;

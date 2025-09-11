@@ -75,7 +75,7 @@ module.exports = {
 },
   compoundIndex: [
     {
-      name: { externalId: 1, name: 1, tenantId: 1 },
+      name: { externalId: 1, name: 1, tenantId: 1, orgId: 1 },
       indexType: { unique: true },
     },
   ],
