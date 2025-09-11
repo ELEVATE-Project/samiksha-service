@@ -191,11 +191,11 @@ module.exports = class ReportsHelper {
 
         // Process the returned document(s)
         allCriteriaDocument.map((criteria) => {
+          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
           criteria.criteriaId = criteria._id;
           criteria.criteriaName = criteria.name;
           criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level?criteria.rubric.levels[criterias.score].level:"No Level Matched";
           criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
-          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
             criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
           }
 
@@ -206,10 +206,11 @@ module.exports = class ReportsHelper {
         });
 
         // Since we're only expecting one match, push the first document to the suggestions array
-        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        if(Object.keys(allCriteriaDocument[0]).length > 0){
+          improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        }
       }
     }
-
 
     let solutionDocument = await solutionsQueries.solutionDocuments({
       _id: submissionDocument.solutionId,

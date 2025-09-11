@@ -24,7 +24,6 @@ const fs = require('fs');
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionsQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-const surveysHelper = require(MODULES_BASE_PATH + '/surveys/helper');
 /**
  * UserHelper
  * @class
@@ -967,7 +966,7 @@ module.exports = class UserHelper {
          * @param {Array} [skipFields = "none"] - field not to include
          * @returns {Array} List of surveys.
          */
-        let surveyData = await surveysHelper.surveyDocuments(
+        let surveyData = await surveyQueries.surveyDocuments(
           {
             createdBy: userId,
             programId: new ObjectId(programId),

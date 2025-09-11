@@ -452,5 +452,5 @@ module.exports = {
   MISSING_SOLUTIONID_USERID_STATUS: 'SolutionId or userId or status is not found',
   INVALID_SOLUTIONID: 'Invalid solutions id.',
   ADMIN_TOKEN_MISSING_MESSAGE: 'Admin token is missing',
-
+  LINK_IS_NOT_ACTIVE_YET:'The link has not started yet. Please try again from: '
 };
