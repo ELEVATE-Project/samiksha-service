@@ -710,7 +710,7 @@ module.exports = class SurveysHelper {
         }
 
         if(solutionDocument[0].startDate > new Date()){
-          throw new Error(messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionDocument[0].startDate).tz('Asia/Kolkata').add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"));
+          throw new Error(messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionDocument[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"));
         }
 
         if (version === '') {

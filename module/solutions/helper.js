@@ -2533,7 +2533,7 @@ module.exports = class SolutionsHelper {
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
-            message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).tz('Asia/Kolkata').add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
+            message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
             result: [],
           });
         }
