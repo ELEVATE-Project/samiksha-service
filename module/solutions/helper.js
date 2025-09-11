@@ -2493,7 +2493,7 @@ module.exports = class SolutionsHelper {
             status: {
               $ne: messageConstants.common.INACTIVE_STATUS,
             },
-           // tenantId: tenantData.tenantId,
+            tenantId: tenantData.tenantId,
           },
           ['type', 'status', 'endDate','startDate']
         );
