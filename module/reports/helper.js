@@ -325,12 +325,15 @@ module.exports = class ReportsHelper {
 
         // Process the returned document(s)
         allCriteriaDocument.map((criteria) => {
-          criteria.criteriaId = criteria._id;
-          criteria.criteriaName = criteria.name;
-          criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level? criteria.rubric.levels[criterias.score].level :" No Level Matched";
-          criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
-          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
-            criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
+          const level =
+            criteria && criteria.rubric && criteria.rubric.levels && criteria.rubric.levels[criterias.score];
+
+          if (level && level['improvement-projects']) {
+            criteria.criteriaId = criteria._id;
+            criteria.criteriaName = criteria.name;
+            criteria.level = level.level ? level.level : ' No Level Matched';
+            criteria.label = level.label ? level.label : 'No Level Matched';
+            criteria.improvementProjects = level['improvement-projects'];
           }
 
           // Clean up the object by removing unneeded properties
@@ -340,7 +343,9 @@ module.exports = class ReportsHelper {
         });
 
         // Since we're only expecting one match, push the first document to the suggestions array
-        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        if (allCriteriaDocument.length > 0 && Object.keys(allCriteriaDocument[0]).length > 0) {
+          improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        }
       }
     }
 
