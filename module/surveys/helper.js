@@ -6,6 +6,7 @@
  */
 
 // Dependencies
+const timeZoneDifference = process.env.TIMEZONE_DIFFRENECE_BETWEEN_LOCAL_TIME_AND_UTC;
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
