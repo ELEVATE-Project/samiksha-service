@@ -23,7 +23,7 @@ const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSol
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
 const solutionsUtils = require("../../generics/helpers/solutionsUtils");
-
+const moment = require('moment-timezone'); 
 
 
 /**
@@ -2295,15 +2295,16 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static verifyLink(link = '', bodyData = {}, userId = '', userToken = '', createProject = true, tenantData) {
+  static verifyLink(link = '', bodyData = {}, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
+        let {userId='', userToken='', tenantData} = userDetails;
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
 
 				if (!verifySolution.success) {
 					throw {
-						satus: httpStatusCode.bad_request.status,
+						status: httpStatusCode.bad_request.status,
 						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
 					}
 				}
@@ -2347,7 +2348,9 @@ module.exports = class SolutionsHelper {
             let privateProgramAndSolutionDetails = await this.privateProgramAndSolutionDetails(
               solutionData, //solution data
               userId, //User Id
-              tenantData
+              tenantData,
+              userDetails,
+              userToken
             );
             if (!privateProgramAndSolutionDetails.success) {
               throw {
@@ -2422,7 +2425,9 @@ module.exports = class SolutionsHelper {
             let privateProgramAndSolutionDetails = await this.privateProgramAndSolutionDetails(
               solutionData,
               userId,
-              tenantData
+              tenantData,
+              userDetails,
+              userToken
             );
             if (!privateProgramAndSolutionDetails.success) {
               throw {
@@ -2490,7 +2495,7 @@ module.exports = class SolutionsHelper {
             },
             tenantId: tenantData.tenantId,
           },
-          ['type', 'status', 'endDate']
+          ['type', 'status', 'endDate','startDate']
         );
 
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
@@ -2522,6 +2527,13 @@ module.exports = class SolutionsHelper {
 
           return resolve({
             message: messageConstants.apiResponses.LINK_IS_EXPIRED,
+            result: [],
+          });
+        }
+        // check start date is greater than current date
+        if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
+          return resolve({
+            message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
             result: [],
           });
         }
@@ -2571,7 +2583,8 @@ module.exports = class SolutionsHelper {
           'projectTemplateId',
           'programName',
           'status',
-          'availableForPrivateConsumption'
+          'availableForPrivateConsumption',
+          'isExternalProgram'
         ]);
 
         bodyData.tenantId = tenantData.tenantId;
@@ -2599,6 +2612,7 @@ module.exports = class SolutionsHelper {
           response.programName = solutionDetails[0].programName;
           response.status = solutionDetails[0].status;
 					response.availableForPrivateConsumption = solutionDetails[0].availableForPrivateConsumption ?? false //obs/survey will not be available for private consumption by default
+					response.isExternalProgram = solutionDetails[0].isExternalProgram ?? false
 
           return resolve({
             success: true,
@@ -2639,7 +2653,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the private solution.
    */
 
-  static privateProgramAndSolutionDetails(solutionData, userId = '', tenantData) {
+  static privateProgramAndSolutionDetails(solutionData, userId = '', tenantData,userDetails,userToken) {
     return new Promise(async (resolve, reject) => {
       try {
         // Check if a private program and private solution already exist or not for this user.
@@ -2650,7 +2664,7 @@ module.exports = class SolutionsHelper {
             type: solutionData.type,
             isAPrivateProgram: true,
           },
-          ['_id', 'programId', 'programName']
+          ['_id', 'programId', 'programName','isExternalProgram']
         );
 
         if (!(privateSolutionDetails.length > 0)) {
@@ -2665,13 +2679,16 @@ module.exports = class SolutionsHelper {
           if (solutionData.programId && solutionData.programId !== '') {
             programAndSolutionData['programId'] = solutionData.programId;
             programAndSolutionData['programName'] = solutionData.programName;
+            programAndSolutionData['isExternalProgram'] = solutionData.isExternalProgram;
           }
           // create private program and solution
           let solutionAndProgramCreation = await this.createProgramAndSolution(
             userId,
             programAndSolutionData,
             'true', // create duplicate solution
-            tenantData
+            tenantData,
+            userDetails,
+            userToken
           );
 
           if (!solutionAndProgramCreation.success) {
@@ -2712,7 +2729,7 @@ module.exports = class SolutionsHelper {
    * @returns {Array} - Created user program and solution.
    */
 
-  static createProgramAndSolution(userId, data, createADuplicateSolution = '', tenantData) {
+  static createProgramAndSolution(userId, data, createADuplicateSolution = '', tenantData,userDetails,userToken) {
     return new Promise(async (resolve, reject) => {
       try {
         let userPrivateProgram = {};
@@ -2731,7 +2748,26 @@ module.exports = class SolutionsHelper {
             filterQuery.createdBy = userId;
           }
 
-          let checkforProgramExist = await programsQueries.programDocuments(filterQuery, 'all', ['__v']);
+          let checkforProgramExist = []
+          if (data.isExternalProgram) {
+            const programResponse = await projectService.programDetails(
+              userToken,
+              data.programId,
+              userDetails,
+              tenantData
+            );
+            if (programResponse.status != httpStatusCode.ok.status || !programResponse?.result?._id) {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+            }
+
+            checkforProgramExist = [programResponse.result];
+          } else {
+            checkforProgramExist = await programsQueries.programDocuments(filterQuery, 'all', ['__v']);
+          }
+
 
           if (!(checkforProgramExist.length > 0)) {
             return resolve({
