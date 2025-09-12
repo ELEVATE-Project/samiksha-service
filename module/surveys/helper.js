@@ -6,6 +6,7 @@
  */
 
 // Dependencies
+const timeZoneDifference = process.env.TIMEZONE_DIFFRENECE_BETWEEN_LOCAL_TIME_AND_UTC;
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
 const solutionsHelper = require(MODULES_BASE_PATH + '/solutions/helper');
 const criteriaHelper = require(MODULES_BASE_PATH + '/criteria/helper');
@@ -28,7 +29,7 @@ const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveyService = require(ROOT_PATH + "/generics/services/survey");
 const projectService = require(ROOT_PATH + '/generics/services/project')
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils')
-
+const moment = require('moment-timezone'); 
 /**
  * SurveysHelper
  * @class
@@ -696,6 +697,7 @@ module.exports = class SurveysHelper {
             'name',
             'description',
             'type',
+            'startDate',
             'endDate',
             'status',
             'programId',
@@ -706,6 +708,10 @@ module.exports = class SurveysHelper {
 
         if (!solutionDocument.length) {
           throw new Error(messageConstants.apiResponses.SOLUTION_NOT_FOUND);
+        }
+
+        if(solutionDocument[0].startDate > new Date()){
+          throw new Error(messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionDocument[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"));
         }
 
         if (version === '') {
@@ -748,6 +754,8 @@ module.exports = class SurveysHelper {
             userId,
             solutionDocument[0],
             // userOrgDetails[userId],
+            '',
+            tenantData
           );
 
           if (!createSurveyDocument.success) {
