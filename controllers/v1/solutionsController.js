@@ -1703,10 +1703,7 @@ module.exports = class Solutions extends Abstract {
         let solutionData = await solutionsHelper.verifyLink(
           req.params._id,
           req.body,
-          req.userDetails.userId,
-          req.userDetails.userToken,
-          true, // createProject condition,
-          req.userDetails.tenantData
+          req.userDetails
         );
 
         return resolve(solutionData);
