@@ -88,7 +88,7 @@ module.exports = class LibraryCategories extends Abstract {
     });
   }
 
-	/**
+  /**
 	 * @api {post} /survey/v1/library/categories/create
 	 * create  library categories.
 	 * @apiVersion 1.0.0
@@ -110,34 +110,29 @@ module.exports = class LibraryCategories extends Abstract {
 	 * @apiUse errorBody
 	 */
 
-	/**
-	 *Create new library-category.
-	 * @method
-	 * @name create
-	 * @param {Object} req - requested data
-	 * @returns {Object} Library project category details .
-	 */
+  /**
+   *Create new library-category.
+   * @method
+   * @name create
+   * @param {Object} req - requested data
+   * @returns {Object} Library project category details .
+   */
 
-	async create(req) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const libraryProjectcategory = await libraryCategoriesHelper.create(
-					req.body,
-					req.files,
-					req.userDetails
-				)
-				return resolve({
-					message: libraryProjectcategory.message,
-					result: libraryProjectcategory.data,
-				})
-			} catch (error) {
-				return reject(error)
-			}
-		})
-	}
+  async create(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const libraryProjectcategory = await libraryCategoriesHelper.create(req.body, req.files, req.userDetails);
+        return resolve({
+          message: libraryProjectcategory.message,
+          result: libraryProjectcategory.data,
+        });
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
 
-  
-  	/**
+  /**
 	 * @api {post} /survey/v1/library/categories/update/_id
 	 * update library categories.
 	 * @apiVersion 1.0.0
@@ -150,43 +145,42 @@ module.exports = class LibraryCategories extends Abstract {
          "description": "Summa ulalali."    
        }
 	* @apiParamExample {json} Response:
-	* {
-    *     success: true,
-    *     message: "Library categories updated successfully" ",
+	*   {
+        success: true,
+        message: "Library categories updated successfully" ",
         }
 	 * @apiUse successBody
 	 * @apiUse errorBody
 	 */
 
-	/**
-	 *Create new project-category.
-	 * @method
-	 * @name update
-	 * @param {Object} req - requested data
-	 * @returns {Array} Library Categories project.
-	 */
+  /**
+   * update library-category.
+   * @method
+   * @name update
+   * @param {Object} req - requested data
+   * @returns {Array} Library Categories project.
+   */
 
-	async update(req) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const findQuery = {
-					_id: req.params._id,
-				}
-				const libraryProjectcategory = await libraryCategoriesHelper.update(
-					findQuery,
-					req.body,
-					req.files,
-					req.userDetails
-				)
+  async update(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const findQuery = {
+          _id: req.params._id,
+        };
+        const libraryProjectcategory = await libraryCategoriesHelper.update(
+          findQuery,
+          req.body,
+          req.files,
+          req.userDetails
+        );
 
-				return resolve({
-					message: libraryProjectcategory.message,
-					result: libraryProjectcategory.data,
-				})
-			} catch (error) {
-				return reject(error)
-			}
-		})
-	}
-
+        return resolve({
+          message: libraryProjectcategory.message,
+          result: libraryProjectcategory.data,
+        });
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
 };

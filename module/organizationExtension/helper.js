@@ -6,7 +6,7 @@
  */
 
 const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
-const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 
 module.exports = class organisationExtensionHelper {
   /**
@@ -26,7 +26,6 @@ module.exports = class organisationExtensionHelper {
         tenantId: userDetails.tenantAndOrgInfo.tenantId,
         orgId: userDetails.tenantAndOrgInfo.orgId,
       };
-
       // Getting organizationExtension document to update
       let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
         orgExternsionfilter
@@ -67,22 +66,53 @@ module.exports = class organisationExtensionHelper {
   }
  
   /**
-   * org eventListener
+   * orgExtension create
    * @method
    * @name create
    * @param {Object} [eventBody] -  eventBody .
-   * @returns {Object} - response with status
+   * @returns {Object} - response with status and orgExtensionData
    */
   static async create(eventBody) {
     try {
-      //EventBody Validation - TODO: Check if this should be a middleware
-      /* const { entity, eventType, entityId } = eventBody
-			if (!entity || !eventType || !entityId)
-				throw new Error('Entity, EventType & EntityId values are mandatory for an Event')
-			return await eventListenerRouter(eventBody, {
-				createFn: this.createOrgExtension,
-			}) */
-      return organizationExtensionUtils.createOrgExtension(eventBody);
+      if (!eventBody || !eventBody.code || !eventBody.tenant_code) {
+        return {
+          status: httpStatusCode.bad_request.status,
+          message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
+        };
+      }
+      
+       // Query to get the orgExtension document
+       let orgExtensionFilter = {
+        tenantId: eventBody.tenant_code,
+        orgId: eventBody.code,
+      };
+  
+      // Getting organizationExtension document 
+      let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
+        orgExtensionFilter
+      );
+       
+      //Check orgExtension already exists or else create new one
+      if(organizationExtensionDocuments.length > 0) {
+        return {
+          success: false,
+          status: httpStatusCode.bad_request.status,
+          message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_ALREADY_EXISTS,
+        };
+  
+      }
+      let extensionData = {
+        orgId: eventBody.code,
+        created_by: eventBody.created_by,
+        updated_by: eventBody.created_by,
+        name: eventBody.name,
+        tenantId: eventBody.tenant_code,
+      };
+      let orgExtension = await organizationExtensionQueries.create(extensionData);
+      return {
+        success: true,
+        data: orgExtension,
+      };
     } catch (error) {
       throw {
         success: false,
@@ -91,4 +121,72 @@ module.exports = class organisationExtensionHelper {
       };
     }
   }
+
+    /**
+   * update multiple library solutions resources based on related_orgs changes.
+   * @method
+   * @name updateRelatedOrgs
+   * @param {Object} bodyData - Contains the  tenantId, orgId, and userId.
+   * @param {string} bodyData.tenant_code - Tenant identifier.
+   * @param {string} bodyData.code - Organization identifier.
+   * @param {string} bodyData.updated_by - Identifier of the user who triggered deletion.
+   * @param {Object} userDetails - logged in userDetails
+   * @returns {Promise<Object>} - Returns success status with solutionUpdateData or error information.
+   */
+    static updateRelatedOrgs(bodyData, userDetails) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          if (!bodyData || !bodyData.code || !bodyData.tenant_code) {
+            return {
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
+            };
+          }
+          //get org and tenantId for userDetails if its admin updating relatedOrgs
+          let org_code = userDetails?.tenantAndOrgInfo?.orgId?.[0] || bodyData.code;
+          let tenant_code = userDetails?.tenantAndOrgInfo?.tenantId || bodyData.tenant_code;
+          let userId = userDetails?.userId || bodyData.updated_by;
+          let solutionUpdate = {};
+          if (
+            bodyData?.changes?.hasOwnProperty('related_orgs') &&
+            bodyData?.hasOwnProperty('related_org_details')
+          ) {
+            //get the code to store it in  visibleToOrganizations key
+            let visibleOrg = bodyData.related_org_details?.map((eachValue) => {
+              return eachValue.code;
+            });
+  
+            //  update query
+            const filterQuery = { orgId: org_code, tenantId: tenant_code, isReusable: true };
+            const updateQuery = {
+              $set: { visibleToOrganizations: visibleOrg, updatedAt: new Date(), updatedBy: userId },
+            };
+  
+            //update the solutions
+            solutionUpdate = await solutionsQueries.update(filterQuery, updateQuery);
+  
+            if (!solutionUpdate || !solutionUpdate.acknowledged) {
+              return resolve({
+                status: httpStatusCode.internal_server_error.status,
+                message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+                result: solutionUpdate,
+              });
+            }
+          }
+  
+          return resolve({
+            success: true,
+            message: messageConstants.apiResponses.SOLUTION_UPDATED,
+            result: solutionUpdate,
+          });
+        } catch (error) {
+          console.log(error,"this is error")
+          return reject({
+            status: error.status || httpStatusCode.internal_server_error.status,
+            message: error.message || httpStatusCode.internal_server_error.message,
+            errorObject: error,
+          });
+        }
+      });
+    }
 };

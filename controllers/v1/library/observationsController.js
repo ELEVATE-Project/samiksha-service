@@ -127,11 +127,11 @@ module.exports = class Observations {
   }
 
   /**
-	 * @api {post} /survey/v1/library/observations/importFromLibrary/_id
+	 * @api {post} /survey/v1/library/observations/import/_id
 	 * create observationa dn survey solutions from Library template.
 	 * @apiVersion 1.0.0
 	 * @apiGroup Library Observations
-	 * @apiSampleRequest /survey/api/v1/library/observations/importFromLibrary/_id
+	 * @apiSampleRequest /survey/api/v1/library/observations/import/_id
 	 * {json} Request body
    * 
    {
@@ -289,16 +289,12 @@ module.exports = class Observations {
    * @returns {Array} Library Categories project.
    */
 
-  async importFromLibrary(req) {
+  async import(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        if (req?.query?.isATargetedSolution) {
-          req.query.isATargetedSolution = gen.utils.convertStringToBoolean(req.query.isATargetedSolution);
-        }
-        const privateSolutions = await libraryObservationsHelper.importFromLibrary(
+        const privateSolutions = await libraryObservationsHelper.import(
           req.params._id,
           req.body,
-          req.query.isATargetedSolution ? req.query.isATargetedSolution : false,
           req.userDetails
         );
 

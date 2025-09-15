@@ -134,16 +134,7 @@ module.exports = {
       enum: ['CURRENT', 'ASSOCIATED', 'ALL'], 
       default: 'CURRENT'
     },
-    categories: [
-			{
-				_id: 'ObjectId',
-				externalId: {
-					type: String,
-					index: true,
-				},
-				name: String,
-			},
-		],
+    categories: [],
   },
   compoundIndex: [
     {

@@ -6,7 +6,6 @@
  */
 
 // Dependencies
-let kendraService = require(ROOT_PATH + '/generics/services/kendra');
 let sessionHelpers = require(ROOT_PATH + '/generics/helpers/sessions');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
 
@@ -15,7 +14,7 @@ const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategorie
  * @class
  */
 
-module.exports = class libraryCategoriesHelper {
+module.exports = class LibraryCategoriesHelper {
   /**
    * List of library categories.
    * @method
@@ -165,33 +164,10 @@ module.exports = class libraryCategoriesHelper {
   static create(categoryData, files, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
-        // Check if the category already exists
-        let filterQuery = {};
-        filterQuery['externalId'] = categoryData.externalId.toString();
-        filterQuery['tenantId'] = userDetails.tenantAndOrgInfo.tenantId;
-
-        const checkIfCategoryExist = await libraryCategoriesQueries.categoryDocuments(filterQuery, [
-          '_id',
-          'externalId',
-        ]);
-
-        // Throw error if the category already exists
-        if (
-          checkIfCategoryExist.length > 0 &&
-          Object.keys(checkIfCategoryExist[0]).length > 0 &&
-          checkIfCategoryExist[0]._id != ''
-        ) {
-          throw {
-            success: false,
-            status: httpStatusCode.bad_request.status,
-            message: messageConstants.apiResponses.CATEGORY_ALREADY_EXISTS,
-          };
-        }
-
-        // add tenantId and orgId
+        // add tenantId , orgId and visibleToOrganizations 
         categoryData['tenantId'] = userDetails.tenantAndOrgInfo.tenantId;
         categoryData['orgId'] = userDetails.tenantAndOrgInfo.orgId[0];
-        categoryData['visibleToOrganizations'] = userDetails.tenantAndOrgInfo.visibleToOrganizations;
+        categoryData['visibleToOrganizations'] = userDetails.tenantAndOrgInfo.orgId;
         categoryData['updatedBy'] = userDetails.userId;
         categoryData['createdBy'] = userDetails.userId;
         let libraryCategoriesData = await libraryCategoriesQueries.create(categoryData);

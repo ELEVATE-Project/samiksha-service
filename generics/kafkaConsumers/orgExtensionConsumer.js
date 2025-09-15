@@ -4,9 +4,7 @@
  * created-date : 22-Jul-2025
  * Description : orgExtension consumer.
  */
-const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
-const adminHelper = require(MODULES_BASE_PATH + '/admin/helper');
-
+const organizationExtension = require(MODULES_BASE_PATH + '/organizationExtension/helper');
 /**
  * orgExtension message received.
  * @function
@@ -45,10 +43,10 @@ var messageReceived = function (message) {
       let parsedMessage = JSON.parse(message.value);
       let orgExtensionStatus;
       if (parsedMessage.eventType && parsedMessage.eventType === 'create') {
-         orgExtensionStatus = await organizationExtensionUtils.createOrgExtension(parsedMessage);
+         orgExtensionStatus = await organizationExtension.create(parsedMessage);
       }
       if (parsedMessage.eventType && parsedMessage.eventType === 'update') {
-         orgExtensionStatus = await adminHelper.updateRelatedOrgs(parsedMessage);
+         orgExtensionStatus = await organizationExtension.updateRelatedOrgs(parsedMessage);
       }
       if (orgExtensionStatus?.status === 200) {
         return resolve('Message Processed.');

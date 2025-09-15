@@ -113,13 +113,13 @@ module.exports = class organizationExtension {
      * create organizationExtension
      * @method
      * @name create
-     * @param {Object} courseData - organizationExtension data.
+     * @param {Object} organizationData - organizationExtension data.
      * @returns {Object} organizationExtension object.
      */
-     static create(courseData) {
+     static create(organizationData) {
       return new Promise(async (resolve, reject) => {
         try {
-          let organizationExtensionDocument = await database.models.organizationExtension.create(courseData);
+          let organizationExtensionDocument = await database.models.organizationExtension.create(organizationData);
           return resolve(organizationExtensionDocument);
         } catch (error) {
           return reject(error);

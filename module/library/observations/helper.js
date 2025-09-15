@@ -87,15 +87,14 @@ module.exports = class ObservationHelper {
    /**
    * create child solution 
    * @method
-   * @name importFromLibrary
+   * @name import
    * @param {String} parentSolutionId - parentSolution id.
    * @param {Object} reqBody - request body.
-   * @param {Boolean} isATargetedSolution - isATargetedSolution.
    * @param {Object} userDetails - User details.
    * @returns {Object} returns creator,about and questions of observation solutions.
    */
 
-  static importFromLibrary(parentSolutionId, reqBody, isATargetedSolution, userDetails) {
+  static import(parentSolutionId, reqBody, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let tenantId = userDetails.tenantData.tenantId;

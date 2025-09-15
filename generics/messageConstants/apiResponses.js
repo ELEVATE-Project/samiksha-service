@@ -453,7 +453,7 @@ module.exports = {
   INVALID_SOLUTIONID: 'Invalid solutions id.',
   ADMIN_TOKEN_MISSING_MESSAGE: 'Admin token is missing',
   LINK_IS_NOT_ACTIVE_YET:'The link has not started yet. Please try again from: ' ,
-  LIBRARY_CATEGORY_ADDED: 'Library categories Added successfully',
+  LIBRARY_CATEGORY_ADDED: 'Library categories added successfully',
   LIBRARY_CATEGORIES_NOT_ADDED: 'Could not add library categories',
   CATEGORY_ALREADY_EXISTS:"Library categories already exists",
   LIBRARY_CATEGORY_UPDATED_SUCCESSFULLY:" Library categories updated successfully",

@@ -29,10 +29,11 @@ const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveyService = require(ROOT_PATH + '/generics/services/survey');
 const projectService = require(ROOT_PATH + '/generics/services/project');
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils');
-const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
 const userService = require(ROOT_PATH + '/generics/services/users');
 const moment = require('moment-timezone'); 
+const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
+
 /**
  * SurveysHelper
  * @class
@@ -192,15 +193,25 @@ module.exports = class SurveysHelper {
         newSolutionDocument.themes = themes;
 
         //Add orgPolicies changes
-        let getOrgExtensionDocument = await organizationExtensionUtils.getOrgExtension(userDetails);
+          //Add orgPolicies changes
+        // Query to get the orgExtension document
+        let orgExtensionFilter = {
+          tenantId:userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId[0],
+        };
 
-        if (!getOrgExtensionDocument || !getOrgExtensionDocument?.data?._id) {
-          throw {
+        // Getting organizationExtension document
+        let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
+          orgExtensionFilter
+        );
+
+        if (organizationExtensionDocuments.length <= 0) {
+          return resolve({
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND,
-          };
+          });
         }
-        newSolutionDocument.visibility = getOrgExtensionDocument.data.surveyResourceVisibilityPolicy;
+        newSolutionDocument.visibility = organizationExtensionDocuments?.[0]?.surveyResourceVisibilityPolicy;
         // Add categories to the solution Template
         if (solutionData?.categories && solutionData?.categories.length > 0) {
           let matchQuery = {};
@@ -220,11 +231,10 @@ module.exports = class SurveysHelper {
           newSolutionDocument.categories = categories.map((category) => ({
             _id: category._id,
             externalId: category.externalId,
-            name: category.name,
           }));
         }
         //get the related orgs for the solutions
-        let getRelatedOrgs = await userService.fetchDefaultOrgDetails(
+        let getRelatedOrgs = await userService.getOrgDetails(
           tenantData.orgId[0],
           userDetails,
           tenantData.tenantId

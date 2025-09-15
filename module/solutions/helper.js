@@ -23,8 +23,8 @@ const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSol
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
 const solutionsUtils = require("../../generics/helpers/solutionsUtils");
-const organizationExtensionUtils = require(ROOT_PATH + '/generics/helpers/organizationExtensionUtils');
 const moment = require('moment-timezone'); 
+const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
 
 
 /**
@@ -1909,24 +1909,28 @@ module.exports = class SolutionsHelper {
         //Adding query based on tenantId
         matchQuery['$match']['tenantId'] = userDetails.tenantData.tenantId
 
-        // Query to get the orgExternsion document
-        userDetails.tenantAndOrgInfo = {
-           tenantId: userDetails.tenantData.tenantId,
-           orgId: [userDetails.tenantData.orgId],
-         };
 
-         // Getting organizationExtension document
-         let organizationExtensionDocuments = await organizationExtensionUtils.getOrgExtension(
-            userDetails
-         );
-         if(!organizationExtensionDocuments || !organizationExtensionDocuments?.data?._id){
-          reject({
+        //Add orgPolicies changes
+        // Query to get the orgExtension document
+        let orgExtensionFilter = {
+          tenantId:userDetails.tenantData.tenantId,
+          orgId: userDetails.tenantData.orgId,
+        };
+
+        // Getting organizationExtension document
+        let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
+          orgExtensionFilter
+        );
+
+        if (organizationExtensionDocuments.length <= 0) {
+          return resolve({
             status: httpStatusCode.bad_request.status,
-            message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND
-        })
+            message: messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND,
+          });
         }
+        organizationExtensionDocuments = organizationExtensionDocuments[0];
          //get orgPolicy based on solutionType from orgExtension
-         let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.data.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.data.externalSurveyResourceVisibilityPolicy
+         let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.externalSurveyResourceVisibilityPolicy
          let visibilityQuery =[]
          // Generate a Query based on policies
          switch (orgPolicies) {

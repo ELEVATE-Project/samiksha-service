@@ -79,7 +79,7 @@ const profile = function ( userId = "",userToken="" ) {
  * @returns {Promise} A promise that resolves with the organization details or rejects with an error.
  */
 
-const fetchDefaultOrgDetails = function (organisationIdentifier, userToken,tenantId) {
+const getOrgDetails = function (organisationIdentifier, userToken,tenantId) {
 	return new Promise(async (resolve, reject) => {
 		try {
 			let url
@@ -305,7 +305,7 @@ const getUserProfileByIdentifier = function (tenantId, userId = null, username) 
 
 module.exports = {
   profile:profile,
-  fetchDefaultOrgDetails,
+  getOrgDetails,
   fetchTenantDetails,
   fetchPublicTenantDetails,
   getUserProfileByIdentifier

@@ -412,8 +412,8 @@ let enviromentVariables = {
 		default: 'survey-health-check-topic-check',
 	},
 
-  ORG_EXTENSION_TOPIC: {
-		message: 'Required ORG_EXTENSION_TOPIC',
+  ORG_UPDATES_TOPIC: {
+		message: 'Required ORG_UPDATES_TOPIC',
 		optional: true,
 		default: 'dev.organizationEvent',
 	},

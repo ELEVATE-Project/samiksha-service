@@ -143,4 +143,59 @@ module.exports = class  OrganizationExtension extends Abstract {
     });
   }
 
+     /**
+     * @api {post} /survey/v1/organizationExtension/updateRelatedOrgs
+     * update related organizations for solutions (visibleToOrganizations).     
+     * @apiVersion 1.0.0
+     * @apiGroup organizationExtension
+     * @apiSampleRequest /survey/v1/organizationExtension/updateRelatedOrgs
+     * @param {json} Request-Body:
+      {
+   
+        "changes": {
+          "related_org_details" :[
+                {
+                   id:"2",
+                   code:"mys"
+                } ,
+                {
+                   id:"2",
+                   code:"SLOrg"
+                } 
+         ]         
+        },
+        "code": "blr",
+        "tenant_code": "shikshagraha",
+      }
+     * @apiParamExample {json} Response:
+      {
+          "message": "Solution updated successfully",
+          "status": 200
+      }
+     * @apiUse successBody
+     * @apiUse errorBody
+     */
+
+  /**
+   * Solutions visibleToOrganization key update
+   * @method
+   * @name updateRelatedOrgs
+   * @param {Object} req - Req Body
+   * @returns {JSON} list of data.
+   */
+  async updateRelatedOrgs(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let result = await organizationHelper.updateRelatedOrgs(req.body,req.userDetails);
+        resolve(result);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
 };

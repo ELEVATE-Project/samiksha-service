@@ -24,17 +24,10 @@ module.exports = {
       type: Boolean,
       default: false,
     },
-    isVisible: {
-      type: Boolean
-    },
     externalId: {
       type: String,
       required: true,
       index: true,
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
     },
     isVisible: {
       type: Boolean,
@@ -53,30 +46,32 @@ module.exports = {
       default: 'SYSTEM',
     },
     noOfSolutions: {
-			type: Number,
-			default: 0,
-		},
-    tenantId: {
-			type: String,
-			index: true,
-			required: true,
-		},
-		orgId: {
-			type: String,
-			index: true,
-			required: true,
-		},
-    visibleToOrganizations:{
-		type: Array,
-		default: [],
-		required: true,
-    index: true,
-  }
-},
-  compoundIndex: [
-    {
-      name: { externalId: 1, name: 1, tenantId: 1, orgId: 1 },
-      indexType: { unique: true },
+      type: Number,
+      default: 0,
     },
-  ],
+    tenantId: {
+      type: String,
+      index: true,
+      required: true,
+      default: 'default',
+    },
+    orgId: {
+      type: String,
+      index: true,
+      required: true,
+      default: 'default_code',
+    },
+    visibleToOrganizations: {
+      type: Array,
+      default: [],
+      required: true,
+      index: true,
+    },
+  },
+  compoundIndex: [
+		{
+			name: { externalId: 1, tenantId: 1 },
+			indexType: { unique: true },
+		},
+	],
 };
