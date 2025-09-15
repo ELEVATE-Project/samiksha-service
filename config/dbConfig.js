@@ -42,6 +42,12 @@ var DB = function (config) {
         });
       }
     }
+    // Add compound indexes if provided
+    if (opts.compoundIndex && Array.isArray(opts.compoundIndex)) {
+      opts.compoundIndex.forEach((idx) => {
+        schema.index(idx.name, idx.indexType || {});
+      });
+    }
 
     //static
     //if(opts.static)
