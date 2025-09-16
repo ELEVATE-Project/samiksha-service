@@ -182,7 +182,7 @@ module.exports = class LibraryCategoriesHelper {
         return resolve({
           success: true,
           message: messageConstants.apiResponses.LIBRARY_CATEGORY_ADDED,
-          data: libraryCategoriesData._id,
+          data: libraryCategoriesData,
         });
       } catch (error) {
         return reject({

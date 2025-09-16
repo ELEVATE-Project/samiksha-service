@@ -1940,15 +1940,15 @@ module.exports = class SolutionsHelper {
           case messageConstants.common.ALL_POLICY:
             visibilityQuery = [
               { visibility: messageConstants.common.ALL_POLICY },
-              { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility:{$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
               { orgId: userDetails.tenantData.orgId }
             ];
             break
           case messageConstants.common.ASSOCIATED:
             visibilityQuery = [
-              { visibility: messageConstants.common.ASSOCIATED,visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility: {$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
               { orgId: userDetails.tenantData.orgId },      
-            ]        
+            ] 
             break
             default:
                return resolve({
@@ -3167,7 +3167,7 @@ module.exports = class SolutionsHelper {
           return resolve(queryData);
         }
         queryData.data['_id'] = solutionId;
-        let matchQuery = queryData.data;
+        let matchQuery = queryData.data;    
         //Check solutions collection based on rolesandLocation query
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, ['_id', 'type', 'programId', 'name']);
 

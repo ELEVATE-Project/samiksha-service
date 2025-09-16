@@ -29,6 +29,8 @@ module.exports = class LibraryCategories extends Abstract {
     * @apiName List of library categories
     * @apiGroup Library Categories
     * @apiSampleRequest /survey/v1/library/categories/list
+    * {json} Request body
+	  * { }        
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -36,32 +38,13 @@ module.exports = class LibraryCategories extends Abstract {
     * "message": "Library categories fetched successfully",
     * "status": 200,
     * "result": [
-        {
-            "name": "Drafts",
-            "type": "drafts",
-            "url": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/static%2Flibrary%2Fcategories%2Fdrafts.png?generation=1593680944065555&alt=media",
-            "updatedAt" : "2020-07-02T12:54:04.355Z"
-        },{
-            "name": "Individual Assessments",
-            "type": "individual",
-            "url": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/static%2Flibrary%2Fcategories%2FindividualAssessments.png?generation=1593680941650219&alt=media",
-            "updatedAt" : "2020-07-02T12:54:04.355Z"
-        },{
-            "name": "Observation Solutions",
-            "type": "observation",
-            "url": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/static%2Flibrary%2Fcategories%2FobservationSolutions.png?generation=1593680943321398&alt=media",
-            "updatedAt" : "2020-07-02T12:54:04.355Z"
-        },{
-            "name": "Institutional Assessments",
-            "type": "institutional",
-            "url": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/static%2Flibrary%2Fcategories%2FinstitutionalAssessments.png?generation=1593680942514300&alt=media",
-            "updatedAt" : "2020-07-02T12:54:04.355Z"
-        },{
-            "name": "Survey and Feedback",
-            "type": "survey",
-            "updatedAt": "2020-09-09T17:39:52.101Z",
-            "url": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/static%2Flibrary%2FsurveyAndFeedback.png?alt=media"
-        }
+          {
+                "_id": "689361aabfaffc768be24950",
+                "name": "Test courses",
+                "icon": "",
+                "externalId": "test_green_school_yojane_03_55678",
+                "noOfSolutions": 0,
+            }
     ]}
     */
 
@@ -102,10 +85,31 @@ module.exports = class LibraryCategories extends Abstract {
       }
 	 * @apiParamExample {json} Response:
    * {
-       "message": "Library categories Added successfully",
-       "status": 200,
-       "result": "68935c603f35011fa5f76fee"
-     }
+    "message": "Library categories added successfully",
+    "status": 200,
+    "result": {
+        "name": "Test courses2",
+        "icon": "",
+        "description": "Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities.",
+        "isDeleted": false,
+        "externalId": "test_green_school_yojane_03_556",
+        "isVisible": false,
+        "status": "active",
+        "updatedBy": "18",
+        "createdBy": "18",
+        "noOfSolutions": 0,
+        "tenantId": "shikshagraha",
+        "orgId": "blr",
+        "visibleToOrganizations": [
+            "blr"
+        ],
+        "_id": "68c9a64315ef3104cb039119",
+        "deleted": false,
+        "updatedAt": "2025-09-16T18:02:43.224Z",
+        "createdAt": "2025-09-16T18:02:43.224Z",
+        "__v": 0
+      }
+    }
 	 * @apiUse successBody
 	 * @apiUse errorBody
 	 */
