@@ -57,6 +57,11 @@ module.exports = {
       require: true,
       index: true,
     },
+    reportType: {
+      type: String,
+      default: "default",
+      set: (val) => (val && val.trim() !== "" ? val : "default"),
+    }
   },
   compoundIndex: [
     {
