@@ -3094,6 +3094,23 @@ module.exports = class ObservationsHelper {
             message: messageConstants.apiResponses.OBSERVATION_SOLUTION,
             result: result,
           };
+
+          if(newBaseSolution.categories && newBaseSolution.categories.length > 0){
+            let categories = newBaseSolution.categories.map((category) => {
+              return category._id
+            })
+             await libraryCategoriesQueries.updateMany(
+              {
+                _id: { $in: categories },
+              },
+              {
+                $inc: { noOfSolutions: 1 },
+              },
+      
+            )
+          
+          }
+
           return resolve(response);
         } else {
           throw messageConstants.apiResponses.ERROR_CREATING_OBSERVATION;

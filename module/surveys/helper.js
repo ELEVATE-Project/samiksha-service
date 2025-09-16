@@ -253,6 +253,21 @@ module.exports = class SurveysHelper {
         let newSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
 
         if (newSolution._id) {
+
+          if(newSolution?.categories && newSolution?.categories?.length > 0){
+
+            let categories = newSolution.categories.map((category) => {
+              return category._id
+            })
+             await libraryCategoriesQueries.updateMany(
+              {
+                _id: { $in: categories },
+              },
+              {
+                $inc: { noOfSolutions: 1 },
+              },   
+            )         
+          }
           return resolve({
             success: true,
             message: messageConstants.apiResponses.SURVEY_SOLUTION_CREATED,
