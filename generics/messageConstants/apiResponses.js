@@ -443,6 +443,8 @@ module.exports = {
   UPDATE_OBJECT_FAILED: 'Failed to generate update object',
 	UPDATE_OBJECT_SUCCESSFULLY: 'Successfully generate update object',
   SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'This solution is not allowed to be consumed privately',
+  OBSERVATION_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'The observation link is not relevant to your selected profile details',
+  SURVEY_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED: 'The survey link is not relevant to your selected profile details',
   PROJECT_TEMPLATE_NOT_FOUND: 'Project templates not found',
   COMPONENT_ORDER_DUPLICATE_FOUND: 'Component order cannot be duplicate',
   USER_COURSES_NOT_CREATED: 'User course not created',
