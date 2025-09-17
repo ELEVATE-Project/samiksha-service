@@ -411,6 +411,12 @@ let enviromentVariables = {
 		optional: false,
 		default: 'survey-health-check-topic-check',
 	},
+
+  ORG_UPDATES_TOPIC: {
+		message: 'Required ORG_UPDATES_TOPIC',
+		optional: true,
+		default: 'dev.organizationEvent',
+	},
 };
 
 let success = true;

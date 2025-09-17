@@ -77,8 +77,8 @@ module.exports = class Solutions {
    * @param {Object} query        - query to find document
    * @param {Object} updateObject - fields to update
    * @param {Object} returnData   - Options for the update operation, default is { new: false }
-   * @returns {Promise<Object>}   - The updated document 
-   * 
+   * @returns {Promise<Object>}   - The updated document
+   *
    */
 
   static updateSolutionDocument(query = {}, updateObject = {}, returnData = { new: false }) {
@@ -160,19 +160,46 @@ module.exports = class Solutions {
   }
 
   /**
-	 * Delete solutions documents based on the provided MongoDB filter.
-	 * @param {Object} filter - MongoDB query filter to match documents for deletion.
-	 * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
-	 */
-	static delete(filter) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				let deleteDocuments = await database.models.solutions.deleteMany(filter)
+   * Delete solutions documents based on the provided MongoDB filter.
+   * @param {Object} filter - MongoDB query filter to match documents for deletion.
+   * @returns {Promise<Object>} - MongoDB deleteMany result containing deleted count.
+   */
+  static delete(filter) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let deleteDocuments = await database.models.solutions.deleteMany(filter);
 
-				return resolve(deleteDocuments)
-			} catch (error) {
+        return resolve(deleteDocuments);
+      } catch (error) {
         return reject(error);
-			}
-		})
-	}
+      }
+    });
+  }
+
+  /**
+   * update solutions documents based on the provided MongoDB filter.
+   * @param {Object} filter - MongoDB query filter to match documents for update.
+   * @param {Object} updateQuery - MongoDB update query to apply to matching documents.
+   * @returns {Promise<Object>} - MongoDB  result containing  updated count.
+   */
+  static update(filterQuery, updateQuery) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!filterQuery || Object.keys(filterQuery).length === 0) {
+          if (Object.keys(query).length == 0) {
+            throw new Error(messageConstants.apiResponses.UPDATE_QUERY_REQUIRED);
+          }
+        }
+
+        if (Object.keys(updateQuery).length == 0) {
+          throw new Error(messageConstants.apiResponses.UPDATE_OBJECT_REQUIRED);
+        }
+        // Run updateMany to apply this change to all solution docs
+        const result = await database.models.solutions.updateMany(filterQuery, updateQuery);
+        return resolve(result);
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
 };

@@ -45,6 +45,7 @@ const pushDeletedResourceTopic =
 		: 'resource_deletion_topic'
 
 const userCoursesTopic = process.env.USER_COURSES_TOPIC
+
 const pushCompletedObservationSubmissionToKafka = function (message) {
   return new Promise(async (resolve, reject) => {
     try {

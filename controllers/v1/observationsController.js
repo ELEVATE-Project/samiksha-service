@@ -1153,14 +1153,26 @@ module.exports = class Observations extends Abstract {
   }
 
   /**
-   * @api {get} /assessment/api/v1/observations/importFromFramework?frameworkId:frameworkExternalId&entityType=entityType Create observation solution from framework.
+   * @api {post} /survey/v1/observations/importFromFramework?frameworkId:frameworkExternalId&entityType=entityType Create observation solution from framework.
    * @apiVersion 1.0.0
    * @apiName Create observation solution from framework.
    * @apiGroup Observations
    * @apiHeader {String} X-authenticated-user-token Authenticity token
    * @apiParam {String} frameworkId Framework External ID.
    * @apiParam {String} entityType Entity Type.
-   * @apiSampleRequest /assessment/api/v1/observations/importFromFramework?frameworkId=CRO-VERSION2-2019&entityType=school
+   * @apiSampleRequest /survey/v1/observations/importFromFramework?frameworkId=CRO-VERSION2-2019&entityType=school
+   * {json} Request-Body
+   * {
+       "categories":["test_green_school_yojane_03_556789","test_green_school_yojane_03_5567","test"]
+      }
+   * @apiSampleResponse
+   * {
+      "message": "Observation Solution generated.",
+       "status": 200,
+       "result": {
+        "templateId": "68b6b72a8246210ff3cf136d"
+       }
+      }
    * @apiUse successBody
    * @apiUse errorBody
    */
@@ -1178,7 +1190,6 @@ module.exports = class Observations extends Abstract {
   async importFromFramework(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let tenantFilter = req.userDetails.tenantAndOrgInfo;
         if (
           !req.query.frameworkId ||
           req.query.frameworkId == '' ||
@@ -1192,105 +1203,10 @@ module.exports = class Observations extends Abstract {
           req.query.isExternalProgram = gen.utils.convertStringToBoolean(req.query.isExternalProgram);
         }
 
-        let frameworkDocument = await database.models.frameworks
-          .findOne({
-            externalId: req.query.frameworkId,
-            tenantId: tenantFilter.tenantId
-          })
-          .lean();
+        let parentSolutionCreation = await observationsHelper.importFromFrameWork(req)
 
-        if (!frameworkDocument._id) {
-          throw messageConstants.apiResponses.FRAMEWORK_NOT_FOUND;
-        }
-
-        // let entityTypeDocument = await database.models.entityTypes.findOne({
-        //     name: req.query.entityType,
-        //     isObservable: true
-        // }, {
-        //         _id: 1,
-        //         name: 1
-        //     }).lean();
-
-        // if (!entityTypeDocument._id) {
-        //     throw messageConstants.apiResponses.ENTITY_TYPES_NOT_FOUND;
-        // }
-
-        let criteriasIdArray = gen.utils.getCriteriaIds(frameworkDocument.themes);
-
-        let frameworkCriteria = await database.models.criteria.find({
-           _id: { $in: criteriasIdArray }, 
-          tenantId: tenantFilter.tenantId
-        }).lean();
-
-        let solutionCriteriaToFrameworkCriteriaMap = {};
-
-        await Promise.all(
-          frameworkCriteria.map(async (criteria) => {
-            criteria.frameworkCriteriaId = criteria._id;
-
-            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
-
-            if (newCriteriaId._id) {
-              solutionCriteriaToFrameworkCriteriaMap[criteria._id.toString()] = newCriteriaId._id;
-            }
-          })
-        );
-
-        let updateThemes = function (themes) {
-          themes.forEach((theme) => {
-            let criteriaIdArray = new Array();
-            let themeCriteriaToSet = new Array();
-            if (theme.children) {
-              updateThemes(theme.children);
-            } else {
-              criteriaIdArray = theme.criteria;
-              criteriaIdArray.forEach((eachCriteria) => {
-                eachCriteria.criteriaId = solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
-                  ? solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
-                  : eachCriteria.criteriaId;
-                themeCriteriaToSet.push(eachCriteria);
-              });
-              theme.criteria = themeCriteriaToSet;
-            }
-          });
-          return true;
-        };
-
-        let newSolutionDocument = _.cloneDeep(frameworkDocument);
-
-        updateThemes(newSolutionDocument.themes);
-
-        newSolutionDocument.type = 'observation';
-        newSolutionDocument.subType =
-          frameworkDocument.subType && frameworkDocument.subType != '' ? frameworkDocument.subType : '';
-
-        newSolutionDocument.externalId = frameworkDocument.externalId + '-OBSERVATION-TEMPLATE';
-
-        newSolutionDocument.frameworkId = frameworkDocument._id;
-        newSolutionDocument.frameworkExternalId = frameworkDocument.externalId;
-
-        // newSolutionDocument.entityTypeId = entityTypeDocument._id;
-        // newSolutionDocument.entityType = entityTypeDocument.name;
-        newSolutionDocument.isReusable = true;  
-        newSolutionDocument.tenantId = tenantFilter.tenantId;
-        newSolutionDocument.orgId = tenantFilter.orgId[0];
-        newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false
-        let newBaseSolution = await database.models.solutions.create(_.omit(newSolutionDocument, ['_id']));
-
-        if (newBaseSolution._id) {
-          let result = {
-            templateId: newBaseSolution._id,
-          };
-
-          let response = {
-            message: messageConstants.apiResponses.OBSERVATION_SOLUTION,
-            result: result,
-          };
-
-          return resolve(response);
-        } else {
-          throw messageConstants.apiResponses.ERROR_CREATING_OBSERVATION;
-        }
+        return resolve(parentSolutionCreation);
+        
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,

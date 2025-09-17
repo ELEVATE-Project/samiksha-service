@@ -31,9 +31,11 @@ const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const validateEntity = process.env.VALIDATE_ENTITIES;
 const validateRole = process.env.VALIDATE_ROLE;
 const topLevelEntityType = process.env.TOP_LEVEL_ENTITY_TYPE;
-const surveyService = require(ROOT_PATH + "/generics/services/survey");
+const surveyService = require(ROOT_PATH + '/generics/services/survey');
 const userService = require(ROOT_PATH + '/generics/services/users');
-const projectService = require(ROOT_PATH + '/generics/services/project')
+const projectService = require(ROOT_PATH + '/generics/services/project');
+const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
+const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
 
 /**
  * ObservationsHelper
@@ -92,10 +94,10 @@ module.exports = class ObservationsHelper {
     solutionId,
     data,
     userId,
-    requestingUserAuthToken = "",
+    requestingUserAuthToken = '',
     userRoleAndProfileInformation,
     tenantData,
-    programId = ""
+    programId = ''
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -104,7 +106,7 @@ module.exports = class ObservationsHelper {
         //     messageConstants.apiResponses.REQUIRED_USER_AUTH_TOKEN
         //   );
         // }
-  
+
         // let organisationAndRootOrganisation =
         //   await shikshalokamHelper.getOrganisationsAndRootOrganisations(
         //     requestingUserAuthToken,
@@ -115,18 +117,18 @@ module.exports = class ObservationsHelper {
             _id: solutionId,
           },
           [
-            "isReusable",
-            "externalId",
-            "programId",
-            "programExternalId",
-            "frameworkId",
-            "frameworkExternalId",
-            "entityType",
-            "entityTypeId",
-            "isAPrivateProgram",
-            "project",
-            "referenceFrom",
-            "isExternalProgram",
+            'isReusable',
+            'externalId',
+            'programId',
+            'programExternalId',
+            'frameworkId',
+            'frameworkExternalId',
+            'entityType',
+            'entityTypeId',
+            'isAPrivateProgram',
+            'project',
+            'referenceFrom',
+            'isExternalProgram',
           ]
         );
         if (!solutionData.length > 0) {
@@ -135,80 +137,52 @@ module.exports = class ObservationsHelper {
             message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
           };
         }
-  
+
         if (solutionData[0].isReusable) {
-          solutionData =
-            await solutionHelperUtils.createProgramAndSolutionFromTemplate(
-              solutionId,
-              {
-                _id: programId,
-              },
-              userId,
-              _.omit(data, ["entities"]),
-              true,
-              userId,
-              requestingUserAuthToken,
-              tenantData
-              //   organisationAndRootOrganisation.,
-              //   organisationAndRootOrganisation.rootOrganisations
-            );
+          solutionData = await solutionHelperUtils.createProgramAndSolutionFromTemplate(
+            solutionId,
+            {
+              _id: programId,
+            },
+            userId,
+            _.omit(data, ['entities']),
+            true,
+            userId,
+            requestingUserAuthToken,
+            tenantData
+            //   organisationAndRootOrganisation.,
+            //   organisationAndRootOrganisation.rootOrganisations
+          );
         } else {
           solutionData = solutionData[0];
         }
         if (
           userRoleAndProfileInformation &&
           Object.keys(userRoleAndProfileInformation).length > 0 &&
-          validateRole == "ON" &&
+          validateRole == 'ON' &&
           topLevelEntityType
         ) {
           //validate the user access to create observation
-          let validateUserRole = await this.validateUserRole(
-            userRoleAndProfileInformation,
-            solutionId,
-            tenantData
-          );
+          let validateUserRole = await this.validateUserRole(userRoleAndProfileInformation, solutionId, tenantData);
           if (!validateUserRole.success) {
             throw {
               status: httpStatusCode.bad_request.status,
-              message:
-                validateUserRole.message ||
-                messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
+              message: validateUserRole.message || messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
             };
           }
         }
-  
-        let userProfileData = await surveyService.profileRead(
-          requestingUserAuthToken
-        );
-        userProfileData =
-          userProfileData.success && userProfileData.data
-            ? userProfileData.data
-            : {};
-  
-        let observationData = await this.createObservation(
-          data,
-          userId,
-          solutionData,
-          userProfileData,
-          tenantData
-        );
-  
-        return resolve(
-          _.pick(observationData, [
-            "_id",
-            "name",
-            "description",
-            "solutionId",
-            "solutionExternalId",
-          ])
-        );
+
+        let userProfileData = await surveyService.profileRead(requestingUserAuthToken);
+        userProfileData = userProfileData.success && userProfileData.data ? userProfileData.data : {};
+
+        let observationData = await this.createObservation(data, userId, solutionData, userProfileData, tenantData);
+
+        return resolve(_.pick(observationData, ['_id', 'name', 'description', 'solutionId', 'solutionExternalId']));
       } catch (error) {
         return reject(error);
       }
     });
   }
-  
-
 
   /**
    * Create observation.
@@ -222,22 +196,30 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation creation data.
    */
 
-  static createObservation(data, userId, solution,userProfileInformation = {},tenantData) {
+  static createObservation(data, userId, solution, userProfileInformation = {}, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (validateEntities == 'ON') {
-          if (data.entities ) {
-            if(!solution.entityTypeId){
+          if (data.entities) {
+            if (!solution.entityTypeId) {
               let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments({
                 name: solution.entityType,
                 tenantId: tenantData.tenantId,
-                orgIds: {$in:['ALL',tenantData.orgId]}
+                orgIds: { $in: ['ALL', tenantData.orgId] },
               });
-              if (entityTypeDocumentsAPICall?.success && Array.isArray(entityTypeDocumentsAPICall?.data) && entityTypeDocumentsAPICall.data.length > 0) {
+              if (
+                entityTypeDocumentsAPICall?.success &&
+                Array.isArray(entityTypeDocumentsAPICall?.data) &&
+                entityTypeDocumentsAPICall.data.length > 0
+              ) {
                 solution['entityTypeId'] = entityTypeDocumentsAPICall.data[0]._id;
               }
             }
-            let entitiesToAdd = await entityManagementService.validateEntities(data.entities, solution.entityTypeId,tenantData);
+            let entitiesToAdd = await entityManagementService.validateEntities(
+              data.entities,
+              solution.entityTypeId,
+              tenantData
+            );
             data.entities = entitiesToAdd.entityIds;
           }
         }
@@ -246,7 +228,7 @@ module.exports = class ObservationsHelper {
           data.project._id = new ObjectId(data.project._id);
           data.referenceFrom = messageConstants.common.PROJECT;
         }
-        
+
         let observationData = _.merge(data, {
           solutionId: solution._id,
           solutionExternalId: solution.externalId,
@@ -260,16 +242,14 @@ module.exports = class ObservationsHelper {
           createdBy: userId,
           createdFor: userId,
           isAPrivateProgram: solution.isAPrivateProgram,
-          startDate:solution.startDate,
-          endDate:solution.endDate,
-          "userProfile" : userProfileInformation ? userProfileInformation : {},
+          startDate: solution.startDate,
+          endDate: solution.endDate,
+          userProfile: userProfileInformation ? userProfileInformation : {},
           tenantId: tenantData.tenantId,
           orgId: tenantData.orgId,
-          isExternalProgram:solution.isExternalProgram
+          isExternalProgram: solution.isExternalProgram,
         });
-        let observationDataEntry = await database.models.observations.create(
-          observationData
-        );
+        let observationDataEntry = await database.models.observations.create(observationData);
 
         if (!observationDataEntry._id) {
           throw {
@@ -308,7 +288,7 @@ module.exports = class ObservationsHelper {
             const user = userIds[pointerToUserIds];
             let userOrganisations = await shikshalokamHelper.getOrganisationsAndRootOrganisations(
               requestingUserAuthToken,
-              userIds[pointerToUserIds],
+              userIds[pointerToUserIds]
             );
 
             userOrganisationDetails[user] = userOrganisations;
@@ -337,14 +317,14 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation list.
    */
 
-  static listV1(userId = '',tenantData) {
+  static listV1(userId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
           throw new Error(messageConstants.apiResponses.INVALID_USER_ID);
         }
 
-        let observations = this.listCommon(userId, 'v1',tenantData);
+        let observations = this.listCommon(userId, 'v1', tenantData);
 
         return resolve(observations);
       } catch (error) {
@@ -362,14 +342,14 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation list.
    */
 
-  static listV2(userId = '',tenantData) {
+  static listV2(userId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
           throw new Error(messageConstants.apiResponses.INVALID_USER_ID);
         }
 
-        let observations = this.listCommon(userId, 'v2',tenantData);
+        let observations = this.listCommon(userId, 'v2', tenantData);
 
         return resolve(observations);
       } catch (error) {
@@ -388,7 +368,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} observation list.
    */
 
-  static listCommon(userId = '', sourceApi = 'v2',tenantData) {
+  static listCommon(userId = '', sourceApi = 'v2', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (userId == '') {
@@ -403,7 +383,7 @@ module.exports = class ObservationsHelper {
               createdBy: userId,
               status: { $ne: 'inactive' },
               tenantId: tenantData.tenantId,
-              orgId:tenantData.orgId
+              orgId: tenantData.orgId,
             },
           },
           {
@@ -452,14 +432,14 @@ module.exports = class ObservationsHelper {
                     $in: observation.entities,
                   },
                   tenantId: tenantData.tenantId,
-                  orgId: tenantData.orgId
+                  orgId: tenantData.orgId,
                 },
                 {
                   themes: 0,
                   criteria: 0,
                   evidences: 0,
                   answers: 0,
-                },
+                }
               )
               .sort({ createdAt: -1 });
           } else {
@@ -477,7 +457,7 @@ module.exports = class ObservationsHelper {
                 criteria: 0,
                 evidences: 0,
                 answers: 0,
-              },
+              }
             );
           }
 
@@ -493,7 +473,7 @@ module.exports = class ObservationsHelper {
             observationEntitySubmissions[observationEntitySubmission.entityId.toString()].submissionStatus =
               observationEntitySubmission.status;
             observationEntitySubmissions[observationEntitySubmission.entityId.toString()].submissions.push(
-              observationEntitySubmission,
+              observationEntitySubmission
             );
           });
 
@@ -600,7 +580,7 @@ module.exports = class ObservationsHelper {
             },
             {
               submissionNumber: 1,
-            },
+            }
           )
           .sort({ createdAt: -1 })
           .limit(1)
@@ -668,7 +648,7 @@ module.exports = class ObservationsHelper {
               createdBy: userId,
               status: 'published',
             },
-            { _id: 1 },
+            { _id: 1 }
           )
           .lean();
 
@@ -681,7 +661,7 @@ module.exports = class ObservationsHelper {
                 },
                 {
                   $addToSet: { entities: entityDocument._id },
-                },
+                }
               )
               .lean();
             updateObservationData
@@ -785,7 +765,7 @@ module.exports = class ObservationsHelper {
           throw new Error(
             `Failed to push entity notification for observation ${observationData._id.toString()} in the solution ${
               observationData.solutionName
-            }`,
+            }`
           );
         }
 
@@ -829,7 +809,7 @@ module.exports = class ObservationsHelper {
 
         let chunkOfObservationSubmissions = _.chunk(
           observationSubmissionsDocuments,
-          chunkOfObservationSubmissionsLength,
+          chunkOfObservationSubmissionsLength
         );
 
         let observationData = [];
@@ -844,7 +824,7 @@ module.exports = class ObservationsHelper {
           observationSubmissionsIds = chunkOfObservationSubmissions[pointerToObservationSubmission].map(
             (observationSubmission) => {
               return observationSubmission._id;
-            },
+            }
           );
 
           observationSubmissionsDocument = await database.models.observationSubmissions
@@ -862,7 +842,7 @@ module.exports = class ObservationsHelper {
                 'entityInformation.name': 1,
                 'entityInformation.externalId': 1,
                 programId: 1,
-              },
+              }
             )
             .lean();
 
@@ -885,7 +865,7 @@ module.exports = class ObservationsHelper {
                 entityName: entityName,
                 programId: eachObservationData.programId,
               });
-            }),
+            })
           );
         }
 
@@ -943,7 +923,7 @@ module.exports = class ObservationsHelper {
           observationSubmissionsIds = chunkOfObservationSubmissions[pointerToObservationSubmission].map(
             (observationSubmission) => {
               return observationSubmission._id;
-            },
+            }
           );
 
           observationSubmissionsDocument = await database.models.observationSubmissions
@@ -961,7 +941,7 @@ module.exports = class ObservationsHelper {
                 'entityInformation.externalId': 1,
                 completedDate: 1,
                 programId: 1,
-              },
+              }
             )
             .lean();
           await Promise.all(
@@ -983,7 +963,7 @@ module.exports = class ObservationsHelper {
                 completedDate: eachObservationData.completedDate,
                 programId: eachObservationData.programId,
               });
-            }),
+            })
           );
         }
 
@@ -1004,24 +984,23 @@ module.exports = class ObservationsHelper {
    * @param  {Object} tenantData    -tenant data.
    * @returns {Object}              observation details.
    */
-  static details(observationId = "", solutionId = "", userId = "",tenantData) {
+  static details(observationId = '', solutionId = '', userId = '', tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         //Check for observation or soultion ID
-        if (observationId == "" && solutionId == "") {
+        if (observationId == '' && solutionId == '') {
           throw {
-            message:
-              messageConstants.apiResponses.OBSERVATION_OR_SOLUTION_CHECK,
-            status: httpStatusCode["bad_request"].status,
+            message: messageConstants.apiResponses.OBSERVATION_OR_SOLUTION_CHECK,
+            status: httpStatusCode['bad_request'].status,
           };
         }
 
         let filterQuery = {};
-        if (observationId && observationId != "") {
+        if (observationId && observationId != '') {
           filterQuery._id = observationId;
         }
 
-        if (solutionId && solutionId != "" && userId && userId != "") {
+        if (solutionId && solutionId != '' && userId && userId != '') {
           filterQuery.solutionId = new ObjectId(solutionId);
           filterQuery.createdBy = userId;
         }
@@ -1036,15 +1015,13 @@ module.exports = class ObservationsHelper {
 
         if (observationDocument[0].entities.length > 0) {
           let filterData = {
-           _id: {$in:observationDocument[0].entities},
-           tenantId:tenantData.tenantId,
-           orgId: {$in:['ALL',tenantData.orgId]}
+            _id: { $in: observationDocument[0].entities },
+            tenantId: tenantData.tenantId,
+            orgId: { $in: ['ALL', tenantData.orgId] },
           };
-        
-         //Retrieving the entity from the Entity Management Service
-          let entitiesDocument = await entityManagementService.entityDocuments(
-            filterData
-          );
+
+          //Retrieving the entity from the Entity Management Service
+          let entitiesDocument = await entityManagementService.entityDocuments(filterData);
           // Adding the entity and count on the observation response document
           if (entitiesDocument.success) {
             observationDocument[0].entities = entitiesDocument.data;
@@ -1097,7 +1074,7 @@ module.exports = class ObservationsHelper {
         pageHeading: 1,
         criteriaLevelReport: 1,
         endDate: 1,
-        isExternalProgram: 1
+        isExternalProgram: 1,
       });
     });
   }
@@ -1124,7 +1101,7 @@ module.exports = class ObservationsHelper {
         'pageHeading',
         'criteriaLevelReport',
         // 'isAPrivateProgram',
-        'endDate'
+        'endDate',
       ]);
     });
   }
@@ -1145,7 +1122,7 @@ module.exports = class ObservationsHelper {
       try {
         let organisationAndRootOrganisation = await shikshalokamHelper.getOrganisationsAndRootOrganisations(
           token,
-          userId,
+          userId
         );
 
         let solutionInformation = {
@@ -1165,7 +1142,7 @@ module.exports = class ObservationsHelper {
           solutionInformation,
           true,
           organisationAndRootOrganisation.createdFor,
-          organisationAndRootOrganisation.rootOrganisations,
+          organisationAndRootOrganisation.rootOrganisations
         );
 
         let startDate = new Date();
@@ -1190,7 +1167,7 @@ module.exports = class ObservationsHelper {
           observationData,
           userId,
           createdSolutionAndProgram,
-          organisationAndRootOrganisation,
+          organisationAndRootOrganisation
         );
 
         createdSolutionAndProgram['observationName'] = observation.name;
@@ -1225,7 +1202,7 @@ module.exports = class ObservationsHelper {
             isReusable: false,
             type: messageConstants.common.OBSERVATION,
           },
-          ['link'],
+          ['link']
         );
 
         if (!Array.isArray(observationData) || observationData.length < 1) {
@@ -1299,7 +1276,7 @@ module.exports = class ObservationsHelper {
             'programExternalId',
             'endDate',
             'status',
-          ],
+          ]
         );
 
         if (!Array.isArray(observationSolutionData) || observationSolutionData.length < 1) {
@@ -1320,7 +1297,7 @@ module.exports = class ObservationsHelper {
           if (observationSolutionData[0].status == messageConstants.common.ACTIVE_STATUS) {
             await solutionsQueries.updateSolutionDocument(
               { link: link },
-              { $set: { status: messageConstants.common.INACTIVE_STATUS } },
+              { $set: { status: messageConstants.common.INACTIVE_STATUS } }
             );
           }
 
@@ -1380,7 +1357,7 @@ module.exports = class ObservationsHelper {
               _id: { $in: userEntities },
               entityType: observationSolutionData[0].subType,
             },
-            ['_id'],
+            ['_id']
           );
 
           for (
@@ -1409,7 +1386,7 @@ module.exports = class ObservationsHelper {
 
         let organisationAndRootOrganisation = await shikshalokamHelper.getOrganisationsAndRootOrganisations(
           requestingUserAuthToken,
-          userId,
+          userId
         );
 
         let solution = {
@@ -1451,7 +1428,7 @@ module.exports = class ObservationsHelper {
       try {
         let userAndEntityList = await kendraService.getUsersByEntityAndRole(
           userObservationData.entityId,
-          userObservationData.role,
+          userObservationData.role
         );
 
         if (!userAndEntityList.success) {
@@ -1467,7 +1444,7 @@ module.exports = class ObservationsHelper {
               entityIds.push(user.entityId);
             }
             usersKeycloakIdMap[user.userId] = true;
-          }),
+          })
         );
 
         const fileName = `Observation-Upload-Result`;
@@ -1485,7 +1462,7 @@ module.exports = class ObservationsHelper {
         if (Object.keys(usersKeycloakIdMap).length > 0) {
           let userOrganisationDetails = await this.getUserOrganisationDetails(
             Object.keys(usersKeycloakIdMap),
-            userToken,
+            userToken
           );
 
           usersKeycloakIdMap = userOrganisationDetails.data;
@@ -1624,7 +1601,7 @@ module.exports = class ObservationsHelper {
             createdBy: userId,
             entities: ObjectId(entityId),
           },
-          ['_id'],
+          ['_id']
         );
 
         if (!observation.length > 0) {
@@ -1640,7 +1617,7 @@ module.exports = class ObservationsHelper {
             entityId: entityId,
             isDeleted: false,
           },
-          ['status', 'submissionNumber'],
+          ['status', 'submissionNumber']
         );
 
         if (!observationSubmissions.length > 0) {
@@ -1673,7 +1650,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} List of user assigned observations.
    */
 
-  static userAssigned(userId, pageNo, pageSize, search, filter = '',tenantFilter) {
+  static userAssigned(userId, pageNo, pageSize, search, filter = '', tenantFilter) {
     return new Promise(async (resolve, reject) => {
       try {
         //Constructing the match query for assigned solutions
@@ -1682,8 +1659,8 @@ module.exports = class ObservationsHelper {
             createdBy: userId,
             deleted: false,
             referenceFrom: { $ne: messageConstants.common.PROJECT },
-            tenantId:tenantFilter.tenantId,
-            orgId:tenantFilter.orgId
+            tenantId: tenantFilter.tenantId,
+            orgId: tenantFilter.orgId,
           },
         };
 
@@ -1700,14 +1677,14 @@ module.exports = class ObservationsHelper {
             matchQuery['$match']['isAPrivateProgram'] = false;
           }
         }
-      //Constructing the projection 
+        //Constructing the projection
         let projection1 = {
           $project: {
             name: 1,
             description: 1,
             solutionId: 1,
             programId: 1,
-            entityType:1
+            entityType: 1,
           },
         };
 
@@ -1716,7 +1693,10 @@ module.exports = class ObservationsHelper {
 
         facetQuery['$facet']['totalCount'] = [{ $count: 'count' }];
 
-        facetQuery['$facet']['data'] = [{ $skip: pageSize * (pageNo - messageConstants.common.DEFAULT_PAGE_NO) }, { $limit: pageSize ? pageSize: messageConstants.common.DEFAULT_PAGE_SIZE }];
+        facetQuery['$facet']['data'] = [
+          { $skip: pageSize * (pageNo - messageConstants.common.DEFAULT_PAGE_NO) },
+          { $limit: pageSize ? pageSize : messageConstants.common.DEFAULT_PAGE_SIZE },
+        ];
 
         let projection2 = {};
         projection2['$project'] = {
@@ -1734,10 +1714,10 @@ module.exports = class ObservationsHelper {
           },
           projection1,
           facetQuery,
-          projection2,
+          projection2
         );
-        
-       //Retrieve the matching documents from the observation collection
+
+        //Retrieve the matching documents from the observation collection
         let result = await database.models.observations.aggregate(aggregateData);
         if (result[0].data.length > 0) {
           let solutionIds = [];
@@ -1749,14 +1729,14 @@ module.exports = class ObservationsHelper {
           let solutionDocuments = await solutionsQueries.solutionDocuments(
             {
               _id: { $in: solutionIds },
-              tenantId:tenantFilter.tenantId
+              tenantId: tenantFilter.tenantId,
             },
-            ['language', 'creator'],
+            ['language', 'creator']
           );
-        //Adding creator and language to the observation document fetched from the solution documents
+          //Adding creator and language to the observation document fetched from the solution documents
           solutionDocuments.forEach((solutionDocument) => {
             let solution = result[0].data.find(
-              (resultData) => resultData.solutionId.toString() === solutionDocument._id.toString(),
+              (resultData) => resultData.solutionId.toString() === solutionDocument._id.toString()
             );
             solution['language'] = solutionDocument.language;
             solution['creator'] = solutionDocument.creator ? solutionDocument.creator : '';
@@ -1800,7 +1780,7 @@ module.exports = class ObservationsHelper {
           userId,
           messageConstants.common.DEFAULT_PAGE_NO,
           messageConstants.common.DEFAULT_PAGE_SIZE,
-          search,
+          search
         );
 
         let solutionIds = [];
@@ -1829,7 +1809,7 @@ module.exports = class ObservationsHelper {
               {
                 _id: { $in: programIds },
               },
-              ['name'],
+              ['name']
             );
 
             if (programsData.length > 0) {
@@ -1854,7 +1834,7 @@ module.exports = class ObservationsHelper {
           token,
           bodyData,
           messageConstants.common.OBSERVATION,
-          search,
+          search
         );
 
         if (targetedSolutions.success) {
@@ -1910,7 +1890,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} list of entities in observation
    */
 
-  static entities(userId, token, observationId, solutionId, bodyData,tenantData) {
+  static entities(userId, token, observationId, solutionId, bodyData, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         if (observationId === '') {
@@ -1918,18 +1898,18 @@ module.exports = class ObservationsHelper {
             {
               solutionId: solutionId,
               createdBy: userId,
-              tenantId:tenantData.tenantId,
-              orgId:tenantData.orgId
+              tenantId: tenantData.tenantId,
+              orgId: tenantData.orgId,
             },
-            ['_id'],
+            ['_id']
           );
-          
+
           if (observationData.length > 0) {
             observationId = observationData[0]._id;
           } else {
             let solutionData = await solutionsQueries.solutionDocuments({
               _id: solutionId,
-              tenantId:tenantData.tenantId
+              tenantId: tenantData.tenantId,
             });
 
             if (solutionData.length === 0) {
@@ -1949,20 +1929,16 @@ module.exports = class ObservationsHelper {
             if (validateEntities == 'ON') {
               if (entityTypes.includes(solutionData.data.entityType)) {
                 let filterData = {
-                  _id:bodyData[solutionData.data.entityType],
+                  _id: bodyData[solutionData.data.entityType],
                   entityType: solutionData.data.entityType,
-                  tenantId:tenantData.tenantId
+                  tenantId: tenantData.tenantId,
                 };
-                
-                let entitiesDocument = await entityManagementService.entityDocuments(
-                  filterData
-                );
-                if(!entitiesDocument.success){
-                  throw new Error(
-                    messageConstants.apiResponses.ENTITIES_NOT_FOUND
-                  );
-                 }
-                 let entityInfo = entitiesDocument.data[0];
+
+                let entitiesDocument = await entityManagementService.entityDocuments(filterData);
+                if (!entitiesDocument.success) {
+                  throw new Error(messageConstants.apiResponses.ENTITIES_NOT_FOUND);
+                }
+                let entityInfo = entitiesDocument.data[0];
                 solutionData.data['entities'] = [entityInfo._id];
               }
             } else {
@@ -1970,44 +1946,37 @@ module.exports = class ObservationsHelper {
             }
 
             delete solutionData.data._id;
-            if(validateRole == 'ON' && topLevelEntityType){ 
+            if (validateRole == 'ON' && topLevelEntityType) {
               //validate the user access to create observation
-              let validateUserRole = await this.validateUserRole(
-                bodyData,
-                solutionId,
-                tenantData
-              );
+              let validateUserRole = await this.validateUserRole(bodyData, solutionId, tenantData);
 
               if (!validateUserRole.success) {
                 throw {
                   status: httpStatusCode.bad_request.status,
-                  message: validateUserRole.message ||
-                    messageConstants.apiResponses
-                      .OBSERVATION_NOT_RELEVENT_FOR_USER,
-                  
+                  message: validateUserRole.message || messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
                 };
               }
-           }
-            
-            let observation = await this.create(solutionId, solutionData.data, userId, token,bodyData,tenantData);
+            }
+
+            let observation = await this.create(solutionId, solutionData.data, userId, token, bodyData, tenantData);
             observationId = observation._id;
           }
-        }    
-        let entitiesList = await this.listEntities(observationId,tenantData); 
+        }
+        let entitiesList = await this.listEntities(observationId, tenantData);
         let observationData = await this.observationDocuments(
           {
             _id: observationId,
           },
-          ['_id', 'solutionId'],
-        );       
+          ['_id', 'solutionId']
+        );
         let solutionData;
         if (observationData[0]) {
           solutionData = await solutionsQueries.solutionDocuments(
             {
               _id: observationData[0].solutionId,
-              tenantId:tenantData.tenantId
+              tenantId: tenantData.tenantId,
             },
-            ['allowMultipleAssessemts', 'parentEntityKey'],
+            ['allowMultipleAssessemts', 'parentEntityKey']
           );
         }
 
@@ -2019,7 +1988,7 @@ module.exports = class ObservationsHelper {
             _id: observationId,
             entities: entitiesList.data.entities,
             entityType: entitiesList.data.entityType,
-            parentEntityKey: solutionData[0].parentEntityKey
+            parentEntityKey: solutionData[0].parentEntityKey,
           },
         });
       } catch (error) {
@@ -2042,14 +2011,14 @@ module.exports = class ObservationsHelper {
    * @returns {Object} List of observation entities.
    */
 
-  static listEntities(observationId,tenantData) {
+  static listEntities(observationId, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let observationDocument = await this.observationDocuments(
           {
             _id: observationId,
           },
-          ['entities', 'entityType'],
+          ['entities', 'entityType']
         );
         if (!observationDocument[0]) {
           throw {
@@ -2060,7 +2029,7 @@ module.exports = class ObservationsHelper {
         let entities = [];
 
         if (observationDocument[0].entities && observationDocument[0].entities.length > 0) {
-          let entitiesData=[];
+          let entitiesData = [];
           /*
           If validateEntity is set to ON, a call will be made to the Entity Management
           service to fetch information about the entities.
@@ -2068,29 +2037,27 @@ module.exports = class ObservationsHelper {
            and the response will not include the entity's name or additional information.
           */
 
-          if(validateEntity == 'ON'){
-             entitiesData = await entityManagementService.entityDocuments(
+          if (validateEntity == 'ON') {
+            entitiesData = await entityManagementService.entityDocuments(
               {
                 _id: { $in: observationDocument[0].entities },
-                tenantId:tenantData.tenantId,
-                orgIds: {$in:['ALL',tenantData.orgId]}
+                tenantId: tenantData.tenantId,
+                orgIds: { $in: ['ALL', tenantData.orgId] },
               },
-              ['metaInformation.externalId', 'metaInformation.name'],
+              ['metaInformation.externalId', 'metaInformation.name']
             );
-  
+
             entitiesData = entitiesData.data;
-          }
-          else {
+          } else {
             entitiesData = observationDocument[0].entities;
-            entitiesData = entitiesData.map((data)=>{
-              return {"_id":data}
+            entitiesData = entitiesData.map((data) => {
+              return { _id: data };
             });
           }
           if (!entitiesData.length > 0) {
             throw {
               message: messageConstants.apiResponses.ENTITIES_NOT_FOUND,
             };
-
           }
 
           for (let pointerToEntities = 0; pointerToEntities < entitiesData.length; pointerToEntities++) {
@@ -2110,7 +2077,7 @@ module.exports = class ObservationsHelper {
 
             if (observationSubmissions.length == 1) {
               entity['submissionId'] = observationSubmissions[0]._id;
-              entity['status'] =  observationSubmissions[0].status;
+              entity['status'] = observationSubmissions[0].status;
             }
 
             entities.push(entity);
@@ -2146,7 +2113,7 @@ module.exports = class ObservationsHelper {
    * @returns {JSON} message - regarding either entity is added to observation or not.
    */
 
-  static addEntityToObservation(observationId, requestedData, userId,tenantData) {
+  static addEntityToObservation(observationId, requestedData, userId, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         let responseMessage = 'Updated successfully.';
@@ -2156,10 +2123,10 @@ module.exports = class ObservationsHelper {
             _id: observationId,
             createdBy: userId,
             status: { $ne: 'inactive' },
-            tenantId:tenantData.tenantId,
-            orgId: tenantData.orgId
+            tenantId: tenantData.tenantId,
+            orgId: tenantData.orgId,
           },
-          ['entityTypeId', 'status'],
+          ['entityTypeId', 'status']
         );
 
         if (observationDocument[0].status != messageConstants.common.PUBLISHED) {
@@ -2171,7 +2138,11 @@ module.exports = class ObservationsHelper {
           });
         }
 
-        let entitiesToAdd =  await entityManagementService.validateEntities(requestedData,observationDocument[0].entityTypeId,tenantData);
+        let entitiesToAdd = await entityManagementService.validateEntities(
+          requestedData,
+          observationDocument[0].entityTypeId,
+          tenantData
+        );
 
         if (entitiesToAdd.entityIds.length > 0) {
           await database.models.observations.updateOne(
@@ -2180,7 +2151,7 @@ module.exports = class ObservationsHelper {
             },
             {
               $addToSet: { entities: { $each: entitiesToAdd.entityIds } },
-            },
+            }
           );
         }
 
@@ -2211,22 +2182,22 @@ module.exports = class ObservationsHelper {
    * @returns {JSON} observation remoevable message
    */
 
-  static removeEntityFromObservation(observationId, requestedData, userId,tenantData) {
+  static removeEntityFromObservation(observationId, requestedData, userId, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
         await database.models.observations.updateOne(
           {
-            _id:observationId,
+            _id: observationId,
             status: { $ne: 'completed' },
             createdBy: userId,
-            tenantId:tenantData.tenantId,
-            orgId:tenantData.orgId,
+            tenantId: tenantData.tenantId,
+            orgId: tenantData.orgId,
           },
           {
             $pull: {
-                entities: { $in: requestedData }
-            }
-        }
+              entities: { $in: requestedData },
+            },
+          }
         );
 
         return resolve({
@@ -2242,31 +2213,29 @@ module.exports = class ObservationsHelper {
     });
   }
 
-/**
- * Create a new observation submission
- * @param {Object} req - The request object
- * @param {Object} req.params - Request parameters
- * @param {string} req.params._id - Observation ID
- * @param {Object} req.query - Query parameters
- * @param {string} req.query.entityId - Entity ID
- * @param {Object} req.userDetails - User details
- * @param {string} req.userDetails.userId - User ID
- * @param {Object} req.body - Request body
- * @param {Object} req.headers - Request headers
- * @returns {Promise<Object>} - A promise that resolves to an object containing the result of the operation
- */
-  static async createNewObservation(req){
-
-    return new Promise(async (resolve, reject)=>{
-
+  /**
+   * Create a new observation submission
+   * @param {Object} req - The request object
+   * @param {Object} req.params - Request parameters
+   * @param {string} req.params._id - Observation ID
+   * @param {Object} req.query - Query parameters
+   * @param {string} req.query.entityId - Entity ID
+   * @param {Object} req.userDetails - User details
+   * @param {string} req.userDetails.userId - User ID
+   * @param {Object} req.body - Request body
+   * @param {Object} req.headers - Request headers
+   * @returns {Promise<Object>} - A promise that resolves to an object containing the result of the operation
+   */
+  static async createNewObservation(req) {
+    return new Promise(async (resolve, reject) => {
       let tenantData = req.userDetails.tenantData;
       let observationDocument = await this.observationDocuments({
         _id: req.params._id,
         createdBy: req.userDetails.userId,
         status: { $ne: 'inactive' },
-        entities: { '$in': [req.query.entityId]},
-        tenantId:tenantData.tenantId,
-        orgId:tenantData.orgId,
+        entities: { $in: [req.query.entityId] },
+        tenantId: tenantData.tenantId,
+        orgId: tenantData.orgId,
       });
 
       if (!observationDocument[0]) {
@@ -2275,29 +2244,26 @@ module.exports = class ObservationsHelper {
           message: messageConstants.apiResponses.OBSERVATION_NOT_FOUND,
         });
       }
-  
+
       observationDocument = observationDocument[0];
       let entityDocument = { metaInformation: {} };
-  
+
       if (validateEntities == 'ON') {
-  
         let filterData = {
           _id: req.query.entityId,
           entityType: observationDocument.entityType,
           tenantId: req.userDetails.tenantData.tenantId,
-          orgIds: {$in:['ALL',req.userDetails.tenantData.orgId]}
-         };
-         let entitiesDocument = await entityManagementService.entityDocuments(
-           filterData
-         );
-         if(!entitiesDocument.success){
+          orgIds: { $in: ['ALL', req.userDetails.tenantData.orgId] },
+        };
+        let entitiesDocument = await entityManagementService.entityDocuments(filterData);
+        if (!entitiesDocument.success) {
           throw new Error({
-            message:messageConstants.apiResponses.ENTITIES_NOT_FOUND
+            message: messageConstants.apiResponses.ENTITIES_NOT_FOUND,
           });
-         }
-  
-         entityDocument = entitiesDocument.data[0];
-  
+        }
+
+        entityDocument = entitiesDocument.data[0];
+
         if (!entityDocument) {
           let responseMessage = messageConstants.apiResponses.ENTITY_NOT_FOUND;
           return resolve({
@@ -2306,11 +2272,11 @@ module.exports = class ObservationsHelper {
           });
         }
       }
-  
+
       if (entityDocument.registryDetails && Object.keys(entityDocument.registryDetails).length > 0) {
         entityDocument.metaInformation.registryDetails = entityDocument.registryDetails;
       }
-  
+
       let solutionDocument = await solutionsQueries.solutionDocuments(
         {
           _id: observationDocument.solutionId,
@@ -2332,39 +2298,39 @@ module.exports = class ObservationsHelper {
           'project',
           'referenceFrom',
           'criteriaLevelReport',
-          'isExternalProgram'
-        ],
+          'isExternalProgram',
+        ]
       );
-  
+
       if (!solutionDocument[0]) {
         return resolve({
           status: httpStatusCode.bad_request.status,
           message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
         });
       }
-  
+
       solutionDocument = solutionDocument[0];
-     //need to check usage of entityProfileForm, why it is fetched. if needed create new logic
+      //need to check usage of entityProfileForm, why it is fetched. if needed create new logic
       // if (validateEntities == 'ON') {
-  
+
       //   let filterData = {
       //     _id: solutionDocument.entityTypeId
       //    };
-  
+
       //    let entityTypeDocumentsAPICall = await entityManagementService.entityTypeDocuments(
       //      filterData,
       //      {profileForm:1},
       //      req.userDetails.userToken
       //    );
-  
+
       //    if(!entityTypeDocumentsAPICall.success){
       //     throw new Error({
       //       message:messageConstants.apiResponses.ENTITY_NOT_FOUND
       //     });
       //    }
-  
+
       //   let entityProfileForm = entityTypeDocumentsAPICall.data[0];
-  
+
       //   if (!entityProfileForm) {
       //     return resolve({
       //       status: httpStatusCode.bad_request.status,
@@ -2372,28 +2338,28 @@ module.exports = class ObservationsHelper {
       //     });
       //   }
       // }
-  
+
       let lastSubmissionNumber = 0;
-  
+
       const lastSubmissionForObservationEntity = await this.findLastSubmissionForObservationEntity(
         req.params._id,
-        req.query.entityId,
+        req.query.entityId
       );
 
       if (!lastSubmissionForObservationEntity.success) {
         throw new Error(lastSubmissionForObservationEntity.message);
       }
-  
+
       lastSubmissionNumber = lastSubmissionForObservationEntity.result + 1;
-  
+
       let programInformation = null;
-      
-      if(solutionDocument.programId){
-        let programDocument
+
+      if (solutionDocument.programId) {
+        let programDocument;
         let programQueryObject = {
           _id: solutionDocument.programId,
           status: messageConstants.common.ACTIVE_STATUS,
-          tenantId:tenantData.tenantId,
+          tenantId: tenantData.tenantId,
         };
         if (solutionDocument.isExternalProgram) {
           programDocument = await projectService.programDetails(req.userDetails.userToken, solutionDocument.programId);
@@ -2422,20 +2388,14 @@ module.exports = class ObservationsHelper {
           );
           programDocument = programDocument.data.data;
         }
-        
-       
-       if (!programDocument[0]._id) {
-         throw messageConstants.apiResponses.PROGRAM_NOT_FOUND;
-       }
 
-       programInformation =  {
-           ..._.omit(programDocument[0], [
-             "_id",
-             "components",
-             "isAPrivateProgram",
-           ]),
-         }
+        if (!programDocument[0]._id) {
+          throw messageConstants.apiResponses.PROGRAM_NOT_FOUND;
+        }
 
+        programInformation = {
+          ..._.omit(programDocument[0], ['_id', 'components', 'isAPrivateProgram']),
+        };
       }
 
       let submissionDocument = {
@@ -2444,8 +2404,8 @@ module.exports = class ObservationsHelper {
         entityInformation: entityDocument.metaInformation,
         solutionId: solutionDocument._id,
         solutionExternalId: solutionDocument.externalId,
-        programId: solutionDocument.programId ? solutionDocument.programId :undefined,
-        programExternalId: solutionDocument.programExternalId ? solutionDocument.programExternalId: undefined ,
+        programId: solutionDocument.programId ? solutionDocument.programId : undefined,
+        programExternalId: solutionDocument.programExternalId ? solutionDocument.programExternalId : undefined,
         isAPrivateProgram: solutionDocument.isAPrivateProgram,
         frameworkId: solutionDocument.frameworkId,
         frameworkExternalId: solutionDocument.frameworkExternalId,
@@ -2463,36 +2423,36 @@ module.exports = class ObservationsHelper {
         isRubricDriven: solutionDocument.isRubricDriven,
         userProfile: observationDocument?.userProfile ?? {},
         themes: solutionDocument.themes,
-        programInformation:programInformation,
+        programInformation: programInformation,
         tenantId: observationDocument.tenantId,
         orgId: observationDocument.orgId,
-        isExternalProgram:solutionDocument.isExternalProgram
+        isExternalProgram: solutionDocument.isExternalProgram,
       };
-  
+
       if (solutionDocument.hasOwnProperty('criteriaLevelReport')) {
         submissionDocument['criteriaLevelReport'] = solutionDocument['criteriaLevelReport'];
       }
-  
+
       if (req.body && req.body.role) {
         submissionDocument.userRoleInformation = req.body;
       }
-  
+
       if (solutionDocument.referenceFrom === messageConstants.common.PROJECT) {
         submissionDocument['referenceFrom'] = messageConstants.common.PROJECT;
         submissionDocument['project'] = observationDocument.project;
       }
-  
+
       let criteriaId = new Array();
       let criteriaObject = {};
       let criteriaIdArray = gen.utils.getCriteriaIdsAndWeightage(solutionDocument.themes);
-  
+
       criteriaIdArray.forEach((eachCriteriaId) => {
         criteriaId.push(eachCriteriaId.criteriaId);
         criteriaObject[eachCriteriaId.criteriaId.toString()] = {
           weightage: eachCriteriaId.weightage,
         };
       });
-  
+
       let criteriaDocuments = await database.models.criteria
         .find(
           { _id: { $in: criteriaId } },
@@ -2507,93 +2467,89 @@ module.exports = class ObservationsHelper {
             createdAt: 0,
             frameworkCriteriaId: 0,
             __v: 0,
-          },
+          }
         )
         .lean();
-  
+
       let submissionDocumentEvidences = {};
       let submissionDocumentCriterias = [];
-  
-      solutionDocument.evidenceMethods !== undefined && Object.keys(solutionDocument.evidenceMethods).forEach((solutionEcm) => {
-        if (!(solutionDocument.evidenceMethods[solutionEcm].isActive === false)) {
-          solutionDocument.evidenceMethods[solutionEcm].startTime = '';
-          solutionDocument.evidenceMethods[solutionEcm].endTime = '';
-          solutionDocument.evidenceMethods[solutionEcm].isSubmitted = false;
-          solutionDocument.evidenceMethods[solutionEcm].submissions = new Array();
-        } else {
-          delete solutionDocument.evidenceMethods[solutionEcm];
-        }
-      });
+
+      solutionDocument.evidenceMethods !== undefined &&
+        Object.keys(solutionDocument.evidenceMethods).forEach((solutionEcm) => {
+          if (!(solutionDocument.evidenceMethods[solutionEcm].isActive === false)) {
+            solutionDocument.evidenceMethods[solutionEcm].startTime = '';
+            solutionDocument.evidenceMethods[solutionEcm].endTime = '';
+            solutionDocument.evidenceMethods[solutionEcm].isSubmitted = false;
+            solutionDocument.evidenceMethods[solutionEcm].submissions = new Array();
+          } else {
+            delete solutionDocument.evidenceMethods[solutionEcm];
+          }
+        });
       submissionDocumentEvidences = solutionDocument.evidenceMethods;
-  
+
       criteriaDocuments.forEach((criteria) => {
         criteria.weightage = criteriaObject[criteria._id.toString()].weightage;
-  
+
         submissionDocumentCriterias.push(_.omit(criteria, ['evidences']));
       });
-  
+
       submissionDocument.evidences = submissionDocumentEvidences;
-  
-      try{
+
+      try {
         submissionDocument.evidencesStatus = Object.values(submissionDocumentEvidences);
-      }catch(error){
-        submissionDocument.evidencesStatus = []
+      } catch (error) {
+        submissionDocument.evidencesStatus = [];
       }
-  
+
       submissionDocument.criteria = submissionDocumentCriterias;
       submissionDocument.submissionNumber = lastSubmissionNumber;
-  
+
       submissionDocument['appInformation'] = {};
-  
+
       if (req.headers['x-app-id'] || req.headers.appname) {
         submissionDocument['appInformation']['appName'] = req.headers['x-app-id']
           ? req.headers['x-app-id']
           : req.headers.appname;
       }
-  
+
       if (req.headers['x-app-ver'] || req.headers.appversion) {
         submissionDocument['appInformation']['appVersion'] = req.headers['x-app-ver']
           ? req.headers['x-app-ver']
           : req.headers.appversion;
       }
-  
+
       let newObservationSubmissionDocument = await database.models.observationSubmissions.create(submissionDocument);
-  
+
       if (newObservationSubmissionDocument.referenceFrom === messageConstants.common.PROJECT) {
         await observationSubmissionsHelper.pushSubmissionToProjectService(
-          _.pick(newObservationSubmissionDocument, ['project', 'status', '_id']),
+          _.pick(newObservationSubmissionDocument, ['project', 'status', '_id'])
         );
       }
-  
+
       // Push new observation submission to kafka for reporting/tracking.
       observationSubmissionsHelper.pushInCompleteObservationSubmissionForReporting(
-        newObservationSubmissionDocument._id,
+        newObservationSubmissionDocument._id
       );
-  
+
       let observations = new Array();
-      observations = await this.listV2(req.userDetails.userId,tenantData);
+      observations = await this.listV2(req.userDetails.userId, tenantData);
 
       let responseMessage = messageConstants.apiResponses.OBSERVATION_SUBMISSION_CREATED;
-  
+
       return resolve({
         message: responseMessage,
         result: observations,
       });
-
-
-    })
-  
-
+    });
   }
 
-  static async targetedEntityHelper(solutionId,requestedData,tenantData){
-
+  static async targetedEntityHelper(solutionId, requestedData, tenantData) {
     let solutionData = await solutionsQueries.solutionDocuments(
       {
         _id: solutionId,
         isDeleted: false,
       },
-      ["entityType", "type"]
+      ['entityType', 'type']
     );
 
     if (!solutionData.length > 0) {
@@ -2602,25 +2558,25 @@ module.exports = class ObservationsHelper {
         message: constants.apiResponses.SOLUTION_NOT_FOUND,
       });
     }
-    
-    let rolesDocumentAPICall = await entityManagementService.userRoleExtension({
-      code: requestedData.role,
-      "tenantId": tenantData.tenantId,
-      "orgIds": {$in:['ALL',tenantData.orgId]}
-    },
-    ["entityTypes.entityType"])
+
+    let rolesDocumentAPICall = await entityManagementService.userRoleExtension(
+      {
+        code: requestedData.role,
+        tenantId: tenantData.tenantId,
+        orgIds: { $in: ['ALL', tenantData.orgId] },
+      },
+      ['entityTypes.entityType']
+    );
     if (!rolesDocumentAPICall.success) {
       throw {
-        status: httpStatusCode["bad_request"].status,
+        status: httpStatusCode['bad_request'].status,
         message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
       };
     }
 
-    let requestedEntityTypes = Object.keys(_.omit(requestedData, ["role"]));
-    let targetedEntityType = "";
-    
+    let requestedEntityTypes = Object.keys(_.omit(requestedData, ['role']));
+    let targetedEntityType = '';
 
-    
     rolesDocumentAPICall.data[0].entityTypes.forEach((singleEntityType) => {
       if (requestedEntityTypes.includes(singleEntityType.entityType)) {
         targetedEntityType = singleEntityType.entityType;
@@ -2628,11 +2584,10 @@ module.exports = class ObservationsHelper {
     });
 
     if (solutionData[0].entityType === targetedEntityType) {
-
       let filterQuery = {
-        "_id": requestedData[targetedEntityType],
-        "tenantId": tenantData.tenantId,
-        "orgIds": {$in:['ALL',tenantData.orgId]}
+        _id: requestedData[targetedEntityType],
+        tenantId: tenantData.tenantId,
+        orgIds: { $in: ['ALL', tenantData.orgId] },
       };
 
       // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2640,33 +2595,25 @@ module.exports = class ObservationsHelper {
       //     "registryDetails.locationId": requestedData[targetedEntityType]
       //   };
       // }
-      let entitiesAPICall = await entityManagementService.entityDocuments(filterQuery, [
-        "groups",
-      ]);
+      let entitiesAPICall = await entityManagementService.entityDocuments(filterQuery, ['groups']);
 
-      
+      const entityDetails = entitiesAPICall.data;
 
-      const entityDetails = entitiesAPICall.data
-      
       if (!entityDetails.length > 0) {
         throw {
-          message: messageConstants.apiResponses.ENTITY_NOT_FOUND
+          message: messageConstants.apiResponses.ENTITY_NOT_FOUND,
         };
       }
-      
+
       let entities = entitiesAPICall.data;
-      if (
-        entities[0] &&
-        entities[0].groups &&
-        Object.keys(entities[0].groups).length > 0
-      ) {
-      //  targetedEntityType = messageConstants.common.STATE_ENTITY_TYPE;
+      if (entities[0] && entities[0].groups && Object.keys(entities[0].groups).length > 0) {
+        //  targetedEntityType = messageConstants.common.STATE_ENTITY_TYPE;
       }
     }
     let filterData = {
-      "_id": requestedData[targetedEntityType],
-      "tenantId": tenantData.tenantId,
-      "orgIds": {$in:['ALL',tenantData.orgId]}
+      _id: requestedData[targetedEntityType],
+      tenantId: tenantData.tenantId,
+      orgIds: { $in: ['ALL', tenantData.orgId] },
     };
 
     // if (gen.utils.checkValidUUID(requestedData[targetedEntityType])) {
@@ -2675,21 +2622,18 @@ module.exports = class ObservationsHelper {
     //   };
     // }
 
-    
     let entitiesAPICall = await entityManagementService.entityDocuments(filterData, [
-      "metaInformation.name",
-      "entityType"
+      'metaInformation.name',
+      'entityType',
     ]);
 
     if (!entitiesAPICall.success) {
       throw {
-        message: messageConstants.apiResponses.ENTITY_NOT_FOUND
+        message: messageConstants.apiResponses.ENTITY_NOT_FOUND,
       };
     }
 
     let entities = entitiesAPICall.data;
-
-    
 
     if (entities[0].metaInformation && entities[0].metaInformation.name) {
       entities[0]['entityName'] = entities[0].metaInformation.name;
@@ -2699,9 +2643,8 @@ module.exports = class ObservationsHelper {
     return {
       message: messageConstants.apiResponses.SOLUTION_TARGETED_ENTITY,
       success: true,
-      data: entities[0]
+      data: entities[0],
     };
-
   }
   /**
    * Highest Targeted entity.
@@ -2712,120 +2655,101 @@ module.exports = class ObservationsHelper {
    * @returns {Object} - Entity.
    */
 
-  static getHighestTargetedEntity( roleWiseTargetedEntities,tenantData ) {
+  static getHighestTargetedEntity(roleWiseTargetedEntities, tenantData) {
     return new Promise(async (resolve, reject) => {
       try {
-
         let allTargetedEntities = {};
         let targetedEntity = {};
 
-        for( let pointerToEntities = 0 ; pointerToEntities < roleWiseTargetedEntities.length ; pointerToEntities++ ) {
-
+        for (let pointerToEntities = 0; pointerToEntities < roleWiseTargetedEntities.length; pointerToEntities++) {
           let currentEntity = roleWiseTargetedEntities[pointerToEntities];
 
-          if ( !allTargetedEntities.hasOwnProperty(currentEntity._id) ) {
+          if (!allTargetedEntities.hasOwnProperty(currentEntity._id)) {
             allTargetedEntities[currentEntity._id] = new Array();
           }
 
-          let otherEntities = roleWiseTargetedEntities.filter((entity) => entity.entityType !== currentEntity.entityType);
-          
-          if ( !otherEntities || !otherEntities.length > 0 ) {
-            continue; 
+          let otherEntities = roleWiseTargetedEntities.filter(
+            (entity) => entity.entityType !== currentEntity.entityType
+          );
+
+          if (!otherEntities || !otherEntities.length > 0) {
+            continue;
           }
 
-          let entitiesDocument = await entityManagementService.entityDocuments({
+          let entitiesDocument = await entityManagementService.entityDocuments(
+            {
               _id: currentEntity._id,
-              tenantId:tenantData.tenantId,
-              orgIds:{$in:['ALL',tenantData.orgId]}
-          }, ["groups"]);
+              tenantId: tenantData.tenantId,
+              orgIds: { $in: ['ALL', tenantData.orgId] },
+            },
+            ['groups']
+          );
 
-          if (!entitiesDocument.success || entitiesDocument.data.length == 0 ) {
+          if (!entitiesDocument.success || entitiesDocument.data.length == 0) {
             continue;
           }
 
           entitiesDocument = entitiesDocument.data[0];
 
-          for( let entityCounter = 0 ; entityCounter < otherEntities.length ; entityCounter++ ) {
-
+          for (let entityCounter = 0; entityCounter < otherEntities.length; entityCounter++) {
             let entityDoc = otherEntities[entityCounter];
-          
-            if ( !entitiesDocument.groups || !entitiesDocument.groups.hasOwnProperty(entityDoc.entityType) ) {
+
+            if (!entitiesDocument.groups || !entitiesDocument.groups.hasOwnProperty(entityDoc.entityType)) {
               break;
             }
 
             allTargetedEntities[currentEntity._id].push(true);
-            if ( allTargetedEntities[currentEntity._id].length == otherEntities.length ) {
+            if (allTargetedEntities[currentEntity._id].length == otherEntities.length) {
               targetedEntity = roleWiseTargetedEntities.filter((entity) => entity._id == currentEntity._id);
               break;
             }
           }
-
         }
 
         return resolve({
           message: messageConstants.apiResponses.SOLUTION_TARGETED_ENTITY,
           success: true,
-          data: targetedEntity
+          data: targetedEntity,
         });
-        
       } catch (error) {
-        
         return resolve({
           success: false,
-          status: error.status
-            ? error.status
-            : httpStatusCode['internal_server_error'].status,
-          message: error.message
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
+          message: error.message,
         });
       }
     });
   }
-  static async targetedEntity(req){
-
-    return new Promise(async (resolve, reject)=>{
-
-      try{
-        let roleArray = req.body.role.split(",");
+  static async targetedEntity(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let roleArray = req.body.role.split(',');
         let targetedEntities = {};
         let tenantData = req.userDetails.tenantData;
-        if ( roleArray.length === 1 ) {
-          
-          const detailEntity = 
-          await this.targetedEntityHelper(
-              req.params._id,
-              req.body,
-              tenantData
-          );
-          detailEntity["result"] = detailEntity.data;
+        if (roleArray.length === 1) {
+          const detailEntity = await this.targetedEntityHelper(req.params._id, req.body, tenantData);
+          detailEntity['result'] = detailEntity.data;
           return resolve(detailEntity);
-  
-      } else {
-         
+        } else {
           let roleWiseTargetedEntities = new Array();
-          for ( let roleCount = 0; roleCount < roleArray.length; roleCount++ ) {
-  
-              const eachRole = roleArray[roleCount];            
-              let bodyData = _.omit(req.body, ['role']);
-              bodyData.role = eachRole;         
-              const detailEntity = 
-              await this.targetedEntityHelper(
-                  req.params._id,
-                  bodyData,
-                  tenantData
-              );       
-              if ( detailEntity.data && Object.keys(detailEntity.data).length > 0 ) {              
-                  roleWiseTargetedEntities.push(detailEntity.data);
-              }
+          for (let roleCount = 0; roleCount < roleArray.length; roleCount++) {
+            const eachRole = roleArray[roleCount];
+            let bodyData = _.omit(req.body, ['role']);
+            bodyData.role = eachRole;
+            const detailEntity = await this.targetedEntityHelper(req.params._id, bodyData, tenantData);
+            if (detailEntity.data && Object.keys(detailEntity.data).length > 0) {
+              roleWiseTargetedEntities.push(detailEntity.data);
+            }
           }
 
           //no targeted entity
-          if ( roleWiseTargetedEntities.length  == 0 ) {
-              throw {
-                  status: httpStatusCode["bad_request"].status,
-                  message: messageConstants.apiResponses.ENTITIES_NOT_ALLOWED_IN_ROLE
-              };
-          } 
-          //one targeted entity 
+          if (roleWiseTargetedEntities.length == 0) {
+            throw {
+              status: httpStatusCode['bad_request'].status,
+              message: messageConstants.apiResponses.ENTITIES_NOT_ALLOWED_IN_ROLE,
+            };
+          }
+          //one targeted entity
           else if (roleWiseTargetedEntities && roleWiseTargetedEntities.length == 1) {
             targetedEntities.result = roleWiseTargetedEntities[0];
           }
@@ -2843,17 +2767,14 @@ module.exports = class ObservationsHelper {
             targetedEntities.result = targetedEntity.data;
             targetedEntities.message = messageConstants.apiResponses.SOLUTION_TARGETED_ENTITY;
           }
+        }
+        return resolve(targetedEntities);
+      } catch (err) {
+        return reject(err);
       }
-      return resolve(targetedEntities);
-  
-      }catch(err){
-          return reject(err);
-      }
-    
-    })
-
+    });
   }
-    /**
+  /**
    * Check user eligibity to create observation
    * @method
    * @name validateUserRole
@@ -2863,113 +2784,110 @@ module.exports = class ObservationsHelper {
    * @returns {Object} return the eligibity of user
    */
 
-    static validateUserRole(bodyData, solutionId,tenantData) {
-      return new Promise(async (resolve, reject) => {
-        try {
-          //validate solution
-          let solutionDocument = await solutionsQueries.solutionDocuments(
+  static validateUserRole(bodyData, solutionId, tenantData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        //validate solution
+        let solutionDocument = await solutionsQueries.solutionDocuments(
+          {
+            _id: solutionId,
+          },
+          ['entityType', 'tenantId', 'orgId']
+        );
+
+        if (!solutionDocument[0]) {
+          throw {
+            message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+          };
+        }
+
+        let solutionEntityType = solutionDocument[0].entityType;
+        let topLevelEntityId = bodyData[topLevelEntityType];
+
+        let tenantDetails = await userService.fetchPublicTenantDetails(tenantData.tenantId);
+        if (!tenantDetails.success || !tenantDetails?.data?.meta) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
+          };
+        }
+
+        let observableEntityKeys = tenantDetails.data.meta?.observableEntityKeys || [];
+
+        if (!observableEntityKeys || observableEntityKeys.length === 0) {
+          // if observableEntityKeys is empty, then no validation is needed
+          resolve({
+            success: true,
+          });
+        }
+
+        let KeytoValidate = [];
+
+        for (let i = 0; i < observableEntityKeys.length; i++) {
+          KeytoValidate.push(observableEntityKeys[i]);
+        }
+
+        let roles = observableEntityKeys
+          .filter((key) => typeof bodyData[key] === 'string' && bodyData[key].trim() !== '')
+          .flatMap((key) => bodyData[key].split(',').map((role) => role.trim()));
+
+        let entityTypeArr = [];
+
+        for (let roleIndex = 0; roleIndex < roles.length; roleIndex++) {
+          let rolesDocumentAPICall = await entityManagementService.entityDocuments(
             {
-              _id: solutionId,
+              _id: roles[roleIndex],
+              tenantId: solutionDocument[0].tenantId,
+              orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
             },
-            ["entityType",'tenantId','orgId']
+            ['metaInformation.targetedEntityTypes']
           );
-  
-          if (!solutionDocument[0]) {
-            throw {
-              message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
-            };
-          }
 
-          let solutionEntityType = solutionDocument[0].entityType;
-          let topLevelEntityId = bodyData[topLevelEntityType];
-
-
-          let tenantDetails = await userService.fetchPublicTenantDetails(tenantData.tenantId);
-          if (!tenantDetails.success || !tenantDetails?.data?.meta) {
-            throw { 
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
-            };
-          }
-
-          let observableEntityKeys = tenantDetails.data.meta?.observableEntityKeys || [];
-
-          if (!observableEntityKeys || observableEntityKeys.length === 0) {
-            // if observableEntityKeys is empty, then no validation is needed
-            resolve({
-              success: true
-            })
-          }
-
-          let KeytoValidate = [];
-
-          for (let i = 0; i < observableEntityKeys.length; i++) {
-            KeytoValidate.push(observableEntityKeys[i]);
-          }
-
-          let roles = observableEntityKeys
-            .filter((key) => typeof bodyData[key] === 'string' && bodyData[key].trim() !== '')
-            .flatMap((key) => bodyData[key].split(',').map((role) => role.trim()));
-
-          let entityTypeArr = [];
-
-          for (let roleIndex = 0; roleIndex < roles.length; roleIndex++) {
-            let rolesDocumentAPICall = await entityManagementService.entityDocuments(
-              {
-                _id: roles[roleIndex],
-                tenantId: solutionDocument[0].tenantId,
-                orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
-              },
-              ['metaInformation.targetedEntityTypes']
-            );
-            
-            if (
-              rolesDocumentAPICall?.success &&
-              Array.isArray(rolesDocumentAPICall.data) &&
-              rolesDocumentAPICall.data[0]?.metaInformation?.targetedEntityTypes &&
-              rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes.length > 0
-            ) {
-              let targetedEntityTypes = rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes;
-              for (let entityTypeData of targetedEntityTypes) {
-                if (!entityTypeData.entityType) {
-                  throw {
-                    status: httpStatusCode.bad_request.status,
-                    message: messageConstants.apiResponses.INVALID_ENTITY_TYPE,
-                  };
-                }
-                entityTypeArr.push(entityTypeData.entityType);
+          if (
+            rolesDocumentAPICall?.success &&
+            Array.isArray(rolesDocumentAPICall.data) &&
+            rolesDocumentAPICall.data[0]?.metaInformation?.targetedEntityTypes &&
+            rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes.length > 0
+          ) {
+            let targetedEntityTypes = rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes;
+            for (let entityTypeData of targetedEntityTypes) {
+              if (!entityTypeData.entityType) {
+                throw {
+                  status: httpStatusCode.bad_request.status,
+                  message: messageConstants.apiResponses.INVALID_ENTITY_TYPE,
+                };
               }
-            } else {
-              throw {
-                status: httpStatusCode.bad_request.status,
-                message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
-              };
+              entityTypeArr.push(entityTypeData.entityType);
             }
-          }
-
-          const uniqueEntityTypeArr = _.uniq(entityTypeArr);
-          if (uniqueEntityTypeArr.includes(solutionEntityType)) {
-            resolve({
-              success: true,
-            });
           } else {
             throw {
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
+              message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
             };
           }
-
-        } catch (error) { 
-          return resolve({
-            status: error.status || httpStatusCode.internal_server_error.status,
-            message:
-              error.message || httpStatusCode.internal_server_error.message,
-            data: false,
-          });
         }
-      });
-    }
-      /**
+
+        const uniqueEntityTypeArr = _.uniq(entityTypeArr);
+        if (uniqueEntityTypeArr.includes(solutionEntityType)) {
+          resolve({
+            success: true,
+          });
+        } else {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.OBSERVATION_NOT_RELEVENT_FOR_USER,
+          };
+        }
+      } catch (error) {
+        return resolve({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          data: false,
+        });
+      }
+    });
+  }
+  /**
    * Get the highest role in the heirarchy.
    * @method
    * @name findHighestHierarchy
@@ -2977,45 +2895,229 @@ module.exports = class ObservationsHelper {
    * @param {Array} rolesHierarchy - Roles hierarchy in descending order.
    * @returns {String} returns highest role in the heirarchy.
    */
-    static findHighestHierarchy(roles,rolesHierarchy) {
-        let highestHierarchyValue = null;
-        let highestIndex = Infinity;
-      
-        // Loop through each role in the given array
-        roles.forEach(role => {
-          const index = rolesHierarchy.indexOf(role);
-          if (index !== -1 && index < highestIndex) {
-            highestIndex = index;
-            highestHierarchyValue = role;
-          }
-        });
-      
-        return highestHierarchyValue;
-    }
+  static findHighestHierarchy(roles, rolesHierarchy) {
+    let highestHierarchyValue = null;
+    let highestIndex = Infinity;
+
+    // Loop through each role in the given array
+    roles.forEach((role) => {
+      const index = rolesHierarchy.indexOf(role);
+      if (index !== -1 && index < highestIndex) {
+        highestIndex = index;
+        highestHierarchyValue = role;
+      }
+    });
+
+    return highestHierarchyValue;
+  }
 
   /**
    * Update observations
    * @method
    * @name updateMany
-   * @param {Object} query 
-   * @param {Object} update 
-   * @param {Object} options 
+   * @param {Object} query
+   * @param {Object} update
+   * @param {Object} options
    * @returns {JSON} - updated response.
-  */
+   */
 
-  static updateMany(query, update, options={}) {
+  static updateMany(query, update, options = {}) {
     return new Promise(async (resolve, reject) => {
-        try {
+      try {
+        let observationUpdate = await database.models.observations.updateMany(query, update, options);
+        return resolve(observationUpdate);
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
 
-            let observationUpdate = await database.models.observations.updateMany(
-                query, 
-                update,
-                options
-            );
-           return resolve(observationUpdate);
-        } catch (error) {
-            return reject(error);
+  /**
+   * create a parentSolution From framework
+   * @method
+   * @name importFromFrameWork
+   * @param {Object} req
+   * @returns {JSON} - parentSolution Id.
+   */
+  static importFromFrameWork(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let tenantFilter = req.userDetails.tenantAndOrgInfo;
+        let frameworkDocument = await database.models.frameworks
+          .findOne({
+            externalId: req.query.frameworkId,
+            tenantId: tenantFilter.tenantId,
+          })
+          .lean();
+
+        if (!frameworkDocument || !frameworkDocument._id) {
+          throw messageConstants.apiResponses.FRAMEWORK_NOT_FOUND;
         }
-    })
+
+        // let entityTypeDocument = await database.models.entityTypes.findOne({
+        //     name: req.query.entityType,
+        //     isObservable: true
+        // }, {
+        //         _id: 1,
+        //         name: 1
+        //     }).lean();
+
+        // if (!entityTypeDocument._id) {
+        //     throw messageConstants.apiResponses.ENTITY_TYPES_NOT_FOUND;
+        // }
+
+        let criteriasIdArray = gen.utils.getCriteriaIds(frameworkDocument.themes);
+
+        let frameworkCriteria = await database.models.criteria
+          .find({
+            _id: { $in: criteriasIdArray },
+            tenantId: tenantFilter.tenantId,
+          })
+          .lean();
+
+        let solutionCriteriaToFrameworkCriteriaMap = {};
+
+        await Promise.all(
+          frameworkCriteria.map(async (criteria) => {
+            criteria.frameworkCriteriaId = criteria._id;
+
+            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
+
+            if (newCriteriaId._id) {
+              solutionCriteriaToFrameworkCriteriaMap[criteria._id.toString()] = newCriteriaId._id;
+            }
+          })
+        );
+
+        let updateThemes = function (themes) {
+          themes.forEach((theme) => {
+            let criteriaIdArray = new Array();
+            let themeCriteriaToSet = new Array();
+            if (theme.children) {
+              updateThemes(theme.children);
+            } else {
+              criteriaIdArray = theme.criteria;
+              criteriaIdArray.forEach((eachCriteria) => {
+                eachCriteria.criteriaId = solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
+                  ? solutionCriteriaToFrameworkCriteriaMap[eachCriteria.criteriaId.toString()]
+                  : eachCriteria.criteriaId;
+                themeCriteriaToSet.push(eachCriteria);
+              });
+              theme.criteria = themeCriteriaToSet;
+            }
+          });
+          return true;
+        };
+
+        let newSolutionDocument = _.cloneDeep(frameworkDocument);
+
+        updateThemes(newSolutionDocument.themes);
+
+        newSolutionDocument.type = 'observation';
+        newSolutionDocument.subType =
+          frameworkDocument.subType && frameworkDocument.subType != '' ? frameworkDocument.subType : '';
+
+        newSolutionDocument.externalId = frameworkDocument.externalId + '-OBSERVATION-TEMPLATE';
+
+        newSolutionDocument.frameworkId = frameworkDocument._id;
+        newSolutionDocument.frameworkExternalId = frameworkDocument.externalId;
+
+        // newSolutionDocument.entityTypeId = entityTypeDocument._id;
+        // newSolutionDocument.entityType = entityTypeDocument.name;
+        newSolutionDocument.isReusable = true;
+        newSolutionDocument.tenantId = tenantFilter.tenantId;
+        newSolutionDocument.orgId = tenantFilter.orgId[0];
+        newSolutionDocument.isExternalProgram = req?.query?.isExternalProgram ?? false;
+        //Add orgPolicies changes
+        // Query to get the orgExtension document
+        let orgExtensionFilter = {
+          tenantId: req.userDetails.tenantAndOrgInfo.tenantId,
+          orgId: req.userDetails.tenantAndOrgInfo.orgId[0],
+        };
+
+        // Getting organizationExtension document
+        let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
+          orgExtensionFilter
+        );
+
+        if (organizationExtensionDocuments.length <= 0) {
+          return resolve({
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.ORGANIZATION_EXTENSION_NOT_FOUND,
+          });
+        }
+        newSolutionDocument.visibility = organizationExtensionDocuments?.[0]?.observationResourceVisibilityPolicy;
+        // Add categories to the solution Template
+        if (req?.body?.categories && req?.body?.categories.length > 0) {
+          let matchQuery = {};
+          matchQuery['tenantId'] = tenantFilter.tenantId;
+          matchQuery['externalId'] = { $in: req.body.categories };
+          // what is category documents
+          let categories = await libraryCategoriesQueries.categoryDocuments(matchQuery, ['_id', 'externalId', 'name']);
+
+          if (!categories.length > 0) {
+            return resolve({
+              status: httpStatusCode.bad_request.status,
+              message: messageConstants.apiResponses.LIBRARY_CATEGORY_NOT_FOUND,
+            });
+          }
+          // storing each category data in solutionDocument
+          newSolutionDocument.categories = categories.map((category) => ({
+            _id: category._id,
+            externalId: category.externalId,
+          }));
+        }
+        //get the related orgs for the solutions
+        let getRelatedOrgs = await userService.getOrgDetails(
+          tenantFilter.orgId[0],
+          req.userDetails,
+          tenantFilter.tenantId
+        );
+        if (!getRelatedOrgs.success || !getRelatedOrgs.data.related_org_details) {
+          return resolve({
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
+          });
+        }
+        //get the code to store it in  visibleToOrganizations key
+        let visibleOrg = getRelatedOrgs?.data?.related_org_details.map((eachValue) => {
+          return eachValue.code;
+        });
+        newSolutionDocument.visibleToOrganizations = visibleOrg;
+        let newBaseSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
+        if (newBaseSolution._id) {
+          let result = {
+            templateId: newBaseSolution._id,
+          };
+
+          let response = {
+            message: messageConstants.apiResponses.OBSERVATION_SOLUTION,
+            result: result,
+          };
+
+          if(newBaseSolution.categories && newBaseSolution.categories.length > 0){
+            let categories = newBaseSolution.categories.map((category) => {
+              return category._id
+            })
+             await libraryCategoriesQueries.updateMany(
+              {
+                _id: { $in: categories },
+              },
+              {
+                $inc: { noOfSolutions: 1 },
+              },
+      
+            )
+          
+          }
+
+          return resolve(response);
+        } else {
+          throw messageConstants.apiResponses.ERROR_CREATING_OBSERVATION;
+        }
+      } catch (error) {
+        return reject(error);
+      }
+    });
   }
 };
