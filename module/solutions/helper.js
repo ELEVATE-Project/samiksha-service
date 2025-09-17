@@ -2366,7 +2366,7 @@ module.exports = class SolutionsHelper {
             // Not targeted solution and not available for private consumption
             throw {
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+              message: messageConstants.apiResponses.OBSERVATION_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
             };
           }
         } else if (solutionData.type === messageConstants.common.SURVEY) {
@@ -2443,7 +2443,7 @@ module.exports = class SolutionsHelper {
             // Not targeted solution and not available for private consumption
             throw {
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+              message: messageConstants.apiResponses.SURVEY_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
             };
           }
         }
