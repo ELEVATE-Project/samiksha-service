@@ -93,9 +93,15 @@ module.exports = class ReportsHelper {
         throw { message: messageConstants.apiResponses.SUBMISSION_NOT_FOUND };
       }
 
-      //adding question options, externalId to answers array
+      // Adding question metadata to submission
       if (surveySubmissionsDocument.answers && Object.keys(surveySubmissionsDocument.answers).length > 0) {
-        surveySubmissionsDocument = await questionsHelper.addOptionsToSubmission(surveySubmissionsDocument);
+        try{
+          surveySubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument);
+        }
+        catch(error){                  
+          // Log and proceed without metadata to keep report generation resilient
+          console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+        }
       }
 
       let solutionDocument = await solutionsQueries.solutionDocuments(

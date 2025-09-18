@@ -12,15 +12,14 @@
  * @class
  */
 
-
-const ConfigurationsHelper = require(MODULES_BASE_PATH+"/configurations/helper");
+const configurationsHelper = require(MODULES_BASE_PATH + '/configurations/helper');
 const userExtensionsQueries = require(DB_QUERY_BASE_PATH + '/userExtensions');
 const programsQueries = require(DB_QUERY_BASE_PATH + '/programs');
 const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const surveyQueries = require(DB_QUERY_BASE_PATH + '/surveys');
 const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions');
-const projectService = require(ROOT_PATH + '/generics/services/project')
-const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs')
+const projectService = require(ROOT_PATH + '/generics/services/project');
+const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
 const observationSubmissionsQueries = require(DB_QUERY_BASE_PATH + '/observationSubmissions');
@@ -42,7 +41,7 @@ module.exports = class adminHelper {
     skipFields = 'none',
     limitingValue = 100,
     skippingValue = 0,
-    sortedData = '',
+    sortedData = ''
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -111,7 +110,7 @@ module.exports = class adminHelper {
    * @param {Array} [keys] - keys in array to be indexed.
    * @returns {Object} returns a object.
    */
-  static async createIndex(collection,keys){
+  static async createIndex(collection, keys) {
     let presentIndex = await database.models[collection].listIndexes({}, { key: 1 });
     let indexes = presentIndex.map((indexedKeys) => {
       return Object.keys(indexedKeys.key)[0];
@@ -126,26 +125,23 @@ module.exports = class adminHelper {
         // Filter keys that start with "scope." and extract the part after "scope."
         const scopeKeys = keys
           .filter((key) => key.startsWith('scope.')) // Filter out keys that start with "scope."
-          .map((key) => key.split('scope.')[1]) // Extract the part after "scope."
+          .map((key) => key.split('scope.')[1]); // Extract the part after "scope."
         if (scopeKeys.length > 0) {
-           await ConfigurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys)
+          await configurationsHelper.createOrUpdate('keysAllowedForTargeting', scopeKeys);
         }
       }
 
       return {
         message: messageConstants.apiResponses.KEYS_INDEXED_SUCCESSFULL,
         success: true,
-      }
-
-  }else{
-    return {
-      message: messageConstants.apiResponses.KEYS_ALREADY_INDEXED_SUCCESSFULL,
-      success: true,
+      };
+    } else {
+      return {
+        message: messageConstants.apiResponses.KEYS_ALREADY_INDEXED_SUCCESSFULL,
+        success: true,
+      };
     }
   }
-
-}
-
 
   /**
    * Deletes a program or solution resource along with its associated dependencies.
@@ -278,8 +274,8 @@ module.exports = class adminHelper {
           }
 
           // Pull the solution from other components (soft link cleanup)
-          let pullResult =  await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
-          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0
+          let pullResult = await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          pullSolutionFromProgramComponent = pullResult.modifiedCount || 0;
           // Delete the solution
           await solutionsQueries.delete(solutionFilter);
           deletedSolutionsCount++;
@@ -517,4 +513,5 @@ module.exports = class adminHelper {
       }
     });
   }
+   
 };

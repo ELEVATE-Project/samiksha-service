@@ -69,7 +69,8 @@ module.exports = class Surveys extends Abstract {
         let createSolutionTemplate = await surveysHelper.createSolutionTemplate(
           req.body,
           req.userDetails.userId,
-          req.userDetails.tenantAndOrgInfo
+          req.userDetails.tenantAndOrgInfo,
+          req.userDetails
         );
 
         return resolve({

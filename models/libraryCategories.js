@@ -14,16 +14,20 @@ module.exports = {
     },
     icon: {
       type: String,
-      required: true,
+      default: '',
+    },
+    description: {
+      type: String,
+      default: '',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
     externalId: {
       type: String,
       required: true,
       index: true,
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
     },
     isVisible: {
       type: Boolean,
@@ -41,5 +45,33 @@ module.exports = {
       type: String,
       default: 'SYSTEM',
     },
+    noOfSolutions: {
+      type: Number,
+      default: 0,
+    },
+    tenantId: {
+      type: String,
+      index: true,
+      required: true,
+      default: 'default',
+    },
+    orgId: {
+      type: String,
+      index: true,
+      required: true,
+      default: 'default_code',
+    },
+    visibleToOrganizations: {
+      type: Array,
+      default: [],
+      required: true,
+      index: true,
+    },
   },
+  compoundIndex: [
+		{
+			name: { externalId: 1, tenantId: 1 },
+			indexType: { unique: true },
+		},
+	],
 };
