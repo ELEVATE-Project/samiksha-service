@@ -2559,9 +2559,6 @@ module.exports = class SolutionsHelper {
           {
             link: link,
             isReusable: false,
-            status: {
-              $ne: messageConstants.common.INACTIVE_STATUS,
-            },
             tenantId: tenantData.tenantId,
           },
           ['type', 'status', 'endDate','startDate']
@@ -2574,12 +2571,6 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-          return resolve({
-            message: messageConstants.apiResponses.LINK_IS_EXPIRED,
-            result: [],
-          });
-        }
         // if endDate less than current date change solution status to inActive
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
           if (solutionData[0].status === messageConstants.common.ACTIVE_STATUS) {
@@ -2596,6 +2587,13 @@ module.exports = class SolutionsHelper {
 
           return resolve({
             message: messageConstants.apiResponses.LINK_IS_EXPIRED,
+            result: [],
+          });
+        }
+
+        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+          return resolve({
+            message: messageConstants.apiResponses.INVALID_LINK,
             result: [],
           });
         }
