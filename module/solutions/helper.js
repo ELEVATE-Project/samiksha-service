@@ -2366,7 +2366,7 @@ module.exports = class SolutionsHelper {
             // Not targeted solution and not available for private consumption
             throw {
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+              message: messageConstants.apiResponses.OBSERVATION_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
             };
           }
         } else if (solutionData.type === messageConstants.common.SURVEY) {
@@ -2443,7 +2443,7 @@ module.exports = class SolutionsHelper {
             // Not targeted solution and not available for private consumption
             throw {
               status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
+              message: messageConstants.apiResponses.SURVEY_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
             };
           }
         }
@@ -2490,9 +2490,6 @@ module.exports = class SolutionsHelper {
           {
             link: link,
             isReusable: false,
-            status: {
-              $ne: messageConstants.common.INACTIVE_STATUS,
-            },
             tenantId: tenantData.tenantId,
           },
           ['type', 'status', 'endDate','startDate']
@@ -2505,12 +2502,6 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-          return resolve({
-            message: messageConstants.apiResponses.LINK_IS_EXPIRED,
-            result: [],
-          });
-        }
         // if endDate less than current date change solution status to inActive
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
           if (solutionData[0].status === messageConstants.common.ACTIVE_STATUS) {
@@ -2530,6 +2521,14 @@ module.exports = class SolutionsHelper {
             result: [],
           });
         }
+
+        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+          return resolve({
+            message: messageConstants.apiResponses.INVALID_LINK,
+            result: [],
+          });
+        }
+
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
