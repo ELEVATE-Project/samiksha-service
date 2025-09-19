@@ -464,5 +464,6 @@ module.exports = {
   ORGANIZATION_EXTENSION_NOT_FOUND: 'Organization extension not found',
   ORGANIZATION_EXTENSION_ALREADY_EXISTS: 'Organization extension already exists',
   LIBRARY_CATEGORY_NOT_FOUND: 'Library categories not found',
-  INVALID_POLICY :"Invalid policy"
+  INVALID_POLICY :"Invalid policy",
+  PROJECT_TEMPLATE_NOT_CREATED : "Failed to create child project template"
 };

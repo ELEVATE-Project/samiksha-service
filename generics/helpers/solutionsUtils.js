@@ -224,8 +224,14 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
             });
           }
         }
-        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData);
-
+        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData,userDetails,programId,newSolutionDocument.isExternalProgram);
+        if (!duplicateCriteriasResponse.success) {
+          throw {
+            message: duplicateCriteriasResponse.message ,
+            status: duplicateCriteriasResponse.status || httpStatusCode.bad_request.status
+          };
+        }
+        
         let criteriaIdMap = {};
         let questionExternalIdMap = {};
         if (

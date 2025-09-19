@@ -209,6 +209,7 @@ module.exports = class criteriaHelper {
                   title: improvement.title,
                   goal: improvement.goal,
                   externalId: improvement.externalId,
+                  isReusable: improvement.isReusable
                 };
               }
             });
@@ -437,10 +438,15 @@ module.exports = class criteriaHelper {
    * @method
    * @name duplicate
    * @param {Array} themes - themes
+   * @param {Object} tenantData - Object containing tenant details.
+   * @param {Object} userDetails - Information about the user performing duplication.
+   * @param {string} programId - External program ID associated with the duplication.
+   * @param {boolean} isExternalProgram - Flag to check if the program is external.
+   *
    * @returns {Object}  old and new Mapped criteria id Object .
    */
 
-  static duplicate(themes = [],tenantData) {
+  static duplicate(themes = [],tenantData,userDetails,programId,isExternalProgram) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!themes.length) {
@@ -505,9 +511,64 @@ module.exports = class criteriaHelper {
             }
 
             criteria.externalId = criteria.externalId + '-' + gen.utils.epochTime();
-            criteria.parentCriteriaId = criteria._id;
-            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
+            criteria.parentCriteriaId = criteria._id;           
 
+            if (criteria.rubric.levels) {
+              let projectTemplateExternalIds = [];
+            
+              // collect parent externalIds
+              Object.values(criteria.rubric.levels).forEach(level => {
+                if (Array.isArray(level["improvement-projects"])) {
+                  level["improvement-projects"].forEach(project => {
+                    if (project.externalId) {
+                      projectTemplateExternalIds.push(project.externalId);
+                    }
+                  });
+                }
+              });
+                        
+              // Duplicate project templates
+              let childProjectTemplates = await projectService.createChildProjectTemplate(
+                projectTemplateExternalIds,
+                userDetails,
+                programId,
+                isExternalProgram
+              );
+
+              if(childProjectTemplates.success == false){
+                throw {
+                  message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
+                  status: httpStatusCode.bad_request.status,
+                }
+              }
+              
+            
+              // create a lookup map for faster replacement
+              let templateMap = {};
+              childProjectTemplates.result.forEach(item => {
+                templateMap[item.parentExternalId] = {
+                  _id: item._id,
+                  externalId: item.externalId
+                };
+              });
+            
+              // replace inside rubric.levels
+              Object.values(criteria.rubric.levels).forEach(level => {
+                if (Array.isArray(level["improvement-projects"])) {
+                  level["improvement-projects"] = level["improvement-projects"].map(project => {
+                    if (templateMap[project.externalId]) {
+                      return {
+                        ...project,
+                        _id: templateMap[project.externalId]._id,
+                        externalId: templateMap[project.externalId].externalId
+                      };
+                    }
+                    return project;
+                  });
+                }
+              });
+            }            
+            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
             if (newCriteriaId._id) {
               criteriaIdMap[criteria._id.toString()] = newCriteriaId._id;
               if (
@@ -563,6 +624,7 @@ module.exports = class criteriaHelper {
           success: false,
           message: error.message,
           data: false,
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
         });
       }
     });
