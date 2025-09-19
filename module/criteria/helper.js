@@ -535,7 +535,7 @@ module.exports = class criteriaHelper {
                 isExternalProgram
               );
 
-              if(childProjectTemplates.success == false){
+              if(childProjectTemplates.success === false){
                 throw {
                   message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
                   status: httpStatusCode.bad_request.status,
