@@ -169,6 +169,22 @@ const pushMessageToKafka = async (payload) => {
     }
 };
 
+async function updateProjectCategories(DB) {
+	try {
+		await DB.collection('projectCategories').updateMany({}, [
+			{
+				$set: {
+					visibleToOrganizations: ['$orgId'],
+				},
+			},
+		])
+		console.log('Project Categories collection updated successfully...')
+		return
+	} catch (error) {
+		throw error
+	}
+}
+
 // Main function to run migration
 async function runMigration() {
     try{
@@ -224,6 +240,8 @@ async function runMigration() {
                 console.log(`Kafka event pushed for tenant ${tenant} with ${messages.length} org(s).`);
             }         
         }
+
+		await updateProjectCategories(DB)
 
         // Close MongoDB connection and exit
         await dbClient.close();
