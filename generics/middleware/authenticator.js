@@ -543,7 +543,7 @@ module.exports = async function (req, res, next) {
 
     // convert the types of items to string
     orgDetails.data.related_orgs = orgDetails.data.organizations.map((data)=>{
-      return data.code.toString().toLowerCase();
+      return gen.utils.lowerCase(data.code.toString())
     });
     // aggregate valid orgids
 
@@ -688,7 +688,9 @@ module.exports = async function (req, res, next) {
         return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
       }
 
-      req.headers['orgid'] = gen.utils.lowerCase(orgId);
+      req.headers['orgid'] = Array.isArray(orgId)
+        ? orgId.map((o) => gen.utils.lowerCase(o))
+        : gen.utils.lowerCase(orgId);
 
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
       if (!validateOrgsResult.success) {
@@ -780,11 +782,11 @@ module.exports = async function (req, res, next) {
  */
   function convertTenantAndOrgToLowercase(result) {
   if (result?.success && result.tenantId && result.orgId) {
-    return {
-      ...result,
-      tenantId: gen.utils.lowerCase(result.tenantId),
-      orgId: gen.utils.lowerCase(result.orgId),
-    };
+    const tenantId = gen.utils.lowerCase(result.tenantId);
+    const orgId = Array.isArray(result.orgId)
+      ? result.orgId.map((o) => gen.utils.lowerCase(o))
+      : gen.utils.lowerCase(result.orgId);
+    return { ...result, tenantId, orgId };
   }
   return result;
 }
