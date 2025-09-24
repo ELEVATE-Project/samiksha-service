@@ -677,7 +677,7 @@ module.exports = async function (req, res, next) {
 
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
-      req.headers['tenantid'] = decodedToken.data.tenant_id.toString().toLowerCase();
+      req.headers['tenantid'] = gen.utils.lowerCase(decodedToken.data.tenant_id.toString());
 
       let orgId = req.body.orgId || req.headers['orgid'];
 
