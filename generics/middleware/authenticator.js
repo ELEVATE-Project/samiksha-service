@@ -689,7 +689,7 @@ module.exports = async function (req, res, next) {
       }
 
       req.headers['orgid'] = Array.isArray(orgId)
-        ? orgId.map((o) => gen.utils.lowerCase(o))
+        ? orgId.map((org) => gen.utils.lowerCase(org))
         : gen.utils.lowerCase(orgId);
 
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
@@ -784,7 +784,7 @@ module.exports = async function (req, res, next) {
   if (result?.success && result.tenantId && result.orgId) {
     const tenantId = gen.utils.lowerCase(result.tenantId);
     const orgId = Array.isArray(result.orgId)
-      ? result.orgId.map((o) => gen.utils.lowerCase(o))
+      ? result.orgId.map((org) => gen.utils.lowerCase(org))
       : gen.utils.lowerCase(result.orgId);
     return { ...result, tenantId, orgId };
   }
