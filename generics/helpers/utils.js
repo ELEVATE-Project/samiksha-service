@@ -26,6 +26,10 @@ function lowerCase(str) {
   return str.toLowerCase();
 }
 
+function upperCase(str) {
+  return str.toUpperCase();
+}
+
 function checkIfStringIsUrl(str) {
   var pattern = new RegExp(
     '^(https?:\\/\\/)?' + // protocol
@@ -660,6 +664,7 @@ function getFilteredScope(scopeData, tenantPublicDetailsMetaField) {
 module.exports = {
   camelCaseToTitleCase: camelCaseToTitleCase,
   lowerCase: lowerCase,
+  upperCase: upperCase,
   checkIfStringIsUrl: checkIfStringIsUrl,
   generateRandomCharacters: generateRandomCharacters,
   getCriteriaIds: getCriteriaIds,
