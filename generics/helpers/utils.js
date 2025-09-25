@@ -25,7 +25,7 @@ function camelCaseToTitleCase(in_camelCaseString) {
 function lowerCase(str) {
   return str.toLowerCase();
 }
-
+// Convert string to upper case
 function upperCase(str) {
   return str.toUpperCase();
 }
