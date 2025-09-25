@@ -228,10 +228,16 @@ module.exports = class UserExtensionHelper {
         const allUserIds = new Set();
 
         //delete invalid program operations from csv data 
-        for(let i= userRolesCSVData.length -1; i>=0; i--){
-          const userRole = gen.utils.valueParser(userRolesCSVData[i]);
-          if (!userRole.programOperation || !(gen.utils.upperCase(userRole.programOperation) == messageConstants.common.REMOVE_OPERATION || gen.utils.upperCase(userRole.programOperation) == messageConstants.common.ADD_OPERATION )) {
-            userRolesCSVData.splice(i, 1);
+        for (let index = userRolesCSVData.length - 1; index >= 0; index--) {
+          const userRole = gen.utils.valueParser(userRolesCSVData[index]);
+
+          // Safely handle missing/null/undefined programOperation
+          const programOperation = userRole.programOperation ? gen.utils.upperCase(userRole.programOperation) : null;
+
+          if (programOperation === messageConstants.common.REMOVE_OPERATION || programOperation === messageConstants.common.ADD_OPERATION) {
+            userRolesCSVData[index].programOperation = programOperation;
+          } else {
+            userRolesCSVData.splice(index, 1);
           }
         }
 
@@ -394,10 +400,6 @@ module.exports = class UserExtensionHelper {
             let existingUser = userExtensionMap[userProfile.id.toString()];
             let user = '';
             const kafkaEventPayloads = [];
-
-            if (userRole.programOperation) {
-              userRole.programOperation = gen.utils.upperCase(userRole.programOperation);
-            }
 
             if (!existingUser) {
               if([messageConstants.common.OVERRIDE_OPERATION,messageConstants.common.ADD_OPERATION,messageConstants.common.APPEND_OPERATION].includes(userRole.programOperation)){
