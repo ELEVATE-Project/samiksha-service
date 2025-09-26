@@ -2398,19 +2398,26 @@ module.exports = class SolutionsHelper {
         if (solutionData.type == messageConstants.common.OBSERVATION) {
           // Targeted solution
           if (checkForTargetedSolution.result.isATargetedSolution) {
-            let observationDetailFromLink = await observationHelper.details(
-              '',
-              solutionData.solutionId,
-              userId,
-              tenantData
-            );
+            let observationDetailFromLink;
+            try {
+              observationDetailFromLink = await observationHelper.details(
+                '',
+                solutionData.solutionId,
+                userId,
+                tenantData
+              );
+            } catch (err) {
+              // observation not found for this user
+              observationDetailFromLink = null;
+            }
+
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
                 observationDetailFromLink._id != '' ? observationDetailFromLink._id : '';
             } else if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
-          } else if(checkForTargetedSolution.result.availableForPrivateConsumption) {
+          } else if (checkForTargetedSolution.result.availableForPrivateConsumption) {
             if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
