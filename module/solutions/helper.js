@@ -821,6 +821,8 @@ module.exports = class SolutionsHelper {
             }
           }
           validOrgs = validOrgs.data
+          validOrgs = validOrgs.map((org) => org.toLowerCase())
+          scopeData.organizations = scopeData.organizations.map((id) => id.toLowerCase())
           
 
           // filter valid orgs
