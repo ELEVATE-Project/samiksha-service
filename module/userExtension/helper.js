@@ -227,6 +227,26 @@ module.exports = class UserExtensionHelper {
         const allProgramIds = new Set();
         const allUserIds = new Set();
 
+        //delete invalid program operations from csv data 
+        for (let index = userRolesCSVData.length - 1; index >= 0; index--) {
+          const userRole = gen.utils.valueParser(userRolesCSVData[index]);
+
+          // Safely handle missing/null/undefined programOperation
+          const programOperation = userRole.programOperation ? gen.utils.upperCase(userRole.programOperation) : null;
+
+          if (programOperation === messageConstants.common.REMOVE_OPERATION || programOperation === messageConstants.common.ADD_OPERATION) {
+            userRolesCSVData[index].programOperation = programOperation;
+          } else {
+            userRolesCSVData.splice(index, 1);
+          }
+        }
+
+        if(userRolesCSVData.length === 0){
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.INVALID_MAPPING_DATA,
+          };
+        }
         //iterating through userRolesCSVData to collect all programIds and userIds
         for (const csvRow of userRolesCSVData) {
           const userRole = gen.utils.valueParser(csvRow);
@@ -266,8 +286,8 @@ module.exports = class UserExtensionHelper {
         //fetching all programs data based on externalId 
         // this is done to avoid multiple database calls for each program
         const allProgramsData = await programsHelper.list(
-          { externalId: { $in: Array.from(allProgramIds)},tenantId: tenantAndOrgInfo.tenantId },
-          ['_id', 'externalId', 'name'],
+          { externalId: { $in: Array.from(allProgramIds)},tenantId: tenantAndOrgInfo.tenantId, orgId: tenantAndOrgInfo.orgId[0] },
+          ['_id', 'externalId', 'name','orgId'],
           '',
           '',
           '',
@@ -317,6 +337,13 @@ module.exports = class UserExtensionHelper {
           };
         }
 
+        //iterating through userProfileMap to check if user belongs to same org
+        for(let userId in userProfileMap){
+          const user = userProfileMap[userId];
+          if(!user.organizations || !Array.isArray(user.organizations) || user.organizations.length === 0 || !user.organizations.find(org => org.code === tenantAndOrgInfo.orgId[0])){
+            delete userProfileMap[userId];
+          }
+        }
         // Fetch user extensions
 
 
