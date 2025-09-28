@@ -1600,7 +1600,7 @@ module.exports = class ProgramsHelper {
         // Return success response
         return resolve({
           success: true,
-          message: messageConstants.apiResponses.USER_ASSIGNED_SURVEY_FETCHED,
+          message: messageConstants.apiResponses.PROGRAM_IMPORTED,
           result: programDocument,
         });
       } catch (error) {

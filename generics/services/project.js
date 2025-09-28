@@ -339,8 +339,15 @@ const pullSolutionsFromProgramComponents = function (solutionId,tenantId) {
 const createChildProjectTemplate = function (projectTemplateExternalIds,userDetails,programId,isExternalProgram) {
   return new Promise(async (resolve, reject) => {
     try {
+
+      // isExternalProgram - We have to negate this boolean before sending to project service . 
+      //                     if isExternalProgram true for samiksha service, for project service it is false
+
+      // Ensure isExternalProgram is always false if passed as true
+      let IsExternalProgramFalse = (isExternalProgram === true) ? false : isExternalProgram;
+
       // Construct the URL for the project service
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${isExternalProgram}`;
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${IsExternalProgramFalse}`;
 
       // Setup request options (headers + body)
       const options = {

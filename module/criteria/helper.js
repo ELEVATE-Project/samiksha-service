@@ -541,7 +541,18 @@ module.exports = class criteriaHelper {
                   status: httpStatusCode.bad_request.status,
                 }
               }
-              
+
+            // childProjectTemplates = {
+            //                "message": "Successfully created duplicate project templates",
+            //                "status": 200,
+            //                "result": [
+            //                    {
+            //                        "parentExternalId": "IDE-1747297137661",
+            //                        "_id": "68cbf6d442ed3665bb680149",
+            //                        "externalId": "IDE-1747297137661-1758197460270"
+            //                    }
+            //                ]
+            //          }
             
               // create a lookup map for faster replacement
               let templateMap = {};

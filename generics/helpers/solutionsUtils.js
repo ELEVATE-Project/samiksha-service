@@ -71,7 +71,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
     isAPrivateProgram = false,
     createdFor = [],
     requestingUserAuthToken,
-    tenantData
+    tenantData,
+    userDetails
     // rootOrganisations = []
   ) {
     return new Promise(async (resolve, reject) => {
@@ -104,7 +105,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
           solutionData,
           createdFor,
           tenantData,
-          requestingUserAuthToken
+          requestingUserAuthToken,
+          userDetails
           // rootOrganisations
         );
 
