@@ -15,6 +15,7 @@ const surveySubmissionQueries = require(DB_QUERY_BASE_PATH + '/surveySubmissions
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const projectService = require(ROOT_PATH + '/generics/services/project');
 const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
+const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 
 
   // /**
@@ -71,6 +72,18 @@ const kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications')
             _.pick(surveySubmissionsDocument[0], ['project', 'status', '_id', 'completedDate'])
           );
         }
+
+        // Adding question metadata to submission
+        if ( surveySubmissionsDocument[0].answers && Object.keys(surveySubmissionsDocument[0].answers).length > 0 ) {
+          try{
+            surveySubmissionsDocument[0] = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument[0]);
+          }
+          catch(error){
+            // Log and proceed without metadata to keep report generation resilient
+            console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+          }
+        }
+
         const kafkaMessage = await kafkaClient.pushInCompleteSurveySubmissionToKafka(surveySubmissionsDocument[0]);
 
         if (kafkaMessage.status != 'success') {

@@ -44,7 +44,7 @@ var respUtil = function (resp) {
  * @returns {Promise<Object>} Returns a promise that resolves to validation result object.
  */
 var validateOrgsPassedInHeader = async function(orgsFromHeader,tenantId){
-  let tenantInfo = await userService.fetchDefaultOrgDetails(tenantId);
+  let tenantInfo = await userService.getOrgDetails(tenantId);
   let related_orgs = tenantInfo.data.related_orgs;
   let validOrgs = [];
   let result = {
@@ -225,7 +225,12 @@ module.exports = async function (req, res, next) {
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
     'admin/deleteResource',
-    'admin/deleteSolutionResource'
+    'admin/deleteSolutionResource',
+    'library/categories/create',
+		'library/categories/update',
+    'organizationExtension/update',
+    'organizationExtension/create',
+    'organizationExtension/updateRelatedOrgs',
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -674,7 +679,6 @@ module.exports = async function (req, res, next) {
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
-
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
       req.headers['tenantid'] = gen.utils.lowerCase(decodedToken.data.tenant_id.toString());

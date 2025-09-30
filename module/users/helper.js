@@ -502,16 +502,18 @@ module.exports = class UserHelper {
          * @returns {Promise}
          */
         // Creates an array of promises based on users Input
+        const filter = { referenceFrom: { $ne: messageConstants.common.PROJECT } };
+
         switch (type) {
           case messageConstants.common.SURVEY:
-            getAllResources.push(this.surveys(userId, programId));
+            getAllResources.push(this.surveys(userId, programId, filter));
             break;
           case messageConstants.common.OBSERVATION:
-            getAllResources.push(this.observations(userId, programId));
+            getAllResources.push(this.observations(userId, programId, filter));
             break;
           default:
-            getAllResources.push(this.surveys(userId, programId));
-            getAllResources.push(this.observations(userId, programId));
+            getAllResources.push(this.surveys(userId, programId, filter));
+            getAllResources.push(this.observations(userId, programId, filter));
         }
         //here will wait till all promises are resolved
         const allResources = await Promise.all(getAllResources);
@@ -952,9 +954,10 @@ module.exports = class UserHelper {
    * @name surveys
    * @param  {String} userId - userId of user.
    * @param  {String} programId - program Id.
+   * @param  {Object} additionalFilters - additional filters.
    * @returns {result} - all the survey which user has started in that program.
    */
-  static surveys(userId, programId) {
+  static surveys(userId, programId, additionalFilters = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         /**
@@ -970,6 +973,7 @@ module.exports = class UserHelper {
           {
             createdBy: userId,
             programId: new ObjectId(programId),
+            ...additionalFilters,
           },
           ['solutionId', 'solutionExternalId', 'programId', 'programExternalId']
         );
@@ -995,10 +999,11 @@ module.exports = class UserHelper {
    * @name observations
    * @param  {String} userId - userId of user.
    * @param  {String} programId - program Id.
+   * @param {Object} additionalFilters - additional filters
    * @returns {result} - all the observation which user has started in that program.
    */
 
-  static observations(userId, programId) {
+  static observations(userId, programId, additionalFilters = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         /**
@@ -1012,6 +1017,7 @@ module.exports = class UserHelper {
           {
             createdBy: userId,
             programId: new ObjectId(programId),
+            ...additionalFilters
           },
           ['solutionId', 'solutionExternalId', 'programId', 'programExternalId']
         );
