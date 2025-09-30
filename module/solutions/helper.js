@@ -2398,6 +2398,13 @@ module.exports = class SolutionsHelper {
         if (solutionData.type == messageConstants.common.OBSERVATION) {
           // Targeted solution
           if (checkForTargetedSolution.result.isATargetedSolution) {
+            // Logic specific to "observation" solution type
+            // - Check if an observation already exists for the given user and solution
+            // - If it doesn’t exist, observationHelper.details will throw an error
+            //   (handled with try/catch to return a proper message)
+            // - If it does exist, the observationId is added to the response
+            //   so the frontend can use it for further processing
+
             let observationDetailFromLink;
             try {
               observationDetailFromLink = await observationHelper.details(
