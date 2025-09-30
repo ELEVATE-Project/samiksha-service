@@ -2032,7 +2032,7 @@ module.exports = class SolutionsHelper {
       try {
         let solutionData = await solutionsQueries.solutionDocuments(
           { _id: solutionId, tenantId: tenantFilter.tenantId },
-          ['type', 'projectTemplateId', 'programId']
+          ['type', 'projectTemplateId', 'programId','isExternalProgram']
         );
 
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
@@ -2074,13 +2074,27 @@ module.exports = class SolutionsHelper {
 
         if (solutionData.programId) {
           // add ["rootOrganisations","requestForPIIConsent","programJoined"] values to response. Based on these values front end calls PII consent
-          let programData = await programsQueries.programDocuments(
+          let programData;
+          if(solutionData.isExternalProgram){
+            programData = await projectService.programDetails(bodyData.userToken, solutionData.programId, bodyData,tenantFilter);
+            if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+            }
+            programData = [programData.result];
+          }else{
+            // getting program document to update start and end date
+          programData = await programsQueries.programDocuments(
             {
               _id: solutionData.programId,
               tenantId: tenantFilter.tenantId,
             },
             ['rootOrganisations', 'requestForPIIConsent', 'name']
           );
+
+         }
 
           templateOrQuestionDetails.result.rootOrganisations = programData[0].rootOrganisations
             ? programData[0].rootOrganisations[0]
