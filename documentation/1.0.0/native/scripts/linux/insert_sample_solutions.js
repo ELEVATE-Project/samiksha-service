@@ -1,9 +1,8 @@
 const { MongoClient } = require('mongodb');
-console.log(process.env.MONGODB_URL ,"this is mongoURL")
 
-const url = process.env.MONGODB_URL // MongoDB URL
+const url = "mongodb://localhost:27017/"    // MongoDB URL
 const dbName = 'elevate-samiksha';
-const dbName2 = 'elevate-entity1';
+const dbName2 = 'elevate-entity';
 const surveyData = require('./survey_sampleData.js');
 const entityData = require('./entity_sampleData.js')
 const observationData = require('./observation_sampleData.js');
@@ -40,13 +39,13 @@ async function main({dataToBeInserted}) {
     await insertData('entities', dataToBeInserted.entities,dbName2);
     await insertData('entityTypes',dataToBeInserted.entityType,dbName2);
     await insertData('userRoleExtension', dataToBeInserted.userRoleExtension,dbName2);
-
     await insertData('programs', dataToBeInserted.programData);
     await insertData('solutions',dataToBeInserted.solutionData);
-    await insertData('survey', dataToBeInserted.surveysData);
+    await insertData('surveys', dataToBeInserted.surveysData);
     await insertData('criteria',dataToBeInserted.criteriaData);
     await insertData('criteriaQuestions',dataToBeInserted.criteriaQuestionsData);
     await insertData('questions',dataToBeInserted.questionsData);
+    await insertData('configurations',dataToBeInserted.configurationsData);
     await insertData('frameworks',dataToBeInserted.frameworkData);
 
 }

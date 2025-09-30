@@ -2613,6 +2613,7 @@ module.exports = class SolutionsHelper {
             result: [],
           });
         }
+
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
