@@ -3712,6 +3712,20 @@
         }
       ],
       "service": "survey"
+    },
+    {
+      "sourceRoute": "/survey/v1/userExtension/mapUsersToPrograms",
+      "type": "POST",
+      "priority": "MUST_HAVE",
+      "inSequence": false,
+      "orchestrated": false,
+      "targetPackages": [
+        {
+          "basePackageName": "survey",
+          "packageName": "elevate-survey-observation"
+        }
+      ],
+      "service": "survey"
     }
   ]
 }
