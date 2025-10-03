@@ -134,11 +134,6 @@ module.exports = class SurveysHelper {
         newSolutionDocument.isReusable = true;
         newSolutionDocument.status = messageConstants.common.ACTIVE_STATUS;
         newSolutionDocument.isExternalProgram = solutionData?.isExternalProgram ?? false;
-        let date = new Date();
-        newSolutionDocument.startDate = solutionData.startDate ? new Date(solutionData.startDate) : new Date();
-        newSolutionDocument.endDate = solutionData.endDate
-          ? new Date(solutionData.endDate)
-          : date.setFullYear(date.getFullYear() + 1);
 
         newSolutionDocument.sections = { SQ: 'Survey Questions' };
         newSolutionDocument.evidenceMethods = {
