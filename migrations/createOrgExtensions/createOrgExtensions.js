@@ -158,7 +158,7 @@ const pushMessageToKafka = async (payload) => {
         });
 
         return {
-            status: CONSTANTS.common.SUCCESS,
+            status: messageConstants.common.SUCCESS,
             message: `Kafka push to topic ${payload[0].topic} successful with number - ${data[payload[0].topic][0]}`
         };
     } catch (err) {
