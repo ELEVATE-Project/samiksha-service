@@ -3063,6 +3063,7 @@ submissionReport = async function (req) {
 
     } catch (err) {
       let response = {
+        status: err.status || httpStatusCode.internal_server_error.status,
         result: false,
         message: err.message || 'INTERNAL_SERVER_ERROR',
       };
