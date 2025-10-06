@@ -131,6 +131,10 @@ module.exports = class ReportsHelper {
         surveySubmissionsDocument['programInfo'] = programDocument[0];
       }
 
+      if(req.body.filter && Object.keys(req.body.filter).length > 0){
+        surveySubmissionsDocument = await this.filterSurveyReport(surveySubmissionsDocument,req.body.filter)
+      }
+
       let report = await helperFunc.generateSubmissionReportWithoutDruid(surveySubmissionsDocument);
 
       let responseObj = {};
@@ -501,6 +505,39 @@ module.exports = class ReportsHelper {
       console.log(e)
     }
 
+  }
+  /**
+   * filter survey report based on the filter
+   * @name filterSurveyReport
+   * @param {Object} reportData -  Report data without filtered
+   * @param {Array} filter  - FilterArray which will be contain details about the filter
+   * @returns {Array} - filtered report data
+   */
+  static async filterSurveyReport(reportData, filter) {
+      try {
+          let filteredResults = reportData
+          if (filter.questionId && filter.questionId.length > 0) {
+
+              let answers = reportData.answers
+
+              for (let key of Object.keys(answers)) {
+                  let value = answers[key];
+                  let externalId = value.externalId;
+                  if (!filter.questionId.includes(externalId)) {
+                      delete answers[key]
+                  }
+
+              }
+              reportData.answers = answers
+              filteredResults = reportData
+          }
+          return filteredResults;
+      } catch (e) {
+          throw {
+              status: httpStatusCode.internal_server_error.status,
+              message: messageConstants.apiResponses.SOMETHING_WENT_WRONG
+          };
+      }
   }
 };
 
