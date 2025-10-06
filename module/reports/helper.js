@@ -510,7 +510,7 @@ module.exports = class ReportsHelper {
    * filter survey report based on the filter
    * @name filterSurveyReport
    * @param {Object} reportData -  Report data without filtered
-   * @param {Array} filter  - FilterArray which will be contain details about the filter
+   * @param {Object} filter  - FilterObject which will be contain details about the filter
    * @returns {Array} - filtered report data
    */
 static filterSurveyReport(reportData, filter) {
