@@ -131,8 +131,8 @@ module.exports = class ReportsHelper {
         surveySubmissionsDocument['programInfo'] = programDocument[0];
       }
 
-      if(req.body.filter && Object.keys(req.body.filter).length > 0){
-        surveySubmissionsDocument = await this.filterSurveyReport(surveySubmissionsDocument,req.body.filter)
+      if (req.body.filter && Object.keys(req.body.filter).length > 0) {
+        surveySubmissionsDocument = await this.filterSurveyReport(surveySubmissionsDocument, req.body.filter);
       }
 
       let report = await helperFunc.generateSubmissionReportWithoutDruid(surveySubmissionsDocument);
@@ -513,32 +513,34 @@ module.exports = class ReportsHelper {
    * @param {Array} filter  - FilterArray which will be contain details about the filter
    * @returns {Array} - filtered report data
    */
-  static async filterSurveyReport(reportData, filter) {
-      try {
-          let filteredResults = reportData
-          if (filter.questionId && filter.questionId.length > 0) {
+static filterSurveyReport(reportData, filter) {
+    try {
+        let filteredResults = {
+            ...reportData
+        };
 
-              let answers = reportData.answers
+        if (filter.questionId && Array.isArray(filter.questionId) && filter.questionId.length > 0) {
+            const questionIdSet = new Set(filter.questionId);
+            const filteredAnswers = {};
 
-              for (let key of Object.keys(answers)) {
-                  let value = answers[key];
-                  let externalId = value.externalId;
-                  if (!filter.questionId.includes(externalId)) {
-                      delete answers[key]
-                  }
+            for (let key of Object.keys(reportData.answers)) {
+                const value = reportData.answers[key];
+                if (value?.externalId && questionIdSet.has(value.externalId)) {
+                    filteredAnswers[key] = value;
+                }
+            }
 
-              }
-              reportData.answers = answers
-              filteredResults = reportData
-          }
-          return filteredResults;
-      } catch (e) {
-          throw {
-              status: httpStatusCode.internal_server_error.status,
-              message: messageConstants.apiResponses.SOMETHING_WENT_WRONG
-          };
-      }
-  }
+            filteredResults.answers = filteredAnswers;
+        }
+
+        return filteredResults;
+    } catch (e) {
+        throw {
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.SOMETHING_WENT_WRONG
+        };
+    }
+}
 };
 
 // Filter Array
