@@ -59,7 +59,11 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
    * @param {String} program.name - program name
    * @param {String} userId - Logged in user id.
    * @param {Object} solutionData - new solution creation data
-   * @param {Boolean} [isAPrivateProgram = false] - created program is private or not
+   * @param {Boolean} [isAPrivateProgram=false] - Whether the created program is private.
+   * @param {Array} [createdFor=[]] - List of entities for which the program/solution is created.
+   * @param {String} requestingUserAuthToken - Auth token of the requesting user.
+   * @param {Object} tenantData - Tenant-specific information.
+   * @param {Object} userDetails - Details of the logged-in user.
    * @returns {Object} Created solution and program
    */
 

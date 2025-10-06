@@ -2,6 +2,7 @@ let improvementProjectService = require(ROOT_PATH + '/generics/services/improvem
 let criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const criteriaQueries = require(DB_QUERY_BASE_PATH + '/criteria');
 
 module.exports = class criteriaHelper {
   static setCriteriaRubricExpressions(criteriaId, existingCriteria, criteriaRubricData, solutionLevelKeys,tenantData) {
@@ -359,7 +360,7 @@ module.exports = class criteriaHelper {
               criteriaStructure['flag'] = '';
               criteriaStructure["tenantId"]=tenantFilter.tenantId
               criteriaStructure["orgId"]=tenantFilter.orgId[0]
-              criteriaDocuments = await database.models.criteria.create(criteriaStructure);
+              criteriaDocuments = await criteriaQueries.create(criteriaStructure);
             }
 
             csvData['Criteria Name'] = parsedCriteria.criteriaName;
@@ -579,7 +580,7 @@ module.exports = class criteriaHelper {
                 }
               });
             }            
-            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
+            let newCriteriaId = await criteriaQueries.create(_.omit(criteria, ['_id']));
             if (newCriteriaId._id) {
               criteriaIdMap[criteria._id.toString()] = newCriteriaId._id;
               if (
