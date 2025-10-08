@@ -344,8 +344,8 @@ const createChildProjectTemplate = function (projectTemplateExternalIds,userDeta
       //                     if isExternalProgram true for samiksha service, for project service it is false
 
       // Ensure isExternalProgram is always false if passed as true
-      let IsExternalProgramFalse = (isExternalProgram === true) ? false : isExternalProgram;
-
+      let IsExternalProgramFalse = !isExternalProgram;
+      
       // Construct the URL for the project service
       let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${IsExternalProgramFalse}`;
 

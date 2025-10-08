@@ -560,7 +560,8 @@ module.exports = class criteriaHelper {
               childProjectTemplates.result.forEach(item => {
                 templateMap[item.parentExternalId] = {
                   _id: item._id,
-                  externalId: item.externalId
+                  externalId: item.externalId,
+                  isReusable: item.isReusable
                 };
               });
             
@@ -572,7 +573,8 @@ module.exports = class criteriaHelper {
                       return {
                         ...project,
                         _id: templateMap[project.externalId]._id,
-                        externalId: templateMap[project.externalId].externalId
+                        externalId: templateMap[project.externalId].externalId,
+                        isReusable : templateMap[project.externalId].isReusable
                       };
                     }
                     return project;
