@@ -35,7 +35,11 @@ let enviromentVariables = {
     message: 'Required mobile application app type value',
     optional: false,
   },
-
+  RESOURCE_DELETION_TOPIC: {
+    message: 'Required Kafka topic for resource deletion events',
+    optional: false,
+    default: 'resource_deletion_topic',
+  },
   // AUTHORIZATION: {
   //   message: 'Required Server authorization code',
   //   optional: false,
@@ -391,6 +395,28 @@ let enviromentVariables = {
     optional: true,
     default: 'elevate-improvement-project-submission-dev',
   },
+  USER_COURSES_SUBMISSION_TOPIC: {
+		message: 'Required USER_COURSES_SUBMISSION_TOPIC',
+		optional: true,
+		default: 'elevate_user_courses_dev',
+	},
+  
+  USER_COURSES_TOPIC: {
+		message: 'Required USER_COURSES_TOPIC',
+		optional: true,
+		default: 'elevate_user_courses_raw',
+	},
+  KAFKA_HEALTH_CHECK_TOPIC: {
+		message: 'Required KAFKA_HEALTH_CHECK_TOPIC',
+		optional: false,
+		default: 'survey-health-check-topic-check',
+	},
+
+  ORG_UPDATES_TOPIC: {
+		message: 'Required ORG_UPDATES_TOPIC',
+		optional: true,
+		default: 'dev.organizationEvent',
+	},
 };
 
 let success = true;

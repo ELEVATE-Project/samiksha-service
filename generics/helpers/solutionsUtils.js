@@ -95,6 +95,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
         //   program._id = programData._id;
         // }
+
+        // need to handle survey and observation both in the same function we will have solutionData.type which will contains type of resource
         let duplicateSolution = await this.importFromSolution(
           templateId,
           program._id ? program._id.toString() : '',
@@ -206,7 +208,7 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
             */
             programDocument = await programsHelper.list(
               programQuery,
-              ['externalId', 'name', 'description', 'isAPrivateProgram'],
+              ['externalId', 'name', 'description', 'isAPrivateProgram','components'],
               '',
               '',
               ''
@@ -290,8 +292,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
           }
         }
         let startDate = new Date();
-        let endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
 
         if (
           newSolutionDocument['questionSequenceByEcm'] &&
@@ -325,8 +325,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
         newSolutionDocument.createdBy = userId;
         newSolutionDocument.entities = data.entities;
         newSolutionDocument.parentSolutionId = solutionDocument[0]._id;
-        newSolutionDocument.startDate = startDate;
-        newSolutionDocument.endDate = endDate;
         newSolutionDocument.createdAt = startDate;
         newSolutionDocument.updatedAt = startDate;
         newSolutionDocument.isAPrivateProgram = false;
@@ -371,15 +369,26 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
           if (programDocument) {
             if (!newSolutionDocument.isExternalProgram) {
+              let currentComponents = programDocument?.components || [];
               let programUpdate = await database.models.programs.updateOne(
                 { _id: programDocument._id },
-                { $addToSet: { components: duplicateSolutionDocument._id } }
+                { $addToSet: { components: {_id:duplicateSolutionDocument._id,order:currentComponents.length + 1} } }
               );
               if (programUpdate.modifiedCount === 0) {
                 throw {
-                  message: messageConstants.apiResponses.PROGRAM_UPDATED_FAILED,
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
                 };
               }
+            }else if(newSolutionDocument.isExternalProgram == true && newSolutionDocument.referenceFrom !== 'project'){
+              //call project service to update program components
+              let currentComponents = programDocument?.components || [];
+              let programUpdateStatus = await projectService.programUpdate(requestingUserAuthToken, programDocument._id,{components:[{_id:duplicateSolutionDocument._id,order:currentComponents.length + 1}]},tenantData, userDetails);
+              if( !programUpdateStatus || !programUpdateStatus.success) {
+                throw {
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
+                };
+              }
+
             }
           }
           return resolve(duplicateSolutionDocument);

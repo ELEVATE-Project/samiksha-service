@@ -60,7 +60,9 @@ module.exports = class Surveys {
           req.pageSize,
           req.pageNo,
           req.userDetails.userId,
-          req.rspObj.userToken,
+          req.userDetails.userToken,
+          req.query.categoryId,
+          req.userDetails
         );
 
         return resolve({

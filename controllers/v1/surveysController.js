@@ -69,7 +69,8 @@ module.exports = class Surveys extends Abstract {
         let createSolutionTemplate = await surveysHelper.createSolutionTemplate(
           req.body,
           req.userDetails.userId,
-          req.userDetails.tenantAndOrgInfo
+          req.userDetails.tenantAndOrgInfo,
+          req.userDetails
         );
 
         return resolve({
@@ -824,6 +825,12 @@ module.exports = class Surveys extends Abstract {
             // appVersion,
             // appName
           );
+        }
+
+        if(surveyDetails.success === false){
+          surveyDetails.status = httpStatusCode.bad_request.status
+          surveyDetails.message = surveyDetails?.message ? surveyDetails.message : undefined;
+          throw surveyDetails;
         }
 
         return resolve({

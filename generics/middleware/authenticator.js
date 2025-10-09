@@ -44,7 +44,7 @@ var respUtil = function (resp) {
  * @returns {Promise<Object>} Returns a promise that resolves to validation result object.
  */
 var validateOrgsPassedInHeader = async function(orgsFromHeader,tenantId){
-  let tenantInfo = await userService.fetchDefaultOrgDetails(tenantId);
+  let tenantInfo = await userService.getOrgDetails(tenantId);
   let related_orgs = tenantInfo.data.related_orgs;
   let validOrgs = [];
   let result = {
@@ -224,7 +224,14 @@ module.exports = async function (req, res, next) {
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
-    'solutions/fetchLinkInternal'
+    'solutions/fetchLinkInternal',
+    'admin/deleteResource',
+    'admin/deleteSolutionResource',
+    'library/categories/create',
+		'library/categories/update',
+    'organizationExtension/update',
+    'organizationExtension/create',
+    'organizationExtension/updateRelatedOrgs',
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -522,7 +529,7 @@ module.exports = async function (req, res, next) {
    */
   async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);
+    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
     let validOrgIds = null;
 
     if (
@@ -542,7 +549,7 @@ module.exports = async function (req, res, next) {
 
     // convert the types of items to string
     orgDetails.data.related_orgs = orgDetails.data.organizations.map((data)=>{
-      return data.code.toString();
+      return gen.utils.lowerCase(data.code.toString())
     });
     // aggregate valid orgids
 
@@ -666,16 +673,16 @@ module.exports = async function (req, res, next) {
         return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
       }
 
+      result = convertTenantAndOrgToLowercase(result);
       req.headers['tenantid'] = result.tenantId;
       req.headers['orgid'] = result.orgId;
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
-
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
-      req.headers['tenantid'] = decodedToken.data.tenant_id.toString();
+      req.headers['tenantid'] = gen.utils.lowerCase(decodedToken.data.tenant_id.toString());
 
       let orgId = req.body.orgId || req.headers['orgid'];
 
@@ -686,7 +693,9 @@ module.exports = async function (req, res, next) {
         return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
       }
 
-      req.headers['orgid'] = orgId;
+      req.headers['orgid'] = Array.isArray(orgId)
+        ? orgId.map((org) => gen.utils.lowerCase(org))
+        : gen.utils.lowerCase(orgId);
 
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
       if (!validateOrgsResult.success) {
@@ -694,8 +703,8 @@ module.exports = async function (req, res, next) {
       }
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.ORG_ADMIN)) {
-      req.headers['tenantid'] = userInformation.tenantId.toString();
-      req.headers['orgid'] = [userInformation.organizationId.toString()];
+      req.headers['tenantid'] = gen.utils.lowerCase(userInformation.tenantId.toString());
+      req.headers['orgid'] = [gen.utils.lowerCase(userInformation.organizationId.toString())];
     } else {
       rspObj.errCode = reqMsg.INVALID_ROLE.INVALID_CODE;
       rspObj.errMsg = reqMsg.INVALID_ROLE.INVALID_MESSAGE;
@@ -764,6 +773,28 @@ module.exports = async function (req, res, next) {
 			return value?.toString?.() ?? ''
 		})
 	}
+
+  /**
+ *
+ * @function
+ * @name convertTenantAndOrgToLowercase
+ * @param {Object} result - The result object containing success flag, tenantId, and orgId.
+ * @param {Boolean} result.success - Indicates whether the operation was successful.
+ * @param {String} result.tenantId - Tenant ID to be converted to lowercase.
+ * @param {String} result.orgId - Organization ID to be converted to lowercase.
+ * @returns {Object} Returns the modified result object with tenantId and orgId in lowercase,
+ *                   or the original result object if conditions are not met.
+ */
+  function convertTenantAndOrgToLowercase(result) {
+  if (result?.success && result.tenantId && result.orgId) {
+    const tenantId = gen.utils.lowerCase(result.tenantId);
+    const orgId = Array.isArray(result.orgId)
+      ? result.orgId.map((org) => gen.utils.lowerCase(org))
+      : gen.utils.lowerCase(result.orgId);
+    return { ...result, tenantId, orgId };
+  }
+  return result;
+}
 
   next();
 };

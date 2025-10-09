@@ -1,18 +1,18 @@
 module.exports = {
-  name: "solutions",
+  name: 'solutions',
   schema: {
     externalId: String,
     isReusable: Boolean,
     name: {
-      type : String,
-      index : true
+      type: String,
+      index: true,
     },
     description: {
-      type : String,
-      index : true
+      type: String,
+      index: true,
     },
     author: String,
-    parentSolutionId: "ObjectId",
+    parentSolutionId: 'ObjectId',
     resourceType: Array,
     language: Array,
     keywords: Array,
@@ -20,112 +20,126 @@ module.exports = {
     scoringSystem: String,
     levelToScoreMapping: Object,
     themes: Array,
-    flattenedThemes : Array,
+    flattenedThemes: Array,
     questionSequenceByEcm: Object,
     entityType: String,
     type: String,
     subType: String,
     entities: Array,
-    programId: "ObjectId",
+    programId: 'ObjectId',
     programExternalId: String,
     programName: String,
     programDescription: String,
     entityProfileFieldsPerEntityTypes: Object,
     startDate: {
-      type : Date,
-      index : true
+      type: Date,
+      index: true,
     },
     endDate: {
-      type : Date,
-      index : true
+      type: Date,
+      index: true,
     },
     status: String,
     evidenceMethods: Object,
     sections: Object,
     registry: Array,
-    frameworkId: "ObjectId",
+    frameworkId: 'ObjectId',
     frameworkExternalId: String,
-    parentSolutionId: "ObjectId",
     noOfRatingLevels: Number,
-    isRubricDriven: { type : Boolean, default: false },
-    enableQuestionReadOut: { type : Boolean, default: false },
-    isReusable: Boolean,
+    isRubricDriven: { type: Boolean, default: false },
+    enableQuestionReadOut: { type: Boolean, default: false },
     roles: Object,
     observationMetaFormKey: String,
     updatedBy: String,
-    captureGpsLocationAtQuestionLevel:{ type : Boolean, default: false },
+    captureGpsLocationAtQuestionLevel: { type: Boolean, default: false },
     sendSubmissionRatingEmailsTo: String,
     creator: String,
     linkTitle: String,
     linkUrl: String,
-    isAPrivateProgram : {
-      default : false,
-      type : Boolean
+    isAPrivateProgram: {
+      default: false,
+      type: Boolean,
     },
-    assessmentMetaFormKey : String,
-    allowMultipleAssessemts : {
-      default : false,
-      type : Boolean
+    assessmentMetaFormKey: String,
+    allowMultipleAssessemts: {
+      default: false,
+      type: Boolean,
     },
     isDeleted: {
-        default : false,
-        type : Boolean,
-        index : true
+      default: false,
+      type: Boolean,
+      index: true,
     },
-    project : Object,
+    project: Object,
     referenceFrom: {
       type: String,
       index: true,
     },
     scope: {
-			type: Object,
-			default: {},
-		},
-    pageHeading: {
-      default : "Domains",
-      type : String
+      type: Object,
+      default: {},
     },
-    criteriaLevelReport : Boolean,
-    license:Object,
+    pageHeading: {
+      default: 'Domains',
+      type: String,
+    },
+    criteriaLevelReport: Boolean,
+    license: Object,
     link: {
-      type : String,
-      index : true
+      type: String,
+      index: true,
     },
     minNoOfSubmissionsRequired: {
       type: Number,
-      default: 1
+      default: 1,
     },
-    availableForPrivateConsumption:{
+    availableForPrivateConsumption: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    reportInformation : Object,
-    certificateTemplateId : "ObjectId",
-    rootOrganisations : Array,
-    createdFor : Array,
-    projectTemplateId : {
-      type : "ObjectId",
-      index: true
+    reportInformation: Object,
+    certificateTemplateId: 'ObjectId',
+    rootOrganisations: Array,
+    createdFor: Array,
+    projectTemplateId: {
+      type: 'ObjectId',
+      index: true,
     },
-    orgId:{
+    orgId: {
       type: String,
-      require: true,
-      index:true
+      required: true,
+      index: true,
     },
     tenantId: {
       type: String,
-      require: true,
-      index:true
+      required: true,
+      index: true,
     },
-    isExternalProgram:{
-      default : false,
-      type : Boolean
-    }
+    isExternalProgram: {
+      default: false,
+      type: Boolean,
+    },
+    parentEntityKey: {
+      type: String,
+      default: null,
+    },
+    visibleToOrganizations: {
+      type: Array,
+      default: [],
+      index: true,
+    },
+    visibility: {
+      type: String,
+      index: true,
+      enum: ['CURRENT', 'ASSOCIATED', 'ALL'], 
+      default: 'CURRENT'
+    },
+    categories: [],
   },
   compoundIndex: [
-		{
-			name: { externalId: 1, tenantId: 1 , orgId: 1 },
-			indexType: { unique: true },
-		},
-	],
+    {
+      name: { externalId: 1, tenantId: 1, orgId: 1 },
+      indexType: { unique: true },
+    },
+  ],
 };
