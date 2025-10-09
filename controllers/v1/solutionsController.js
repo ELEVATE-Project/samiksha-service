@@ -1366,6 +1366,55 @@ module.exports = class Solutions extends Abstract {
     });
   }
 
+
+  /**
+  * @api {get} /samiksha/v1/solutions/fetchLinkInternal/:solutionId
+  * @apiVersion 1.0.0
+  * @apiName Get link by solution id
+  * @apiGroup Solutions
+  * @apiSampleRequest /samiksha/v1/solutions/5fa28620b6bd9b757dc4e932
+  * @apiHeader {String} X-authenticated-user-token Authenticity token  
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message": "Solution Link generated successfully",
+    "status": 200,
+     "result": [
+        "https://shikshagrah-qa.tekdinext.comundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://localhostundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://shikshagraha-qa.tekdinext.comundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://new domain/registerundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d"
+    ]
+    }
+  */
+  /**
+   * Get link by solution id.
+   * @method
+   * @name fetchLinkInternal
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution Id
+   * @returns {Array}
+   */
+
+  async fetchLinkInternal(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let solutionData = await solutionsHelper.fetchLinkInternal(
+          req.params._id
+        );
+
+        return resolve(solutionData);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
   /**
   * @api {get} /samiksha/v1/solutions/delete/{{solutionId}} Delete solution .
   * @apiVersion 1.0.0

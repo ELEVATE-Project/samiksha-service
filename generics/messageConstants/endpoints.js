@@ -35,5 +35,6 @@ module.exports = {
   AUTO_DOWNLOAD: '/v1/files/download',
   PROFILE_READ_BY_ID: '/v1/user/profileById',
   PUSH_SUBMISSION_TO_TASK: '/v1/userProjects/pushSubmissionToTask',
+  TENANT_READ_INTERNAL: '/v1/tenant/readInternal',
 
 };

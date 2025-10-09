@@ -223,7 +223,8 @@ module.exports = async function (req, res, next) {
     'solutions/removeEntitiesInScope',
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
-    'userExtension/bulkUpload'
+    'userExtension/bulkUpload',
+    'solutions/fetchLinkInternal'
   ];
 
   let performInternalAccessTokenCheck = false;

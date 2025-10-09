@@ -2260,6 +2260,103 @@ module.exports = class SolutionsHelper {
   }
 
   /**
+   * Get link by solution id without token for internal API calls
+   * @method
+   * @name fetchLinkInternal
+   * @param {String} solutionId - solution Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+   static fetchLinkInternal(solutionId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let solutionData = await solutionsQueries.solutionDocuments(
+          {
+            _id: solutionId,
+            isReusable: false,
+            isAPrivateProgram: false,
+          },
+          ['link', 'type', 'author', 'tenantId', 'orgId']
+        );
+
+        if (!Array.isArray(solutionData) || solutionData.length === 0) {
+          throw {
+            message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+            status: httpStatusCode.bad_request.status,
+          };
+        }
+
+        const solution = solutionData[0];
+
+        if (!solution.tenantId) {
+          throw {
+            message: messageConstants.apiResponses.TENANTID_REQUIRED_IN_SOLUTION,
+            status: httpStatusCode.bad_request.status,
+          };
+        }
+
+        let prefix = messageConstants.common.PREFIX_FOR_SOLUTION_LINK;
+        let solutionLink = solution?.link;
+
+        if (!solutionLink) {
+          solutionLink = await gen.utils.md5Hash(solution._id + '###' + solution.author);
+          // update link to the solution documents
+        let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
+          {
+            _id: solutionId,
+            tenantId:  solution?.tenantId,
+          },
+          { link: solutionLink },
+          { new: true }
+        );
+
+          if (!solutionUpdatedData._id) {
+            throw {
+              message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
+              status: httpStatusCode.bad_request.status,
+            };
+          }
+        }
+
+        // fetch tenant domain by calling  tenant details API
+        let tenantDetailsResponse = await userService.fetchTenantDetailsInternal(solution.tenantId);
+        const domains = tenantDetailsResponse?.data?.domains || [];
+        // Error handling if API failed or no domains found
+        if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
+          };
+        }
+
+        // Collect all verified domains into an array
+        let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
+
+        // Generate link for each domain
+        let links = allDomains.map((domain) => {
+          return _generateLink(
+            `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
+            prefix,
+            solutionLink,
+            solutionData[0].type
+          );
+        });
+
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.LINK_GENERATED,
+          result: links,
+        });
+      } catch (error) {
+        return resolve({
+          success: false,
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
+          message: error.message,
+        });
+      }
+    });
+  }
+  /**
    * Verify solution link
    * @method
    * @name verifyLink
