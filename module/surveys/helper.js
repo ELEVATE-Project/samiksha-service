@@ -420,7 +420,7 @@ module.exports = class SurveysHelper {
 
         // If the new solution is created successfully, generate a link for the solution
         if (newSolution?.data?._id) {
-          let link = await gen.utils.md5Hash(userId + '###' + newSolution._id);
+          let link = await gen.utils.md5Hash(userId + '###' + newSolution.data._id);
 
           await solutionsQueries.updateSolutionDocument(
             { _id: newSolution.data._id },
