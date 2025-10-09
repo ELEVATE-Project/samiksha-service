@@ -659,6 +659,41 @@ function getFilteredScope(scopeData, tenantPublicDetailsMetaField) {
 }
 
 
+/**
+ * @function formatDate
+ * @description
+ * Converts a JavaScript Date object into a formatted string: "YYYY-MM-DD HH:mm:ss"
+ * (e.g. "2025-10-09 16:30:45")
+ *
+ * This is useful when your backend or database expects date strings
+ * in a consistent format instead of raw JavaScript Date objects.
+ *
+ * @param {Date} date - A valid JavaScript Date object to format.
+ * @returns {string} A formatted date-time string in "YYYY-MM-DD HH:mm:ss" format.
+ *
+ * @example
+ * const now = new Date();
+ * console.log(formatDate(now));
+ * // Output: "2025-10-09 16:45:12"
+ */
+function formatDate(date) {
+  const pad = (n) => (n < 10 ? '0' + n : n);
+  return (
+    date.getFullYear() +
+    '-' +
+    pad(date.getMonth() + 1) +
+    '-' +
+    pad(date.getDate()) +
+    ' ' +
+    pad(date.getHours()) +
+    ':' +
+    pad(date.getMinutes()) +
+    ':' +
+    pad(date.getSeconds())
+  );
+}
+
+
 
 
 module.exports = {
@@ -702,4 +737,5 @@ module.exports = {
   extractScopeFactors:extractScopeFactors,
   targetingQuery:targetingQuery,
   getFilteredScope:getFilteredScope,
+  formatDate:formatDate
 };

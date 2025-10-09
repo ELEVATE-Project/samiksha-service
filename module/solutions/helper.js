@@ -2912,6 +2912,8 @@ module.exports = class SolutionsHelper {
           // Add one year to the current date
           let endDate = new Date();
           endDate.setFullYear(endDate.getFullYear() + 1);
+          startDate = gen.utils.formatDate(startDate);
+          endDate = gen.utils.formatDate(endDate);
           let programData = await _createProgramData(
             data.programName,
             data.programExternalId ? data.programExternalId : data.programName + '-' + dateFormat,
@@ -2930,7 +2932,13 @@ module.exports = class SolutionsHelper {
           programData.tenantData = {};
           programData.tenantData.tenantId = tenantData.tenantId;
           programData.tenantData.orgId = [tenantData.orgId];
-          userPrivateProgram = await programsHelper.create(programData);
+          programData.scope= data.scope
+          if(data.isExternalProgram){
+            programData['requestForPIIConsent'] = true
+            userPrivateProgram = await projectService.createProgram(programData,userDetails);
+          }else{
+            userPrivateProgram = await programsHelper.create(programData ,true,userDetails);
+          }
         }
 
         let solutionDataToBeUpdated = {
