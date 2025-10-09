@@ -31,7 +31,7 @@ const projectService = require(ROOT_PATH + '/generics/services/project');
 const surveySubmissionsHelperUtils = require(ROOT_PATH + '/generics/helpers/surveySubmissionUtils');
 const libraryCategoriesQueries = require(DB_QUERY_BASE_PATH + '/libraryCategories');
 const userService = require(ROOT_PATH + '/generics/services/users');
-const moment = require('moment-timezone'); 
+const moment = require('moment-timezone');
 const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
 
 /**
@@ -188,10 +188,10 @@ module.exports = class SurveysHelper {
         newSolutionDocument.themes = themes;
 
         //Add orgPolicies changes
-          //Add orgPolicies changes
+        //Add orgPolicies changes
         // Query to get the orgExtension document
         let orgExtensionFilter = {
-          tenantId:userDetails.tenantAndOrgInfo.tenantId,
+          tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId[0],
         };
 
@@ -229,11 +229,7 @@ module.exports = class SurveysHelper {
           }));
         }
         //get the related orgs for the solutions
-        let getRelatedOrgs = await userService.getOrgDetails(
-          tenantData.orgId[0],
-          userDetails,
-          tenantData.tenantId
-        );
+        let getRelatedOrgs = await userService.getOrgDetails(tenantData.orgId[0], userDetails, tenantData.tenantId);
         if (!getRelatedOrgs.success || !getRelatedOrgs.data.related_org_details) {
           throw {
             status: httpStatusCode.internal_server_error.status,
@@ -248,20 +244,18 @@ module.exports = class SurveysHelper {
         let newSolution = await solutionsQueries.createSolution(_.omit(newSolutionDocument, ['_id']));
 
         if (newSolution._id) {
-
-          if(newSolution?.categories && newSolution?.categories?.length > 0){
-
+          if (newSolution?.categories && newSolution?.categories?.length > 0) {
             let categories = newSolution.categories.map((category) => {
-              return category._id
-            })
-             await libraryCategoriesQueries.updateMany(
+              return category._id;
+            });
+            await libraryCategoriesQueries.updateMany(
               {
                 _id: { $in: categories },
               },
               {
                 $inc: { noOfSolutions: 1 },
-              },   
-            )         
+              }
+            );
           }
           return resolve({
             success: true,
@@ -420,7 +414,7 @@ module.exports = class SurveysHelper {
 
         // If the new solution is created successfully, generate a link for the solution
         if (newSolution?.data?._id) {
-          let link = await gen.utils.md5Hash(userId + '###' + newSolution._id);
+          let link = await gen.utils.md5Hash(userId + '###' + newSolution.data._id);
 
           await solutionsQueries.updateSolutionDocument(
             { _id: newSolution.data._id },
@@ -794,8 +788,15 @@ module.exports = class SurveysHelper {
           throw new Error(messageConstants.apiResponses.SOLUTION_NOT_FOUND);
         }
 
-        if(solutionDocument[0].startDate > new Date()){
-          throw new Error(messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionDocument[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"));
+        if (solutionDocument[0].startDate > new Date()) {
+          throw new Error(
+            messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET +
+              moment(solutionDocument[0].startDate)
+                .utc()
+                .utcOffset(timeZoneDifference)
+                .add(1, 'minute')
+                .format('ddd, D MMM YYYY, hh:mm A')
+          );
         }
 
         if (version === '') {
@@ -856,8 +857,15 @@ module.exports = class SurveysHelper {
         if (!validateSurvey.success) {
           return resolve(validateSurvey);
         }
-       // Get the details of the survey
-        let surveyDetails = await this.details(surveyId, userId, validateSurvey.data.submissionId, roleInformation,token,tenantData);
+        // Get the details of the survey
+        let surveyDetails = await this.details(
+          surveyId,
+          userId,
+          validateSurvey.data.submissionId,
+          roleInformation,
+          token,
+          tenantData
+        );
 
         if (!surveyDetails.success) {
           return resolve(surveyDetails);
@@ -1778,7 +1786,7 @@ module.exports = class SurveysHelper {
           success: false,
         };
 
-        if (surveyReportPage === '' || gen.utils.convertStringToBoolean(surveyReportPage)) {
+        if (surveyReportPage === '' || !gen.utils.convertStringToBoolean(surveyReportPage)) {
           // List of created survey solutions by user.
           surveySolutions = await surveySubmissionsHelper.surveySolutions(
             userId,
