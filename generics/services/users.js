@@ -335,7 +335,7 @@ const accountSearch = function (userIds = [], tenantId, type = 'all') {
 				if (error) {
 					result.success = false
 				} else {
-					if (body.responseCode === httpStatusCode['ok'].code) {
+					if (body.responseCode === 'OK') {
 						result['data'] = body.result
 					} else {
 						result.success = false

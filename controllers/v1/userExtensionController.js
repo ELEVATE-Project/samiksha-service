@@ -354,12 +354,12 @@ module.exports = class UserExtension extends Abstract {
 	mapUsersToPrograms(req) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const updateUserExtension = await userExtensionHelper.mapUsersToPrograms(req.body.data, req.userDetails)
+				const updateUserExtension = await userExtensionHelper.mapUsersToPrograms(req.body.data, req.query)
 				return resolve(updateUserExtension)
 			} catch (error) {
 				return reject({
-					status: error.status || httpStatusCodes.internal_server_error.status,
-					message: error.message || httpStatusCodes.internal_server_error.message,
+					status: error.status || httpStatusCode.internal_server_error.status,
+					message: error.message || httpStatusCode.internal_server_error.message,
 					errorObject: error,
 				})
 			}

@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "6d5c95b2-5212-469c-9517-a7ebec0c0233",
-		"name": "Samiksha Service",
+		"_postman_id": "643a6651-4ed0-413c-984a-c52013c13677",
+		"name": "Samiksha Service Copy",
 		"description": "This API collection serves the Survey Service, covering both Observations and Surveys. It provides various endpoints for managing and interacting with surveys and observations, along with comprehensive report generation functionalities.\n\nObservations:\nObservations with Rubric: Allows assessment based on predefined rubrics.\nObservations without Rubric: Flexible observations without structured rubrics.\nReports:\nSurvey Reports: Generate detailed reports based on survey submissions.\nObservation Reports: Includes:\nEntity Reports: Focuses on specific entities being observed.\nInstance Reports: Provides detailed information on specific instances of observation.\nPDF Reports: Available for both entity and instance reports.\nThis API collection supports essential workflows such as criteria upload, observation submission, report generation, and program management. It simplifies the process of collecting, managing, and analyzing data for both surveys and observations.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "33513401"
+		"_exporter_id": "28589818"
 	},
 	"item": [
 		{
@@ -4747,7 +4747,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
+									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -4796,7 +4796,7 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
+											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -5086,6 +5086,50 @@
 										"v1",
 										"userExtension",
 										"bulkUpload"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "mapUsersToPrograms",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "internal-access-token",
+										"value": "{{devInternalAccessToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"data\": [\n        {\n            \"userId\": 1,\n            \"programId\": \"686e16212cb81c0014a49111\",\n            \"operation\": \"append\",\n            \"roles\": [\n                \"program_manager\"\n            ]\n        },\n        {\n            \"userId\": 456,\n            \"programId\": \"68259398cfa7cfe32cd83379\",\n            \"operation\": \"append\",\n            \"roles\": [\n                \"program_manager\",\n                \"mentee\",\n                \"org_admin\",\n                \"mentor\"\n            ]\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/userExtension/mapUsersToPrograms?tenantId=shikshalokam&orgId=slorg",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"userExtension",
+										"mapUsersToPrograms"
+									],
+									"query": [
+										{
+											"key": "tenantId",
+											"value": "shikshalokam"
+										},
+										{
+											"key": "orgId",
+											"value": "slorg"
+										}
 									]
 								}
 							},

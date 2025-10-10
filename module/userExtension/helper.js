@@ -1072,19 +1072,27 @@ module.exports = class UserExtensionHelper {
     });
   }
 
-  static mapUsersToPrograms(bodyData, userDetails) {
+  /**
+	 * update user extension
+	 * @method
+	 * @name update
+	 * @param {Object} bodyData - program role mapping data
+	 * @param {Object} queryParams - request query parameters
+	 * @returns {Object}
+	 */
+
+  static mapUsersToPrograms(bodyData, queryParams) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				// Extract userIds from incoming body data
 				const userIds = bodyData.map((user) => user.userId)
 
 				// Extract tenant & user information
-				const tenantId = userDetails.tenantAndOrgInfo.tenantId
-				const userName = userDetails.userInformation.userName
+				const tenantId = queryParams.tenantId
+				const userId = queryParams.userId ? queryParams.userId : 'SYSTEM'
 
 				// Fetch user details from user service
 				const { success, data } = (await userService.accountSearch(userIds, tenantId)) || {}
-
 				// Throw error if no valid users returned from service
 				if (!success || !data || data.count === 0) {
 					throw {
@@ -1149,7 +1157,7 @@ module.exports = class UserExtensionHelper {
 					const operation = data.operation.toUpperCase()
 
 					// Fetch existing userExtension doc if any
-					let userExtension = await userExtensionsQueries.userExtensionDocument({
+					let userExtension = await userExtensionsQueries.userExtensionDocuments({
 						userId: data.userId,
 						tenantId,
 					})
@@ -1174,8 +1182,8 @@ module.exports = class UserExtensionHelper {
 							await userExtensionsQueries.findAndUpdate(
 								{ _id: userExtensionDoc._id, tenantId },
 								{
-									$pull: { programRoleMapping: { programId: ObjectId(data.programId) } },
-									updatedBy: userName,
+									$pull: { programRoleMapping: { programId: new ObjectId(data.programId) } },
+									updatedBy: userId,
 								}
 							)
 
@@ -1203,55 +1211,88 @@ module.exports = class UserExtensionHelper {
 						if (userExtensionDoc) {
 							// If userExtension already exists, add new programRoleMapping if not present
 							try {
-								await userExtensionsQueries.findAndUpdate(
+								// Try to append roles to existing programRoleMapping
+								let updateResult = await userExtensionsQueries.updateUserExtensionDocument(
 									{
-										_id: ObjectId(userExtensionDoc._id),
+										_id: new ObjectId(userExtensionDoc._id),
 										userId: data.userId,
 										tenantId,
-										'programRoleMapping.programId': { $ne: ObjectId(data.programId) },
+										'programRoleMapping.programId': new ObjectId(data.programId),
 									},
 									{
 										$addToSet: {
-											programRoleMapping: {
-												programId: ObjectId(data.programId),
-												roles: data.roles,
-											},
+											'programRoleMapping.$.roles': { $each: data.roles },
 										},
-										updatedBy: userName,
+										$set: { updatedBy: userId },
+									},
+									{
+										new: true,
+										rawResult: true,
 									}
 								)
-								// Mark success and push Kafka create event
-								responses.push(buildResponse(true, data, userExtensionDoc._id))
-								data.roles.map((role) => {
-									kafkaMessages.push(
-										createKafkaPayload(
-											usersMap.get(data.userId),
-											data.programId,
-											role,
-											messageConstants.common.CREATE_EVENT_TYPE,
-											programsMap
-										)
+								// If no existing mapping found, add new programRoleMapping element
+								if (!updateResult || updateResult?.lastErrorObject?.updatedExisting === false) {
+									updateResult = await userExtensionsQueries.updateUserExtensionDocument(
+										{
+											_id: userExtensionDoc._id,
+											userId: data.userId,
+											tenantId,
+											'programRoleMapping.programId': { $ne: new ObjectId(data.programId) },
+										},
+										{
+											$addToSet: {
+												programRoleMapping: {
+													programId: new ObjectId(data.programId),
+													roles: data.roles,
+												},
+											},
+											$set: { updatedBy: userId },
+										},
+										{
+											new: true,
+											rawResult: true,
+										}
 									)
-								})
+								}
+
+								// Only report success if any change occurred
+								const wasUpdated = updateResult?.lastErrorObject?.updatedExisting
+									? updateResult.lastErrorObject.updatedExisting
+									: false
+								responses.push(buildResponse(wasUpdated, data, userExtensionDoc._id))
+
+								if (wasUpdated) {
+									data.roles.map((role) => {
+										kafkaMessages.push(
+											createKafkaPayload(
+												usersMap.get(data.userId),
+												data.programId,
+												role,
+												messageConstants.common.CREATE_EVENT_TYPE,
+												programsMap
+											)
+										)
+									})
+								}
 							} catch (err) {
 								responses.push(buildResponse(false, data, userExtensionDoc._id))
 							}
 						} else {
 							// If userExtension does not exist, create new userExtension record
 							try {
-								const newUserExtension = await userExtensionsQueries.createUserExtension({
+								const newUserExtension = await userExtensionsQueries.createUserExtensionDocument({
 									userId: data.userId.toString(),
 									tenantId,
 									orgIds: [orgId],
 									externalId: `${tenantId}-${orgId}-${data.userId}`,
 									programRoleMapping: [
 										{
-											programId: ObjectId(data.programId),
+											programId: new ObjectId(data.programId),
 											roles: data.roles,
 										},
 									],
-									createdBy: userName,
-									updatedBy: userName,
+									createdBy: userId,
+									updatedBy: userId,
 								})
 								// Mark success and push Kafka create event
 								responses.push(buildResponse(true, data, newUserExtension._id))
