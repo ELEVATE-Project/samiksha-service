@@ -67,6 +67,7 @@ async function modifyProgramsCollection() {
         $set: {
             programId: new ObjectId(programDocument._id),
             programExternalId: programDocument.externalId,
+            isExternalProgram:true
         },
       }
     );
@@ -90,6 +91,7 @@ async function modifyProgramsCollection() {
             programId: new ObjectId(programDocument._id),     //check
             programExternalId: programDocument.externalId,
             programInformation: programInformation,
+            isExternalProgram:true,
             surveyInformation: {
               ...surveyInformation,
               programId: new ObjectId(programDocument._id),
@@ -137,6 +139,7 @@ async function modifyProgramsCollection() {
         $set: {
           programId: new ObjectId(programDocument._id),
           programExternalId: programDocument.externalId,
+          isExternalProgram:true
         },
       }
     );
@@ -160,6 +163,7 @@ async function modifyProgramsCollection() {
             programId: new ObjectId(programDocument._id),
             programExternalId: programDocument.externalId,
             programInformation: programInformation,
+            isExternalProgram:true,
             observationInformation: {
               ...observationInfo,
               programId: new ObjectId(programDocument._id),
