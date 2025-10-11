@@ -3148,10 +3148,18 @@ module.exports = class SolutionsHelper {
         if (solution && solution._id) {
           let length = userPrivateProgram.components ? userPrivateProgram.components.length : 0;
           // Add solution to the program components
-          await programsQueries.findOneAndUpdate(
-            { _id: userPrivateProgram._id },
-            { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
-          );
+          if(data.isExternalProgram){
+            await projectService.ProgramUpdateForLibrary(
+              userToken,
+             userPrivateProgram._id ,
+             {components:[{_id:solution._id,order:length + 1}]}
+            );
+          }else{
+            await programsQueries.findOneAndUpdate(
+              { _id: userPrivateProgram._id },
+              { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
+            );            
+          }
         }
 
         return resolve({

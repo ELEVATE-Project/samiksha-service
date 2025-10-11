@@ -125,7 +125,8 @@ module.exports = class ObservationHelper {
           solutionDocument,
           "true",
           userDetails.tenantData,
-          userDetails
+          userDetails,
+          userDetails.userToken
         );
         if (!createProgramAndSolution.success) {
           throw {

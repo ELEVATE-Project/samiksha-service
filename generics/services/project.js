@@ -151,6 +151,58 @@ const programDetails = function (userToken, programId, userDetails, payload = {}
 };
 
 /**
+ * @function ProgramUpdateForLibrary
+ * @description Updates a program record in the library via the Project Service.
+ * @param {string} userToken - The authentication token of the user making the request.
+ * @param {string} programId - The unique identifier of the program to be updated.
+ * @param {object} reqBody - The request payload containing program update data.
+ * @returns {Promise<object>} - Resolves with `{ success: true | false }` based on update status.
+ */
+const ProgramUpdateForLibrary = function (userToken, programId, reqBody) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.LIBRARY_PROGRAM_UPDATE}/${programId}`;
+      // Set the options for the HTTP GET request
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          'X-auth-token': userToken,
+        },
+        json: reqBody,
+      };
+      request.post(url, options, projectServiceCallback);
+      let result = {
+        success: true,
+      };
+      // Handle callback fucntion
+      function projectServiceCallback(err, data) {
+        if (err) {          
+          result.success = false;
+        } else {
+          let response = data.body;          
+          if (response.status === httpStatusCode['ok'].status) {
+            return resolve(result);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+/**
  * update the program  based on the given Id.
  * This functionality helps add survey and observation solutions to the components array of a program
  * This function will be called when creating child solution for survey and observation
@@ -400,4 +452,5 @@ module.exports = {
   pushSubmissionToTask: pushSubmissionToTask,
   pullSolutionsFromProgramComponents:pullSolutionsFromProgramComponents,
   createProgram: createProgram,
+  ProgramUpdateForLibrary:ProgramUpdateForLibrary
 };
