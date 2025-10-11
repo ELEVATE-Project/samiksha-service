@@ -2941,6 +2941,14 @@ module.exports = class SolutionsHelper {
           }
         }
 
+        console.log(userPrivateProgram,"line no 2944");
+        
+        if (!userPrivateProgram._id) {
+          return resolve({
+            status: httpStatusCode['bad_request'].status,
+            message: messageConstants.apiResponses.SOLUTION_PROGRAMS_NOT_CREATED,
+          });
+        }
         let solutionDataToBeUpdated = {
           programId: userPrivateProgram._id,
           programExternalId: userPrivateProgram.externalId,
