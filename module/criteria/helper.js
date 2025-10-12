@@ -535,29 +535,45 @@ module.exports = class criteriaHelper {
                 programId,
                 isExternalProgram
               );
+              // childProjectTemplates = {
+                                  //     "message": "Successfully created duplicate project templates",
+                                  //     "status": 200,
+                                  //     "result": {
+                                  //         "successfulTemplates": [
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747297137661",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c818",
+                                  //                 "externalId": "IDE-1747297137661-1760288927495",
+                                  //                 "isReusable": false
+                                  //             },
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747297530253",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c829",
+                                  //                 "externalId": "IDE-1747297530253-1760288927644",
+                                  //                 "isReusable": false
+                                  //             },
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747326100274",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c83a",
+                                  //                 "externalId": "IDE-1747326100274-1760288927770",
+                                  //                 "isReusable": false
+                                  //             }
+                                  //         ],
+                                  //         "failedTemplates": []
+                                  //     }
+                                  // }
+              const successful = childProjectTemplates?.result?.successfulTemplates || [];
+              const failed = childProjectTemplates?.result?.failedTemplates || [];
 
-              if(childProjectTemplates.success === false){
+              if (failed.length > 0) {
                 throw {
-                  message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
+                  message:messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
                   status: httpStatusCode.bad_request.status,
                 }
               }
-
-            // childProjectTemplates = {
-            //                "message": "Successfully created duplicate project templates",
-            //                "status": 200,
-            //                "result": [
-            //                    {
-            //                        "parentExternalId": "IDE-1747297137661",
-            //                        "_id": "68cbf6d442ed3665bb680149",
-            //                        "externalId": "IDE-1747297137661-1758197460270"
-            //                    }
-            //                ]
-            //          }
             
-              // create a lookup map for faster replacement
-              let templateMap = {};
-              childProjectTemplates.result.forEach(item => {
+              const templateMap = {};
+              successful.forEach(item => {
                 templateMap[item.parentExternalId] = {
                   _id: item._id,
                   externalId: item.externalId,
