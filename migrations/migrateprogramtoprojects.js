@@ -3,6 +3,67 @@
  * author : Saish R B
  * created-date : Oct 8 2025
  * Description : Migration script to update program references from program service to project service
+ * 
+ * # 🚀 Program to Project Migration Script
+
+## ⚙️ What It Does
+
+- Updates program references in:
+  - `solutions`
+  - `surveys` & `surveySubmissions`
+  - `observations` & `observationSubmissions`
+- Pushes submission updates (completed/incomplete) to Kafka.
+- Updates the `components` field in Project Service.
+- Marks the old Survey Service programs as **inactive**.
+- Logs migration results in a unique result file.
+
+---
+## ⚠️ Important Note
+
+The program update to Project Service currently uses the **older method** of updating `components` (simple array of solution IDs).  
+If your system has migrated to the new format that includes an `order` key in `components`, **this script will not work as-is** for that use case.
+
+If your Project Service now uses the **new component format with `order` keys**, you must **update the payload structure** inside the script accordingly.
+
+
+---
+
+
+
+## 📂 Affected Collections
+
+- `programs`
+- `solutions`
+- `surveys`
+- `surveySubmissions`
+- `observations`
+- `observationSubmissions`
+
+---
+
+## 🧾 Requirements
+
+- Node.js installed
+- MongoDB connection access
+- `.env` file placed in the **parent directory** (`../.env`) with the following keys:
+
+  ```env
+  MONGODB_URL=<your_mongo_connection_url>
+  DB=<your_db_name>
+  IMPROVEMENT_PROJECT_BASE_URL=<project_service_base_url>
+  INTERNAL_ACCESS_TOKEN=<internal_access_token>
+  PROJECT_SERVICE_NAME=project
+
+ * 
+ * 
+ * 
+ * ## 🧾 Command to run the script 
+ * 
+ * 
+ * node migrateprogramtoprojects.js --tenantId=shikshalokam --projectServiceProgramId=68d39a10bd71ddbafc8a5dc0 --surveyServiceProgramId=689d7f832829ddbc94193d98 --domain=https://dev.elevate-apis.shikshalokam.org --identifier=nevil@tunerlabs.com --password=PASSword###11 --origin=default-qa.tekdinext.com
+ * 
+ * 
+ * 
  */
 
 require('dotenv').config({ path: '../.env' });
@@ -17,14 +78,26 @@ const completedObservationsPushEndpoint =
   '/survey/v1/observationSubmissions/pushCompletedObservationSubmissionForReporting';
 const completedSurveyPushEndpoint =
   '/survey/v1/surveySubmissions/pushCompletedSurveySubmissionForReporting';
+const InCompletedObservationsPushEndpoint =
+  '/survey/v1/observationSubmissions/pushInCompleteObservationSubmissionForReporting';
+const InCompletedSurveyPushEndpoint =
+  '/survey/v1/surveySubmissions/pushInCompleteSurveySubmissionForReporting';
+const solutionIdsToBeUpdatedInComponentsInProjectService = [];
+const projectServiceSubDomain = 'project'
+const programInfoMap = {}
 const {
-  loginAndGetToken,
+  loginAsAdminAndGetToken,
   pushCompletedObservationSubmissionToKafka,
   pushCompletedSurveySubmissionToKafka,
-} = require('./generics/helper');
+  pushInCompletedObservationSubmissionToKafka,
+  pushInCompletedSurveySubmissionToKafka,
+  projectServiceProgramUpdate,
+  projectServiceProgramDetails
+} = require('./migrationUtils/helper');
 
 const fs = require('fs');
 const { randomUUID } = require('crypto');
+let orgId = null;
 
 async function modifyProgramsCollection() {
   console.log(`Starting migration for collection: programs`);
@@ -94,6 +167,7 @@ async function modifyProgramsCollection() {
             isExternalProgram:true,
             surveyInformation: {
               ...surveyInformation,
+              isExternalProgram:true,
               programId: new ObjectId(programDocument._id),
               programExternalId: programDocument.externalId,
             },
@@ -101,12 +175,24 @@ async function modifyProgramsCollection() {
         }
       );
 
-      pushCompletedSurveySubmissionToKafka(
-        submissionRecord._id.toString(),
-        token,
-        domain,
-        completedSurveyPushEndpoint
-      );
+      if (submissionRecord.status == 'completed') {
+        pushCompletedSurveySubmissionToKafka(
+          submissionRecord._id.toString(),
+          token,
+          domain,
+          completedSurveyPushEndpoint
+        );
+      } else if (submissionRecord.status == 'started'){
+        
+        pushInCompletedSurveySubmissionToKafka(
+          submissionRecord._id.toString(),
+          token,
+          domain,
+          InCompletedSurveyPushEndpoint
+        );
+      }
+
+
     }
 
     console.log('Survey and Survey Submission collections updated successfully...');
@@ -137,7 +223,7 @@ async function modifyProgramsCollection() {
       },
       {
         $set: {
-          programId: new ObjectId(programDocument._id),
+          programId: new ObjectId(programDocument._id), //check
           programExternalId: programDocument.externalId,
           isExternalProgram:true
         },
@@ -160,12 +246,13 @@ async function modifyProgramsCollection() {
         { _id: submissionRecord._id, tenantId: programDocument.tenantId, programId: new ObjectId(oldProgramId) },
         {
           $set: {
-            programId: new ObjectId(programDocument._id),
+            programId: new ObjectId(programDocument._id),   //check
             programExternalId: programDocument.externalId,
             programInformation: programInformation,
             isExternalProgram:true,
             observationInformation: {
               ...observationInfo,
+              isExternalProgram:true,
               programId: new ObjectId(programDocument._id),
               programExternalId: programDocument.externalId,
             },
@@ -173,12 +260,24 @@ async function modifyProgramsCollection() {
         }
       );
 
-      pushCompletedObservationSubmissionToKafka(
-        submissionRecord._id.toString(),
-        token,
-        domain,
-        completedObservationsPushEndpoint
-      );
+      if (submissionRecord.status == 'completed') {
+        pushCompletedObservationSubmissionToKafka(
+          submissionRecord._id.toString(),
+          token,
+          domain,
+          completedObservationsPushEndpoint
+        );
+      } else if (submissionRecord.status == 'started') {
+        
+        pushInCompletedObservationSubmissionToKafka(
+          submissionRecord._id.toString(),
+          token,
+          domain,
+          InCompletedObservationsPushEndpoint
+        );
+      }
+
+
     }
 
     console.log('Observation and Observation Submission collections updated successfully...');
@@ -206,7 +305,9 @@ async function modifyProgramsCollection() {
     process.exit(1);
   }
 
-  const token = await loginAndGetToken(domain, identifier, password, origin);
+  const userInfo = await loginAsAdminAndGetToken(domain, identifier, password, origin);
+
+  const token = userInfo?.access_token ?? null;
 
   if (!token) {
     console.error('❌ Failed to authenticate. Please check your credentials.');
@@ -228,12 +329,23 @@ async function modifyProgramsCollection() {
     await processMigrationFor(idPairs[i][0], idPairs[i][1], tenantId);
   }
 
+  await updateProjectServiceComponents(solutionIdsToBeUpdatedInComponentsInProjectService)
+
   async function processMigrationFor(projectProgramId, surveyProgramId, tenantId) {
     console.log(`\n🔄 Starting migration for Old ID: ${projectProgramId} to New ID: ${surveyProgramId}`);
 
-    let programDocument = await programDetails(undefined, projectProgramId, undefined, { tenantId });
+    //let programDocument = await programDetails(undefined, projectProgramId, undefined, { tenantId });
+    let programDocument = await projectServiceProgramDetails({
+      userToken:undefined,
+      programId:projectProgramId,
+      payload:{
+        tenantData:{tenantId}
+      },
+      PROJECT_SERVICE_NAME:projectServiceSubDomain,
+      INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN
+    });
 
-    if (!programDocument) {
+    if (!programDocument || !programDocument?.result) {
       console.error('❌ Program not found with given id');
       migrationResults.push({
         oldProgramId: projectProgramId,
@@ -243,7 +355,9 @@ async function modifyProgramsCollection() {
       return;
     }
 
-    programDocument = programDocument.status == 200 ? programDocument.result : null;
+    programDocument = programDocument.result;
+
+    orgId = programDocument.orgId;
 
     const solutionRecords = await db
       .collection('solutions')
@@ -260,6 +374,8 @@ async function modifyProgramsCollection() {
       return;
     }
 
+    programInfoMap[programDocument._id] = programDocument
+    let programSolutionMap = {};
     for (let index = 0; index < solutionRecords.length; index++) {
       try {
         console.log('modifying solution id ', solutionRecords[index]._id);
@@ -299,6 +415,13 @@ async function modifyProgramsCollection() {
           solutionId: solutionRecords[index]._id.toString(),
           status: 'success',
         });
+
+        // Initialize the array if it doesn't exist
+        if (!Array.isArray(programSolutionMap[projectProgramId])) {
+          programSolutionMap[projectProgramId] = [];
+        }
+
+        programSolutionMap[projectProgramId].push(solutionRecords[index]._id.toString());
       } catch (err) {
         migrationResults.push({
           oldProgramId: projectProgramId,
@@ -308,8 +431,9 @@ async function modifyProgramsCollection() {
           error: err.message,
         });
       }
+    }
 
-      //now we need to update program from survey service to inactive
+    //now we need to update program from survey service to inactive
       await db.collection('programs').updateOne(
         { _id: new ObjectId(surveyProgramId) },
         {
@@ -319,6 +443,58 @@ async function modifyProgramsCollection() {
           },
         }
       );
+
+      solutionIdsToBeUpdatedInComponentsInProjectService.push(programSolutionMap);
+  }
+
+  async function updateProjectServiceComponents(solutionIdsToBeUpdatedInComponentsInProjectService) {
+    for (let index = 0; index < solutionIdsToBeUpdatedInComponentsInProjectService.length; index++) {
+      let mapInstance = solutionIdsToBeUpdatedInComponentsInProjectService?.[index];
+
+      if (mapInstance && typeof mapInstance === 'object' && !Array.isArray(mapInstance)) {
+        let programId = Object.keys(mapInstance)[0];
+        let solutionIds = mapInstance?.[programId] ?? [];
+
+        solutionIds = solutionIds.map((solId)=>{
+          return solId.toString()
+        })
+
+        let programInfo = programInfoMap[programId];
+        
+        let currentComponents = programInfo.components;
+        
+        currentComponents = currentComponents.map((component)=>{
+          return component.toString()
+        })
+
+        let newComponent = [
+          ...currentComponents, // Keep all items from currentComponents
+          ...solutionIds.filter((solId) => !currentComponents.includes(solId)), // Add only the ones not in currentComponents
+        ];
+
+        let result = await projectServiceProgramUpdate({
+          projectServiceUrl,
+          userToken:token,
+          programId,
+          payload:{
+            components:newComponent
+          },
+          tenantInfo:{
+            tenantId,
+            orgId
+          },
+          INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN,
+          PROJECT_SERVICE_NAME:projectServiceSubDomain
+        });
+
+        if(result.status == 200){
+          console.log('program components updated successfully in project service...')
+        }
+
+        // You can now safely use programId and solutionIds
+      } else {
+        console.warn('Invalid map instance at index:', index);
+      }
     }
   }
 
@@ -333,42 +509,3 @@ modifyProgramsCollection().catch((error) => {
   process.exit(1);
 });
 
-const programDetails = function (userToken, programId, userDetails, payload = {}) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${EXTERNAL_PROGRAM_READ}/${programId}`;
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,
-        },
-        json: { tenantData: payload },
-      };
-
-      if (userToken) {
-        options.headers['X-auth-token'] = userToken;
-      }
-
-      request.get(url, options, projectServiceCallback);
-
-      let result = { success: true };
-
-      function projectServiceCallback(err, data) {
-        if (err) {
-          result.success = false;
-        } else {
-          let response = data.body;
-          if (typeof response !== 'object') response = JSON.parse(response);
-          result = response;
-          if (result.status === 200) return resolve(result);
-          result.success = false;
-        }
-        return resolve(result);
-      }
-
-      setTimeout(() => resolve({ success: false }), 5000);
-    } catch (error) {
-      return reject(error);
-    }
-  });
-};
