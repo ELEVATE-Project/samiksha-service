@@ -1,5 +1,5 @@
 /**
- * name : migrateprogramtoprojects.js
+ * name : migrateResourcesBetweenPrograms.js
  * author : Saish R B
  * created-date : Oct 8 2025
  * Description : Migration script to update program references from program service to project service
@@ -60,13 +60,23 @@ If your Project Service now uses the **new component format with `order` keys**,
  * ## 🧾 Command to run the script 
  * 
  * 
- * node migrateprogramtoprojects.js --tenantId=shikshalokam --projectServiceProgramId=68d39a10bd71ddbafc8a5dc0 --surveyServiceProgramId=689d7f832829ddbc94193d98 --domain=https://dev.elevate-apis.shikshalokam.org --identifier=nevil@tunerlabs.com --password=PASSword###11 --origin=default-qa.tekdinext.com
+ * node migrateResourcesBetweenPrograms.js --tenantId=shikshalokam --projectServiceProgramId=68d39a10bd71ddbafc8a5dc0 --surveyServiceProgramId=689d7f832829ddbc94193d98 --domain=https://dev.elevate-apis.shikshalokam.org --identifier=nevil@tunerlabs.com --password=PASSword###11 --origin=default-qa.tekdinext.com
  * 
  * 
+ * | Argument                    | Required | Description                                                                                                                            |
+| --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `--tenantId`                | ✅        | Tenant ID for which the both the  migration is being executed.                                                                                   |
+| `--projectServiceProgramId` | ✅        | The **destination program ID** in the **Project Service** where survey solutions from the Survey Service program will be moved **to**. |
+| `--surveyServiceProgramId`  | ✅        | The **source program ID** in the **Survey Service** from which the resources will be moved **from**.                                   |
+| `--domain`                  | ✅        | Base URL of the environment where the script is running. For example: `https://dev.elevate-apis.shikshalokam.org`                      |
+| `--identifier`              | ✅        | Admin user’s identifier (email or username) used for authentication — must have admin-level permissions.                               |
+| `--password`                | ✅        | Password for the admin identifier.                                                                                                     |
+| `--origin`                  | ✅        | The origin header value used during the login API call (example: `default-qa.tekdinext.com`).                                          |
+
  * 
  */
 
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config({ path: '../../.env' });
 const { MongoClient, ObjectId } = require('mongodb');
 const MONGODB_URL = process.env.MONGODB_URL;
 const DB = process.env.DB;
@@ -93,7 +103,7 @@ const {
   pushInCompletedSurveySubmissionToKafka,
   projectServiceProgramUpdate,
   projectServiceProgramDetails
-} = require('./migrationUtils/helper');
+} = require('../migrationUtils/helper');
 
 const fs = require('fs');
 const { randomUUID } = require('crypto');
@@ -138,7 +148,7 @@ async function modifyProgramsCollection() {
       },
       {
         $set: {
-            programId: new ObjectId(programDocument._id),
+            programId: new ObjectId(programDocument._id),      //check
             programExternalId: programDocument.externalId,
             isExternalProgram:true
         },
@@ -348,8 +358,8 @@ async function modifyProgramsCollection() {
     if (!programDocument || !programDocument?.result) {
       console.error('❌ Program not found with given id');
       migrationResults.push({
-        oldProgramId: projectProgramId,
-        newProgramId: surveyProgramId,
+        oldProgramId:  surveyProgramId,
+        newProgramId: projectProgramId,
         status: 'program_not_found',
       });
       return;
@@ -367,8 +377,8 @@ async function modifyProgramsCollection() {
     if (!solutionRecords.length) {
       console.log(`No solutions found for programId: ${surveyProgramId}. Skipping...`);
       migrationResults.push({
-        oldProgramId: projectProgramId,
-        newProgramId: surveyProgramId,
+        oldProgramId:  surveyProgramId,
+        newProgramId: projectProgramId,
         status: 'no_solutions_found',
       });
       return;
@@ -410,8 +420,8 @@ async function modifyProgramsCollection() {
         }
 
         migrationResults.push({
-          oldProgramId: projectProgramId,
-          newProgramId: surveyProgramId,
+          oldProgramId:  surveyProgramId,
+          newProgramId: projectProgramId,
           solutionId: solutionRecords[index]._id.toString(),
           status: 'success',
         });
@@ -424,8 +434,8 @@ async function modifyProgramsCollection() {
         programSolutionMap[projectProgramId].push(solutionRecords[index]._id.toString());
       } catch (err) {
         migrationResults.push({
-          oldProgramId: projectProgramId,
-          newProgramId: surveyProgramId,
+          oldProgramId:  surveyProgramId,
+          newProgramId: projectProgramId,
           solutionId: solutionRecords[index]._id.toString(),
           status: 'failed',
           error: err.message,
