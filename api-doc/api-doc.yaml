@@ -1,12 +1,28 @@
 openapi: 3.0.0
 info:
   title: Survey Service
-  version: 1.0.0
+  version: 3.4.0
   description: >
     This API collection serves the Survey Service, covering both Observations
     and Surveys. It provides various endpoints for managing and interacting with
     surveys and observations, along with comprehensive report generation
     functionalities.
+
+
+    Surveys:
+
+    - Surveys serve as a means to gather feedback and opinion from respondents.
+    These surveys can be used to evaluate the effectiveness of various aspects
+    like services, training needs, and feedback. Typically, surveys are
+    time-bound and accessible only once for respondents to complete. Using this
+    capability, leaders and professionals across different sectors can easily
+    participate in surveys customized to their specific roles and
+    responsibilities.
+
+
+    - With the ability to have a contextual set of questionnaires, surveys
+    become relevant for all sectors in the data collection process. It will help
+    gather data with speed and at scale.
 
 
     Observations:
@@ -118,7 +134,7 @@ paths:
     post:
       tags:
         - Criteria
-      summary: criteria is uploaded via use of csv file
+      summary: Criteria Is Uploaded via Use of Csv File
       requestBody:
         content:
           multipart/form-data:
@@ -182,7 +198,7 @@ paths:
     post:
       tags:
         - Frameworks
-      summary: API to create framework
+      summary: API To Create Framework
       requestBody:
         content:
           multipart/form-data:
@@ -240,7 +256,7 @@ paths:
     post:
       tags:
         - Observation
-      summary: API to create a solution based on a framework upload
+      summary: Api to Create a Solution Based on a Framework Upload
       description: >-
         This API is used to create solutions based on a framework upload. Users
         must provide a frameworkID (UUID) and specify the entityType as defined
@@ -310,7 +326,7 @@ paths:
     post:
       tags:
         - Questions
-      summary: API to upload questions to survey/Observations
+      summary: API To Upload Questions To Survey/Observations
       description: >-
         The Bulk Create API is used to create multiple questions in an
         observation. Users can provide a batch of questions in the request,
@@ -382,7 +398,7 @@ paths:
     post:
       tags:
         - Observation
-      summary: Returns details of the observation including submissionId
+      summary: Returns Details Of The Observation Including SubmissionId
       description: >+
         The Assessment API retrieves information about a specific observation
         using the observation_id provided in the request. It returns details
@@ -878,7 +894,7 @@ paths:
     post:
       tags:
         - Observation
-      summary: API to add entities to a specific observation
+      summary: Api to Add Entities to a Specific Observation
       description: >-
         This API retrieves a list of entities associated with a specific
         observation. You can pass the observation_id as a params parameter or
@@ -943,7 +959,7 @@ paths:
     get:
       tags:
         - observationSubmissions
-      summary: Lists Observation submission
+      summary: Lists Observation Submission
       parameters:
         - name: x-auth-token
           in: header
@@ -1130,7 +1146,7 @@ paths:
     post:
       tags:
         - observationSubmissions
-      summary: API to submit/update observation Submissions
+      summary: Api to Submit/Update Observation Submissions
       requestBody:
         content:
           application/json:
@@ -1423,7 +1439,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: ' returns a survey shareable link'
+      summary: Returns a Survey Shareable Link
       requestBody:
         content:
           '*/*':
@@ -1490,7 +1506,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: ' Create survey solution template'
+      summary: Create Survey Solution Template
       description: >-
         This API is used to create a solution template for a survey. The
         solution template defines the structure, questions, and configurations
@@ -1562,7 +1578,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: 'Maps survey solution to a program '
+      summary: Maps Survey Solution To A Program '
       requestBody:
         content:
           '*/*':
@@ -1661,7 +1677,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: User assigned list of surveys
+      summary: User Assigned List of Surveys
       requestBody:
         content:
           '*/*':
@@ -1744,7 +1760,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: 'creates new solution '
+      summary: Creates New Solution
       requestBody:
         content:
           '*/*':
@@ -1791,10 +1807,26 @@ paths:
                   isReusable: false
                   isAPrivateProgram: false
                   scope:
-                    entityType: state
-                    entities:
-                      - 5f33c3d85f637784791cd830
-                    roles: HM
+                    organizations:
+                      - Tan90
+                    professional_subroles:
+                      - 6825ad1f97b5680013e844fc
+                      - 6825ad1f97b5680013e8450c
+                    professional_role:
+                      - 6825950197b5680013e6a17c
+                    state:
+                      - 6852c86c7248c20014b38a4d
+                    district:
+                      - 6852c8ae7248c20014b38a50
+                      - 6852c8ae7248c20014b38a57
+                    block:
+                      - ALL
+                    cluster:
+                      - ALL
+                    school:
+                      - ALL
+              example1:
+                value: ''
       parameters:
         - name: X-auth-token
           in: header
@@ -1869,7 +1901,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: creates a child solution from an existing solution
+      summary: Creates a Child Solution from an Existing Solution
       requestBody:
         content:
           application/json:
@@ -1939,7 +1971,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: Lists targeted solution based on user profile
+      summary: Lists Targeted Solution Based on User Profile
       requestBody:
         content:
           application/json:
@@ -2062,7 +2094,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: Verifies Observation Link and returns details
+      summary: Verifies Observation Link And Returns Details
       requestBody:
         content:
           application/json:
@@ -2159,7 +2191,7 @@ paths:
     get:
       tags:
         - Solutions
-      summary: Generates shareable link based on solutionId
+      summary: Generates Shareable Link Based On SolutionId
       parameters:
         - name: X-auth-token
           in: header
@@ -2216,7 +2248,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: update solution api
+      summary: Update Solution Api
       requestBody:
         content:
           '*/*':
@@ -2309,7 +2341,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: Returns details of the solution
+      summary: Returns Details Of The Solution
       requestBody:
         content:
           '*/*':
@@ -2455,7 +2487,7 @@ paths:
     get:
       tags:
         - Solutions
-      summary: solution listing api
+      summary: Solution Listing Api
       parameters:
         - name: X-auth-token
           in: header
@@ -3290,7 +3322,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: Adds entities to the scope of a solution
+      summary: Adds Entities To The Scope Of A Solution
       requestBody:
         content:
           '*/*':
@@ -3402,74 +3434,11 @@ paths:
         solutionId and a list of entity IDs in the request body, the entities
         are added to the solution’s scope for assessment or observation
         purposes.
-  /v1/solutions/addRolesInScope/:solutionId:
-    post:
-      tags:
-        - Solutions
-      summary: add roles to the scope of a solution
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n    \"roles\": [\n        \"DEO\",\n        \"HM\",\n       
-                \"TEACHER\"\n    ]\n}"
-            examples:
-              sampleBodyData:
-                value:
-                  roles:
-                    - DEO
-                    - HM
-                    - TEACHER
-      parameters:
-        - name: X-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{token}}'
-          description: >-
-            Every request to the API requires an x-auth-token in the header for
-            authentication. This token is generated when a user logs in and must
-            be included in each subsequent request to verify the user’s session
-            and permissions.
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Successfully added roles in solution scope
-                    status: 200
-        '400':
-          description: Failure response
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  status:
-                    type: number
-              examples:
-                FailureResponse:
-                  value:
-                    status: 500
-                    message: Oops! Something Went Wrong.
-      description: >-
-        This API allows adding roles to the scope of a solution. It updates the
-        solution with additional roles that will be able to interact with or be
-        evaluated by the solution. The solutionId and role details need to be
-        provided in the request body.
   /v1/solutions/removeEntitiesInScope/:solutionId:
     post:
       tags:
         - Solutions
-      summary: removes entities from the scope of a solution
+      summary: Removes Entities From the Scope of a Solution
       requestBody:
         content:
           '*/*':
@@ -3541,65 +3510,11 @@ paths:
         This API removes entities from the scope of a solution. By passing the
         solutionId and the entity IDs in the request body, the specified
         entities are removed from the solution’s scope.
-  /v1/solutions/removeRolesInScope/:solutionId:
-    post:
-      tags:
-        - Solutions
-      summary: removes role from the scope of a solution
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: '"{\n    \"roles\" : [\"DEO\"]\n}\n\n"'
-            examples:
-              sampleBodyData:
-                value:
-                  roles:
-                    - DEO
-      parameters:
-        - name: X-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{token}}'
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Successfully removed roles from solution scope
-                    status: 200
-        '400':
-          description: Failure response
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  status:
-                    type: number
-              examples:
-                FailureResponse:
-                  value:
-                    status: 500
-                    message: Oops! Something Went Wrong.
-      description: >+
-        This API allows the removal of roles from the scope of a solution. By
-        passing the solutionId and the role details in the request body, the
-        specified roles are removed from interacting with the solution.
-
   /v1/programs/join/:programId:
     post:
       tags:
         - Program
-      summary: makes the user join the program
+      summary: Makes the User Join the Program
       requestBody:
         content:
           '*/*':
@@ -3667,7 +3582,7 @@ paths:
     post:
       tags:
         - Program
-      summary: api to create a new program
+      summary: Api to Create a New Program
       requestBody:
         content:
           '*/*':
@@ -3702,16 +3617,24 @@ paths:
                   imageCompression:
                     quality: 10
                   scope:
-                    entityType: state
-                    entities:
-                      - 5f33c3d85f637784791cd830
-                      - 5f33c3d85f637784791cd831
-                    roles:
-                      - HM
-                      - DCT
-                      - CRP
-                      - DEO
-                      - BEO
+                    organizations:
+                      - Tan90
+                    professional_subroles:
+                      - 6825ad1f97b5680013e844fc
+                      - 6825ad1f97b5680013e8450c
+                    professional_role:
+                      - 6825950197b5680013e6a17c
+                    state:
+                      - 6852c86c7248c20014b38a4d
+                    district:
+                      - 6852c8ae7248c20014b38a50
+                      - 6852c8ae7248c20014b38a57
+                    block:
+                      - ALL
+                    cluster:
+                      - ALL
+                    school:
+                      - ALL
       parameters:
         - name: X-auth-token
           in: header
@@ -3780,7 +3703,7 @@ paths:
     get:
       tags:
         - Program
-      summary: lists all available programs
+      summary: Lists All Available Programs
       parameters:
         - name: X-auth--token
           in: header
@@ -3905,7 +3828,7 @@ paths:
     post:
       tags:
         - Program
-      summary: updates an existing program
+      summary: Updates an Existing Program
       requestBody:
         content:
           '*/*':
@@ -3924,16 +3847,24 @@ paths:
                 value:
                   endDate: '2025-05-15 14:00:00'
                   scope:
-                    entityType: state
-                    entities:
-                      - 5f33c3d85f637784791cd830
-                      - 5f33c3d85f637784791cd831
-                    roles:
-                      - HM
-                      - DCT
-                      - CRP
-                      - DEO
-                      - BEO
+                    organizations:
+                      - Tan90
+                    professional_subroles:
+                      - 6825ad1f97b5680013e844fc
+                      - 6825ad1f97b5680013e8450c
+                    professional_role:
+                      - 6825950197b5680013e6a17c
+                    state:
+                      - 6852c86c7248c20014b38a4d
+                    district:
+                      - 6852c8ae7248c20014b38a50
+                      - 6852c8ae7248c20014b38a57
+                    block:
+                      - ALL
+                    cluster:
+                      - ALL
+                    school:
+                      - ALL
       parameters:
         - name: X-auth-token
           in: header
@@ -3986,7 +3917,7 @@ paths:
     get:
       tags:
         - Program
-      summary: List detail of a program
+      summary: List Detail of a Program
       parameters:
         - name: X-auth-token
           in: header
@@ -4051,17 +3982,25 @@ paths:
                       updatedAt: '2024-09-24T06:39:05.857Z'
                       createdAt: '2024-03-12T12:42:52.946Z'
                       __v: 0
-                      scope:
-                        entityType: state
-                        entities:
-                          - 5f33c3d85f637784791cd830
-                          - 5f33c3d85f637784791cd831
-                        roles:
-                          - HM
-                          - DCT
-                          - CRP
-                          - DEO
-                          - BEO
+                  scope:
+                    organizations:
+                      - Tan90
+                    professional_subroles:
+                      - 6825ad1f97b5680013e844fc
+                      - 6825ad1f97b5680013e8450c
+                    professional_role:
+                      - 6825950197b5680013e6a17c
+                    state:
+                      - 6852c86c7248c20014b38a4d
+                    district:
+                      - 6852c8ae7248c20014b38a50
+                      - 6852c8ae7248c20014b38a57
+                    block:
+                      - ALL
+                    cluster:
+                      - ALL
+                    school:
+                      - ALL
         '400':
           description: Failure response
           headers: {}
@@ -4087,7 +4026,7 @@ paths:
     post:
       tags:
         - Program
-      summary: Adds entities to the scope of a program
+      summary: Adds Entities to the Scope of a Program
       requestBody:
         content:
           '*/*':
@@ -4197,115 +4136,11 @@ paths:
         This API adds entities to the scope of a specific program. The programId
         is passed as a path parameter, and the entities are passed in the
         request body.
-  /v1/programs/addRolesInScope/:programId:
-    post:
-      tags:
-        - Program
-      summary: addRolesInScope
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: '"{\n    \"roles\":[\"HM\"] \n    \n}"'
-            examples:
-              sampleBodyData:
-                value:
-                  roles:
-                    - HM
-      parameters:
-        - name: X-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{token}}'
-          description: >-
-            Every request to the API requires an x-auth-token in the header for
-            authentication. This token is generated when a user logs in and must
-            be included in each subsequent request to verify the user’s session
-            and permissions.
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Successfully added roles in program scope
-                    status: 200
-        '400':
-          description: ''
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: string
-              examples:
-                FailureResponse:
-                  value:
-                    status: 400
-                    message:
-                      - location: body
-                        param: roles
-                        msg: required program roles to be added
-      description: >-
-        This API adds roles to the scope of a specific program. The programId is
-        passed as a path parameter, and the roles are provided in the request
-        body.
-  /v1/programs/removeRolesInScope/:programId:
-    post:
-      tags:
-        - Program
-      summary: API to remove roles in the scope of a program
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: '"{\n    \"roles\": [\n        \"BEO\"\n    ]\n}"'
-            examples:
-              sampleBodyData:
-                value:
-                  roles:
-                    - BEO
-      parameters:
-        - name: X-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{token}}'
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              examples:
-                SuccessResponse:
-                  value:
-                    message: Successfully removed roles in program scope
-                    status: 200
-        '400':
-          description: ''
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: string
-              examples:
-                FailureResponse:
-                  value:
-                    status: 400
-                    message:
-                      - location: body
-                        param: roles
-                        msg: required program roles to be added
-      description: ' This API removes roles from the scope of a specific program. The programId is passed as a path parameter, and the roles to be removed are provided in the request body.'
   /v1/programs/removeEntitiesInScope/:programId:
     post:
       tags:
         - Program
-      summary: removes entities from the scope of specific program
+      summary: Removes Entities from the Scope of Specific Program
       requestBody:
         content:
           '*/*':
@@ -4376,7 +4211,7 @@ paths:
     post:
       tags:
         - Admin
-      summary: API to creates index
+      summary: Api to Creates Index
       requestBody:
         content:
           application/json:
@@ -4427,7 +4262,7 @@ paths:
     post:
       tags:
         - surveySubmissions
-      summary: updates surveySubmission record
+      summary: Updates Surveysubmission Record
       requestBody:
         content:
           '*/*':
@@ -4564,7 +4399,7 @@ paths:
     get:
       tags:
         - surveySubmissions
-      summary: Returns current status of the surveySubmission record
+      summary: Returns Current Status of the Surveysubmission Record
       parameters:
         - name: X-auth-token
           in: header
@@ -4633,7 +4468,7 @@ paths:
     post:
       tags:
         - surveySubmissions
-      summary: Fetches list of survey submissions done by user
+      summary: Fetches List of Survey Submissions Done by User
       parameters:
         - name: X-auth-token
           in: header
@@ -4769,7 +4604,7 @@ paths:
     get:
       tags:
         - surveySubmissions
-      summary: checks if survey submission is allowed for the passed id
+      summary: Checks If Survey Submission Is Allowed for the Passed Id
       parameters:
         - name: x-auth-token
           in: header
@@ -4860,7 +4695,7 @@ paths:
     post:
       tags:
         - Report
-      summary: Returns submission report for survey
+      summary: Returns Submission Report for Survey
       description: >-
         This API generates a detailed survey submission report based on the
         submissionId passed in the query parameters. It provides insights and
@@ -4991,7 +4826,7 @@ paths:
     post:
       tags:
         - Report
-      summary: Api used to generate observation report
+      summary: Api Used to Generate Observation Report
       description: ' This API generates an observation report based on the query parameters provided. The report can either include a PDF or be without a PDF, and it can be generated as an instance report (specific to a single instance of observation) or an entity report (across multiple entities).'
       requestBody:
         content:
@@ -5087,7 +4922,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: Creates a child solution from an existing solution
+      summary: Creates a Child Solution from an Existing Solution
       requestBody:
         content:
           '*/*':
@@ -5183,7 +5018,7 @@ paths:
     post:
       tags:
         - Survey
-      summary: Returns details of a specific survey using the surveyId.
+      summary: Returns Details of a Specific Survey Using the Surveyid.
       requestBody:
         content: {}
       parameters:
@@ -5584,7 +5419,7 @@ paths:
     post:
       tags:
         - Solutions
-      summary: Details of a specific solution using the solution's id
+      summary: Details of a Specific Solution Using the Solution's Id
       requestBody:
         content:
           '*/*':
@@ -5604,14 +5439,13 @@ paths:
             examples:
               sampleBodyData:
                 value:
-                  entityType: state
-                  entityTypeId: 5f32d8228e0dc8312404056e
-                  entities:
-                    - 5f33c3d85f637784791cd830
-                    - 5fd098e2e049735a86b748ac
-                    - 5fd1b52ab53a6416aaeefc83
-                    - 5fd1b52ab53a6416aaeefb20
-                  role: BEO,HM
+                  state: 6852c86c7248c20014b38a4d
+                  district: 6852c8ae7248c20014b38a57
+                  block: 6852c8de7248c20014b38a9d
+                  cluster: 6852c9027248c20014b38c34
+                  school: 6852c9237248c20014b39fa0
+                  professional_role: 6825950197b5680013e6a17c
+                  professional_subroles: 6825ad1f97b5680013e84519
       parameters:
         - name: X-auth-token
           in: header
@@ -6130,7 +5964,7 @@ paths:
     post:
       tags:
         - Observation
-      summary: API used to add entities to a specific observation
+      summary: Api Used to Add Entities to a Specific Observation
       description: >-
         This API is used to add multiple entities to a specific observation. The
         observation_id is passed as a path parameter, and the entities are sent
@@ -6198,7 +6032,7 @@ paths:
     post:
       tags:
         - Files
-      summary: Generates a pre-signed url for file upload
+      summary: Generates a Pre-signed Url for File Upload
       description: >-
         This API provides a pre-signed URL that allows users to upload files
         directly to storage. Once the file is uploaded, the API also returns a
@@ -6289,7 +6123,7 @@ paths:
                         msg: required reference type
   /V1/frameworks/uploadThemes/:frameworkExternalID:
     post:
-      summary: ' Upload Themes For Frameworks'
+      summary: Upload Themes for Frameworks
       description: >-
         This API uploads themes for a specific framework using the
         frameworkExternalID provided in the path parameters. A CSV file
@@ -6374,7 +6208,7 @@ paths:
                     message: Oops! Something Went Wrong.
   /v1/files/getDownloadableUrl:
     post:
-      summary: Returns downloadable URL for the files
+      summary: Returns Downloadable Url for the Files
       description: >-
         This API is used to retrieve a downloadable URL for a file that has
         already been uploaded to the cloud. By providing the necessary file
@@ -6471,8 +6305,7 @@ paths:
     post:
       tags:
         - userExtension
-      summary: >-
-        Bulk user role management API
+      summary: Bulk User Role Management Api
       description: >-
         Bulk user role management API that processes CSV data to create or
         update user-program role assignments with support for multiple
@@ -6739,7 +6572,9 @@ paths:
       parameters:
         - in: path
           name: type
-          description: 'Need to pass Resource Type that we need to delete Ex: solution or program'
+          description: >-
+            Need to pass Resource Type that we need to delete Ex: solution or
+            program
           schema: &ref_1
             type: string
         - in: header
