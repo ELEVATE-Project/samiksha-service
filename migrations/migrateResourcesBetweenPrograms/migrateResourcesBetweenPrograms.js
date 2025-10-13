@@ -65,7 +65,7 @@ If your Project Service now uses the **new component format with `order` keys**,
  * 
  * | Argument                    | Required | Description                                                                                                                            |
 | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `--tenantId`                | ✅        | Tenant ID for which the both the  migration is being executed.                                                                                   |
+| `--tenantId`                | ✅        | Tenant ID for which the both the programId belongs to between which migration is being executed.                                                                                   |
 | `--projectServiceProgramId` | ✅        | The **destination program ID** in the **Project Service** where survey solutions from the Survey Service program will be moved **to**. |
 | `--surveyServiceProgramId`  | ✅        | The **source program ID** in the **Survey Service** from which the resources will be moved **from**.                                   |
 | `--domain`                  | ✅        | Base URL of the environment where the script is running. For example: `https://dev.elevate-apis.shikshalokam.org`                      |
