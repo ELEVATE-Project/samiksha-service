@@ -21,17 +21,17 @@
   "author": "Akash Shah <akash@tunerlabs.com>",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.17.12",
-    "@google-cloud/storage": "^2.5.0",
-    "aws-sdk": "^2.1445.0",
-    "body-parser": "^1.20.2",
-    "bunyan": "^1.8.15",
-    "cache-manager": "^2.11.1",
-    "chartjs-node-canvas": "^3.1.0",
-    "cli-table": "^0.3.11",
-    "client-cloud-services": "^8.0.0",
-    "commander": "^2.20.3",
-    "cookie-parser": "^1.4.6",
+    "@elastic/elasticsearch": "7.17.14",
+    "@google-cloud/storage": "2.5.0",
+    "aws-sdk": "2.1692.0",
+    "body-parser": "1.20.3",
+    "bunyan": "1.8.15",
+    "cache-manager": "2.11.1",
+    "chartjs-node-canvas": "3.2.0",
+    "cli-table": "0.3.11",
+    "client-cloud-services": "8.0.0",
+    "commander": "2.20.3",
+    "cookie-parser": "1.4.7",
     "cors": "^2.8.5",
     "csvtojson": "2.0.10",
     "dotenv": "6.2.0",
@@ -74,9 +74,9 @@
     "yaml-js": "0.1.5"
   },
   "devDependencies": {
-    "grunt-apidoc": "^0.11.0",
-    "gulp": "^4.0.0",
-    "gulp-apidoc": "^0.2.8"
+    "grunt-apidoc": "0.11.0",
+    "gulp": "4.0.2",
+    "gulp-apidoc": "0.2.8"
   },
   "_moduleAliases": {
     "@root": ".",
