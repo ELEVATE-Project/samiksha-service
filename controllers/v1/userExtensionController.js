@@ -324,9 +324,7 @@ module.exports = class UserExtension extends Abstract {
 			}
 		]
 	  }
-	* @apiHeader {String} internal-access-token internal access token  
-	* @apiHeader {String} X-auth-token Authenticity token
-	* @apiHeader {String} admin-auth-token admin authentication token
+	* @apiHeader {String} internal-access-token internal access token
 	* @apiHeader {String} tenantId tenant Id
 	* @apiHeader {String} orgId organization id
 	* @apiSampleRequest /project/v1/userExtension/mapUsersToPrograms

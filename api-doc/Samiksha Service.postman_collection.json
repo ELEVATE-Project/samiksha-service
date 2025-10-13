@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "643a6651-4ed0-413c-984a-c52013c13677",
-		"name": "Samiksha Service Copy",
+		"name": "Samiksha Service",
 		"description": "This API collection serves the Survey Service, covering both Observations and Surveys. It provides various endpoints for managing and interacting with surveys and observations, along with comprehensive report generation functionalities.\n\nObservations:\nObservations with Rubric: Allows assessment based on predefined rubrics.\nObservations without Rubric: Flexible observations without structured rubrics.\nReports:\nSurvey Reports: Generate detailed reports based on survey submissions.\nObservation Reports: Includes:\nEntity Reports: Focuses on specific entities being observed.\nInstance Reports: Provides detailed information on specific instances of observation.\nPDF Reports: Available for both entity and instance reports.\nThis API collection supports essential workflows such as criteria upload, observation submission, report generation, and program management. It simplifies the process of collecting, managing, and analyzing data for both surveys and observations.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "28589818"

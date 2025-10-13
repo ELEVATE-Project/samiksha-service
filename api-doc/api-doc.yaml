@@ -48,7 +48,7 @@ info:
 servers:
   - url: http://{{SamikshaUrl}}
 tags:
-  - name: userExtension
+  - name: Observation
     description: ''
     externalDocs:
       description: ''
@@ -109,6 +109,11 @@ tags:
       description: ''
       url: ''
   - name: Frameworks
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
+  - name: userExtension
     description: ''
     externalDocs:
       description: ''
@@ -239,7 +244,7 @@ paths:
   /v1/observations/importFromFramework:
     post:
       tags:
-        - userExtension
+        - Observation
       summary: API to create a solution based on a framework upload
       description: >-
         This API is used to create solutions based on a framework upload. Users
@@ -381,7 +386,7 @@ paths:
   /v1/observations/assessment/:observationId:
     post:
       tags:
-        - userExtension
+        - Observation
       summary: Returns details of the observation including submissionId
       description: >+
         The Assessment API retrieves information about a specific observation
@@ -877,7 +882,7 @@ paths:
   /v1/observations/entities:
     post:
       tags:
-        - userExtension
+        - Observation
       summary: API to add entities to a specific observation
       description: >-
         This API retrieves a list of entities associated with a specific
@@ -6129,7 +6134,7 @@ paths:
   /v1/observations/updateEntities/:observation_id:
     post:
       tags:
-        - userExtension
+        - Observation
       summary: API used to add entities to a specific observation
       description: >-
         This API is used to add multiple entities to a specific observation. The
