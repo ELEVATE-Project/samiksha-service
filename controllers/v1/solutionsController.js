@@ -1400,7 +1400,7 @@ module.exports = class Solutions extends Abstract {
   async fetchLinkInternal(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let solutionData = await solutionsHelper.fetchLinkInternal(
+        let solutionData = await solutionsHelper.fetchLink(
           req.params._id
         );
 
