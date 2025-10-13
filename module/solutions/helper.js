@@ -2912,8 +2912,6 @@ module.exports = class SolutionsHelper {
           // Add one year to the current date
           let endDate = new Date();
           endDate.setFullYear(endDate.getFullYear() + 1);
-          startDate = gen.utils.formatDate(startDate);
-          endDate = gen.utils.formatDate(endDate);
           let programData = await _createProgramData(
             data.programName,
             data.programExternalId ? data.programExternalId : data.programName + '-' + dateFormat,
@@ -2940,8 +2938,6 @@ module.exports = class SolutionsHelper {
             userPrivateProgram = await programsHelper.create(programData ,true,userDetails);
           }
         }
-
-        console.log(userPrivateProgram,"line no 2944");
         
         if (!userPrivateProgram._id) {
           return resolve({
