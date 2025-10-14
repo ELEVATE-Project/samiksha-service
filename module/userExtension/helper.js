@@ -1157,11 +1157,11 @@ module.exports = class UserExtensionHelper {
         const { userId, removedRoles = [], tenant_id: tenantId } = userUpdateInfo;
         // validate userUpdateInfo. doing here because consumer calls this function
         if (!userId || !tenantId || removedRoles.length === 0) {
-          throw {
+          return resolve({
             success: false,
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.INVALID_MAPPING_DATA,
-          };
+          });
         }
 
         // Fetch the user's extension document
