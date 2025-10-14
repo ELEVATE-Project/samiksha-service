@@ -821,6 +821,8 @@ module.exports = class SolutionsHelper {
             }
           }
           validOrgs = validOrgs.data
+          validOrgs = validOrgs.map((org) => org.toLowerCase())
+          scopeData.organizations = scopeData.organizations.map((id) => id.toLowerCase())
           
 
           // filter valid orgs
@@ -2030,7 +2032,7 @@ module.exports = class SolutionsHelper {
       try {
         let solutionData = await solutionsQueries.solutionDocuments(
           { _id: solutionId, tenantId: tenantFilter.tenantId },
-          ['type', 'projectTemplateId', 'programId']
+          ['type', 'projectTemplateId', 'programId','isExternalProgram']
         );
 
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
@@ -2072,13 +2074,27 @@ module.exports = class SolutionsHelper {
 
         if (solutionData.programId) {
           // add ["rootOrganisations","requestForPIIConsent","programJoined"] values to response. Based on these values front end calls PII consent
-          let programData = await programsQueries.programDocuments(
+          let programData;
+          if(solutionData.isExternalProgram){
+            programData = await projectService.programDetails(bodyData.userToken, solutionData.programId, bodyData,tenantFilter);
+            if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
+              throw {
+                status: httpStatusCode.bad_request.status,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+              };
+            }
+            programData = [programData.result];
+          }else{
+            // getting program document to update start and end date
+          programData = await programsQueries.programDocuments(
             {
               _id: solutionData.programId,
               tenantId: tenantFilter.tenantId,
             },
             ['rootOrganisations', 'requestForPIIConsent', 'name']
           );
+
+         }
 
           templateOrQuestionDetails.result.rootOrganisations = programData[0].rootOrganisations
             ? programData[0].rootOrganisations[0]
@@ -2396,19 +2412,33 @@ module.exports = class SolutionsHelper {
         if (solutionData.type == messageConstants.common.OBSERVATION) {
           // Targeted solution
           if (checkForTargetedSolution.result.isATargetedSolution) {
-            let observationDetailFromLink = await observationHelper.details(
-              '',
-              solutionData.solutionId,
-              userId,
-              tenantData
-            );
+            // Logic specific to "observation" solution type
+            // - Check if an observation already exists for the given user and solution
+            // - If it doesn’t exist, observationHelper.details will throw an error
+            //   (handled with try/catch to return a proper message)
+            // - If it does exist, the observationId is added to the response
+            //   so the frontend can use it for further processing
+
+            let observationDetailFromLink;
+            try {
+              observationDetailFromLink = await observationHelper.details(
+                '',
+                solutionData.solutionId,
+                userId,
+                tenantData
+              );
+            } catch (err) {
+              // observation not found for this user
+              observationDetailFromLink = null;
+            }
+
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
                 observationDetailFromLink._id != '' ? observationDetailFromLink._id : '';
             } else if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
-          } else if(checkForTargetedSolution.result.availableForPrivateConsumption) {
+          } else if (checkForTargetedSolution.result.availableForPrivateConsumption) {
             if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
@@ -2559,9 +2589,6 @@ module.exports = class SolutionsHelper {
           {
             link: link,
             isReusable: false,
-            status: {
-              $ne: messageConstants.common.INACTIVE_STATUS,
-            },
             tenantId: tenantData.tenantId,
           },
           ['type', 'status', 'endDate','startDate']
@@ -2574,12 +2601,6 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-          return resolve({
-            message: messageConstants.apiResponses.LINK_IS_EXPIRED,
-            result: [],
-          });
-        }
         // if endDate less than current date change solution status to inActive
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
           if (solutionData[0].status === messageConstants.common.ACTIVE_STATUS) {
@@ -2599,6 +2620,14 @@ module.exports = class SolutionsHelper {
             result: [],
           });
         }
+
+        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+          return resolve({
+            message: messageConstants.apiResponses.INVALID_LINK,
+            result: [],
+          });
+        }
+
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({

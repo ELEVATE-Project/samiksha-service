@@ -21,7 +21,7 @@ module.exports = async function (req, res, next) {
   if (performTenantAndOrgCheck) {
     let tenantFilter = gen.utils.returnTenantDataFromToken(req.userDetails);
     req.body['tenantId'] = tenantFilter.tenantId;
-    req.body['organizations'] = [tenantFilter.orgId];
+    req.body['organizations'] = [gen.utils.lowerCase(tenantFilter.orgId)];
   }
 
   next();

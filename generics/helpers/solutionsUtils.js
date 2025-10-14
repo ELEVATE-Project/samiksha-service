@@ -304,8 +304,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
           }
         }
         let startDate = new Date();
-        let endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
 
         if (
           newSolutionDocument['questionSequenceByEcm'] &&
@@ -339,8 +337,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
         newSolutionDocument.createdBy = userId;
         newSolutionDocument.entities = data.entities;
         newSolutionDocument.parentSolutionId = solutionDocument[0]._id;
-        newSolutionDocument.startDate = startDate;
-        newSolutionDocument.endDate = endDate;
         newSolutionDocument.createdAt = startDate;
         newSolutionDocument.updatedAt = startDate;
         newSolutionDocument.isAPrivateProgram = false;

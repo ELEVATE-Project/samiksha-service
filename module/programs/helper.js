@@ -937,7 +937,8 @@ module.exports = class ProgramsHelper {
             }
           }
           validOrgs = validOrgs.data
-
+          validOrgs = validOrgs.map((org) => org.toLowerCase())
+          scopeData.organizations = scopeData.organizations.map((id) => id.toLowerCase())
           // filter valid orgs
           scopeData.organizations = scopeData.organizations.filter(
             (id) => validOrgs.includes(id) || id.toLowerCase() == messageConstants.common.ALL

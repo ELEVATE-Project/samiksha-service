@@ -43,10 +43,16 @@ var messageReceived = function (message) {
       let parsedMessage = JSON.parse(message.value);
       let orgExtensionStatus;
       if (parsedMessage.eventType && parsedMessage.eventType === 'create') {
-         orgExtensionStatus = await organizationExtension.create(parsedMessage);
+        orgExtensionStatus = await organizationExtension.create(parsedMessage);
       }
-      if (parsedMessage.eventType && parsedMessage.eventType === 'update') {
-         orgExtensionStatus = await organizationExtension.updateRelatedOrgs(parsedMessage);
+      if (
+        parsedMessage.eventType &&
+        parsedMessage.eventType === 'update' &&
+        parsedMessage.newValues &&
+        parsedMessage.newValues.related_org_details
+      ) {
+        parsedMessage.related_org_details = parsedMessage.newValues.related_org_details;
+        orgExtensionStatus = await organizationExtension.updateRelatedOrgs(parsedMessage);
       }
       if (orgExtensionStatus?.status === 200) {
         return resolve('Message Processed.');

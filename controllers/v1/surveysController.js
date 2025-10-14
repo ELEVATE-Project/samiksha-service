@@ -827,6 +827,12 @@ module.exports = class Surveys extends Abstract {
           );
         }
 
+        if(surveyDetails.success === false){
+          surveyDetails.status = httpStatusCode.bad_request.status
+          surveyDetails.message = surveyDetails?.message ? surveyDetails.message : undefined;
+          throw surveyDetails;
+        }
+
         return resolve({
           message: surveyDetails.message,
           result: surveyDetails.data,
