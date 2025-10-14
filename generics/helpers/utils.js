@@ -658,9 +658,6 @@ function getFilteredScope(scopeData, tenantPublicDetailsMetaField) {
   return filteredScope;
 }
 
-
-
-
 module.exports = {
   camelCaseToTitleCase: camelCaseToTitleCase,
   lowerCase: lowerCase,
