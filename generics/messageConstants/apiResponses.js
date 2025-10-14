@@ -464,5 +464,8 @@ module.exports = {
   ORGANIZATION_EXTENSION_NOT_FOUND: 'Organization extension not found',
   ORGANIZATION_EXTENSION_ALREADY_EXISTS: 'Organization extension already exists',
   LIBRARY_CATEGORY_NOT_FOUND: 'Library categories not found',
-  INVALID_POLICY :"Invalid policy"
+  INVALID_POLICY :"Invalid policy",
+  SOLUTION_RESOURCE_DELETED: 'Solution and associated resources deleted successfull',
+	PROGRAM_RESOURCE_DELETED: 'Program and associated resources deleted successfull',
+	INVALID_RESOURCE_TYPE: 'Invalid Resource Type',
 };
