@@ -113,6 +113,11 @@ tags:
     externalDocs:
       description: ''
       url: ''
+  - name: userExtension
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
 paths:
   /v1/criteria/upload:
     post:
@@ -6471,8 +6476,7 @@ paths:
     post:
       tags:
         - userExtension
-      summary: >-
-        Bulk user role management API
+      summary: Bulk user role management API
       description: >-
         Bulk user role management API that processes CSV data to create or
         update user-program role assignments with support for multiple
@@ -6739,7 +6743,9 @@ paths:
       parameters:
         - in: path
           name: type
-          description: 'Need to pass Resource Type that we need to delete Ex: solution or program'
+          description: >-
+            Need to pass Resource Type that we need to delete Ex: solution or
+            program
           schema: &ref_1
             type: string
         - in: header
@@ -6847,5 +6853,122 @@ paths:
                       - location: query
                         param: type
                         msg: Invalid resource type. Must be "program" or "solution"
+  /v1/userExtension/mapUsersToPrograms:
+    post:
+      description: ''
+      operationId: ''
+      tags:
+        - userExtension
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        success:
+                          type: boolean
+                        message:
+                          type: string
+                        userId:
+                          type: number
+                        _id:
+                          type: string
+                        programId:
+                          type: string
+                        roles:
+                          type: array
+                          items:
+                            type: string
+              examples:
+                example1:
+                  value:
+                    message: User extension updated successfully
+                    status: 200
+                    result:
+                      - success: true
+                        message: User extension updated successfully
+                        userId: 456
+                        _id: 68e8ea3396ca9aeb8856c31a
+                        programId: 68259398cfa7cfe32cd83379
+                        roles:
+                          - org_admin
+                          - mentor
+                          - mentee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userId:
+                        type: number
+                      programId:
+                        type: string
+                      operation:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - userId
+                      - programId
+                      - operation
+                      - roles
+            examples:
+              example1:
+                value:
+                  data:
+                    - userId: 1
+                      programId: 686e16212cb81c0014a49111
+                      operation: append
+                      roles:
+                        - program_manager
+                    - userId: 456
+                      programId: 68259398cfa7cfe32cd83379
+                      operation: append
+                      roles:
+                        - program_manager
+                        - mentee
+                        - org_admin
+                        - mentor
+    parameters:
+      - in: header
+        name: internal-access-token
+        description: ''
+        schema: &ref_2
+          type: string
+        required: true
+      - in: query
+        name: tenantId
+        description: ''
+        schema: *ref_2
+        required: true
+      - in: query
+        name: orgId
+        description: ''
+        schema: *ref_2
+        required: true
+      - in: query
+        name: userId
+        description: ''
+        schema: *ref_2
 components:
   securitySchemes: {}

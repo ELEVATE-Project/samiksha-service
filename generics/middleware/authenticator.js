@@ -231,6 +231,7 @@ module.exports = async function (req, res, next) {
     'organizationExtension/update',
     'organizationExtension/create',
     'organizationExtension/updateRelatedOrgs',
+    '/userExtension/mapUsersToPrograms',
   ];
 
   let performInternalAccessTokenCheck = false;

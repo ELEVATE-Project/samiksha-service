@@ -82,7 +82,7 @@ module.exports = class userExtension {
      * 
      */
   
-    static updateUserExtensionDocument(query = {}, updateObject = {}, returnData = { new: false }) {
+    static updateUserExtensionDocument(query = {}, updateObject = {}, returnData = { new: false, rawResult : false }) {
       return new Promise(async (resolve, reject) => {
         try {
           if (Object.keys(query).length == 0) {

@@ -303,10 +303,64 @@ const getUserProfileByIdentifier = function (tenantId, userId = null, username) 
 };
 
 
+/**
+ * Fetches valid user profile by userIds and tenantId.
+ * @param {Array} userIds - array of userIds
+ * @param {String} tenantId - tenantId details
+ * @param {String} type - user-service url param
+ * @returns {Promise} A promise that resolves with the user details or rejects with an error.
+ */
+
+const accountSearch = function (userIds = [], tenantId, type = 'all') {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const params = `?tenant_code=${tenantId}&type=${type}`
+
+			let url = `${userServiceUrl}${messageConstants.endpoints.ACCOUNT_SEARCH}${params}`
+
+			const headers = {
+				'content-type': 'application/json',
+				internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
+			}
+
+			const body = {
+				user_ids: userIds,
+			}
+
+			request.post({ url, headers, body, json: true }, callBack)
+			let result = {
+				success: true,
+			}
+			function callBack(error, response, body) {
+				if (error) {
+					result.success = false
+				} else {
+					if (body.responseCode === 'OK') {
+						result['data'] = body.result
+					} else {
+						result.success = false
+					}
+				}
+				return resolve(result)
+			}
+			setTimeout(function () {
+				return resolve(
+					(result = {
+						success: false,
+					})
+				)
+			}, messageConstants.common.SERVER_TIME_OUT)
+		} catch (error) {
+			return reject(error)
+		}
+	})
+}
+
 module.exports = {
   profile:profile,
   getOrgDetails,
   fetchTenantDetails,
   fetchPublicTenantDetails,
-  getUserProfileByIdentifier
+  getUserProfileByIdentifier,
+  accountSearch
 };
