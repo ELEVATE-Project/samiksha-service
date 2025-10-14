@@ -151,6 +151,58 @@ const programDetails = function (userToken, programId, userDetails, payload = {}
 };
 
 /**
+ * @function ProgramUpdateForLibrary
+ * @description Updates a program record in the library via the Project Service.
+ * @param {string} userToken - The authentication token of the user making the request.
+ * @param {string} programId - The unique identifier of the program to be updated.
+ * @param {object} reqBody - The request payload containing program update data.
+ * @returns {Promise<object>} - Resolves with `{ success: true | false }` based on update status.
+ */
+const ProgramUpdateForLibrary = function (userToken, programId, reqBody) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.LIBRARY_PROGRAM_UPDATE}/${programId}`;
+      // Set the options for the HTTP GET request
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          'X-auth-token': userToken,
+        },
+        json: reqBody,
+      };
+      request.post(url, options, projectServiceCallback);
+      let result = {
+        success: true,
+      };
+      // Handle callback fucntion
+      function projectServiceCallback(err, data) {
+        if (err) {          
+          result.success = false;
+        } else {
+          let response = data.body;          
+          if (response.status === httpStatusCode['ok'].status) {
+            return resolve(result);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+/**
  * update the program  based on the given Id.
  * This functionality helps add survey and observation solutions to the components array of a program
  * This function will be called when creating child solution for survey and observation
@@ -322,10 +374,83 @@ const pullSolutionsFromProgramComponents = function (solutionId,tenantId) {
   });
 };
 
+/**
+ * @function createProgram
+ * @description
+ * Creates a new program by making a POST request to the Project Service.
+ *
+ * @param {Object} bodyData - The payload to be sent in the POST request body.
+ * @param {Object} userDetails - Information about the user performing the action.
+ * @returns {Promise<Object>} Promise that resolves with:
+ * - `{ success: true, result: <programData> }` on success
+ * - `{ success: false }` on failure
+ */
+const createProgram = function (bodyData, userDetails) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_PROGRAM}`;
+      // Setup request options (headers + body)
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,
+        },
+        json: bodyData,
+      };
+      // If user has a token, add it to headers
+      if (userDetails.userToken) {
+        _.assign(options.headers, {
+          'X-auth-token': userDetails.userToken,
+        });
+      }
+      //add  tenant and orgId in the header if role issuper admin
+      if (userDetails?.roles && userDetails.roles.includes(messageConstants.common.ADMIN)) {
+        _.assign(options.headers, {
+          'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
+          tenantId: userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
+      }
+
+      // Make POST request to Project Service
+      request.post(url, options, createProgram);
+      let result = {
+        success: true,
+      };
+      // Handle callback fucntion
+      function createProgram(err, data) {
+        if (err) {
+          result.success = false;
+        } else {
+          let response = data.body;
+          if (response.status === httpStatusCode['ok'].status) {
+            return resolve(response.result);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 module.exports = {
   templateLists: templateLists,
   programDetails: programDetails,
   programUpdate: programUpdate,
   pushSubmissionToTask: pushSubmissionToTask,
-  pullSolutionsFromProgramComponents:pullSolutionsFromProgramComponents
+  pullSolutionsFromProgramComponents:pullSolutionsFromProgramComponents,
+  createProgram: createProgram,
+  ProgramUpdateForLibrary:ProgramUpdateForLibrary
 };
