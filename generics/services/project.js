@@ -151,58 +151,6 @@ const programDetails = function (userToken, programId, userDetails, payload = {}
 };
 
 /**
- * @function ProgramUpdateForLibrary
- * @description Updates a program record in the library via the Project Service.
- * @param {string} userToken - The authentication token of the user making the request.
- * @param {string} programId - The unique identifier of the program to be updated.
- * @param {object} reqBody - The request payload containing program update data.
- * @returns {Promise<object>} - Resolves with `{ success: true | false }` based on update status.
- */
-const ProgramUpdateForLibrary = function (userToken, programId, reqBody) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Construct the URL for the project service
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.LIBRARY_PROGRAM_UPDATE}/${programId}`;
-      // Set the options for the HTTP GET request
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          'X-auth-token': userToken,
-        },
-        json: reqBody,
-      };
-      request.post(url, options, projectServiceCallback);
-      let result = {
-        success: true,
-      };
-      // Handle callback fucntion
-      function projectServiceCallback(err, data) {
-        if (err) {          
-          result.success = false;
-        } else {
-          let response = data.body;          
-          if (response.status === httpStatusCode['ok'].status) {
-            return resolve(result);
-          } else {
-            result.success = false;
-          }
-        }
-        return resolve(result);
-      }
-      setTimeout(function () {
-        return resolve(
-          (result = {
-            success: false,
-          })
-        );
-      }, messageConstants.common.SERVER_TIME_OUT);
-    } catch (error) {
-      return reject(error);
-    }
-  });
-};
-
-/**
  * update the program  based on the given Id.
  * This functionality helps add survey and observation solutions to the components array of a program
  * This function will be called when creating child solution for survey and observation
@@ -374,6 +322,93 @@ const pullSolutionsFromProgramComponents = function (solutionId,tenantId) {
   });
 };
 
+
+/**
+ * @function createChildProjectTemplate
+ * @description Creates a child project template by calling the Project Service API.
+ *              Sends the project template external IDs, user details, and program info.
+ *
+ * @param {Array<string>} projectTemplateExternalIds - List of project template external IDs.
+ * @param {Object} userDetails - Information about the user making the request.
+ * @param {string} programId - External ID of the program.
+ * @param {boolean} isExternalProgram - Whether the program is external (true/false).
+ *
+ * @returns {Promise<Object>} Resolves with the API response if successful,
+ *                            or with `{ success: false }` in case of errors or timeouts.
+ */
+const createChildProjectTemplate = function (projectTemplateExternalIds,userDetails,programId,isExternalProgram) {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      // isExternalProgram - We have to negate this boolean before sending to project service . 
+      //                     if isExternalProgram true for samiksha service, for project service it is false
+
+      // Ensure isExternalProgram is always false if passed as true
+      let IsExternalProgramFalse = !isExternalProgram;
+      
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${IsExternalProgramFalse}`;
+
+      // Setup request options (headers + body)
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,
+        },
+        json: {
+          projectTemplateExternalIds:projectTemplateExternalIds,
+          userDetails:userDetails
+        },
+      };
+
+      // If user has a token, add it to headers
+      if (userDetails.userToken) {
+        _.assign(options.headers, {
+          'X-auth-token': userDetails.userToken,
+        });
+      }
+      //add  tenant and orgId in the header if role issuper admin
+      if (userDetails?.roles && userDetails.roles.includes(messageConstants.common.ADMIN)) {
+        _.assign(options.headers, {
+          'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
+          tenantId: userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
+      }
+      
+      // Make POST request to Project Service
+      request.post(url, options, createProjectTemplate);
+      let result = {
+        success: true,
+      };
+      // Handle callback fucntion
+      function createProjectTemplate(err, data) {
+        if (err) {
+          result.success = false;
+        } else {
+          let response = data.body;          
+          if (response.status === httpStatusCode['ok'].status) {
+            return resolve(response);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+
 /**
  * @function createProgram
  * @description
@@ -445,12 +480,66 @@ const createProgram = function (bodyData, userDetails) {
   });
 };
 
+
+/**
+ * @function ProgramUpdateForLibrary
+ * @description Updates a program record in the library via the Project Service.
+ * @param {string} userToken - The authentication token of the user making the request.
+ * @param {string} programId - The unique identifier of the program to be updated.
+ * @param {object} reqBody - The request payload containing program update data.
+ * @returns {Promise<object>} - Resolves with `{ success: true | false }` based on update status.
+ */
+const ProgramUpdateForLibrary = function (userToken, programId, reqBody) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Construct the URL for the project service
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.LIBRARY_PROGRAM_UPDATE}/${programId}`;
+      // Set the options for the HTTP GET request
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          'X-auth-token': userToken,
+        },
+        json: reqBody,
+      };
+      request.post(url, options, projectServiceCallback);
+      let result = {
+        success: true,
+      };
+      // Handle callback fucntion
+      function projectServiceCallback(err, data) {
+        if (err) {          
+          result.success = false;
+        } else {
+          let response = data.body;          
+          if (response.status === httpStatusCode['ok'].status) {
+            return resolve(result);
+          } else {
+            result.success = false;
+          }
+        }
+        return resolve(result);
+      }
+      setTimeout(function () {
+        return resolve(
+          (result = {
+            success: false,
+          })
+        );
+      }, messageConstants.common.SERVER_TIME_OUT);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 module.exports = {
   templateLists: templateLists,
   programDetails: programDetails,
   programUpdate: programUpdate,
   pushSubmissionToTask: pushSubmissionToTask,
   pullSolutionsFromProgramComponents:pullSolutionsFromProgramComponents,
+  createChildProjectTemplate:createChildProjectTemplate,
   createProgram: createProgram,
   ProgramUpdateForLibrary:ProgramUpdateForLibrary
 };
