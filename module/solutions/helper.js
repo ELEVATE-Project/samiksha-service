@@ -186,7 +186,7 @@ module.exports = class SolutionsHelper {
             );
           }else if(solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project'){
               //call project service to update program components
-              let newprogramDocument = await projectService.programDetails(requestingUserAuthToken, programId, userDetails,tenantData);
+              let newprogramDocument = await projectService.programDetails(userToken,solutionData.programExternalId,userDetails,tenantData);
               let currentComponents = newprogramDocument?.result.components || [];
               let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},tenantData, userDetails);
               if( !programUpdateStatus || !programUpdateStatus.success) {
