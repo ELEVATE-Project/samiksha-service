@@ -393,8 +393,9 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
               }
             }else if(newSolutionDocument.isExternalProgram == true && newSolutionDocument.referenceFrom !== 'project'){
               //call project service to update program components
-              let currentComponents = programDocument?.components || [];
-              let programUpdateStatus = await projectService.programUpdate(requestingUserAuthToken, programDocument._id,{components:[{_id:duplicateSolutionDocument._id,order:currentComponents.length + 1}]},tenantData, userDetails);
+              let newprogramDocument = await projectService.programDetails(requestingUserAuthToken, programId, userDetails,tenantData);
+              let currentComponents = newprogramDocument?.result.components || [];
+              let programUpdateStatus = await projectService.programUpdate(requestingUserAuthToken, programDocument._id,{components:[{_id:duplicateSolutionDocument._id,order:currentComponents.length + 1}]},tenantData, userDetails);              
               if( !programUpdateStatus || !programUpdateStatus.success) {
                 throw {
                   message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
