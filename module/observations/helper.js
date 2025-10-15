@@ -97,7 +97,8 @@ module.exports = class ObservationsHelper {
     requestingUserAuthToken = '',
     userRoleAndProfileInformation,
     tenantData,
-    programId = ''
+    programId = '',
+    userDetails
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -149,7 +150,8 @@ module.exports = class ObservationsHelper {
             true,
             userId,
             requestingUserAuthToken,
-            tenantData
+            tenantData,
+            userDetails
             //   organisationAndRootOrganisation.,
             //   organisationAndRootOrganisation.rootOrganisations
           );

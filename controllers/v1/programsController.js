@@ -1388,4 +1388,85 @@ module.exports = class Programs extends Abstract {
       }
     });
   }
+
+  /**
+ * @function fetchProgramDetails
+ * @api {post} /samiksha/v1/programs/fetchProgramDetails
+ * @description Fetches program details from the database based on provided filters and fields.
+ * 
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {Object} req.body.filterQuery - MongoDB filter query object used to filter program documents.
+ * @param {Array<string>} req.body.fieldsArray - Array of field names to be projected (selected) from the documents.
+ * 
+ * @returns {Promise<Object>} Resolves with the program details if successful, 
+ * or rejects with an error object containing status, message, and error details.
+ * 
+ * @apiParamExample {json} Request:
+ * {
+  "filterQuery": { "tenantId": "shikshagraha", "externalId": "AWS_Prog_MYS_may192" },
+  "fieldsArray": [
+    "name",
+    "description",
+    "scope",
+    "endDate",
+    "startDate",
+    "components"
+  ]
+}
+ * @apiParamExample {json} Response:
+ * {
+    "message": "List of user assigned surveys",
+    "status": 200,
+    "result": [
+        {
+            "_id": "682c13fcdbac183d9c1c547b",
+            "name": "AWS_Prog_MYS_may19_OWR2",
+            "description": "शिक्षकों में पाठयपुस्तकों दिए गए चित्रों के पीछे छिपे संदेशों को पहचानने और उनका मूल्यांकन करने की क्षमता विकसित होगी |",
+            "startDate": "2024-08-19T18:30:00.000Z",
+            "endDate": "2026-10-25T18:29:59.000Z",
+            "components": [
+                "682c1403dbac183d9c1c5537",
+                {
+                    "_id": "68c273b12e7f22009915dd1f",
+                    "order": 2
+                }
+            ],
+            "scope": {
+                "district": [
+                    "67c82d37bad58c889bc5a5f0"
+                ],
+                "professional_subroles": [
+                    "682300fe4e2812081f342664",
+                ],
+                "professional_role": [
+                    "681b07b49c57cdcf03c79ae3",
+                ],
+                "entityType": "district,professional_subroles,professional_role",
+                "organizations": [
+                    "mys"
+                ]
+            }
+        }
+    ]
+  }
+ */
+  async fetchProgramDetails(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        // Fetch program documents based on filter and required fields
+        let programs = await programsHelper.programDocuments(req.body.filterQuery, req.body.fieldsArray);
+
+        // Resolve promise with fetched program data
+        return resolve(programs);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
 };

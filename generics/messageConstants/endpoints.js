@@ -35,5 +35,8 @@ module.exports = {
   AUTO_DOWNLOAD: '/v1/files/download',
   PROFILE_READ_BY_ID: '/v1/user/profileById',
   PUSH_SUBMISSION_TO_TASK: '/v1/userProjects/pushSubmissionToTask',
-  PULL_SOLUTION_ID_FROM_PROGRAM : '/v1/programs/removeSolutions'
+  PULL_SOLUTION_ID_FROM_PROGRAM : '/v1/programs/removeSolutions',
+  CREATE_CHILD_PROJECT_TEMPLATE: '/v1/project/templates/createChildProjectTemplate',
+  CREATE_PROGRAM : '/v1/programs/publishToLibrary',
+  LIBRARY_PROGRAM_UPDATE: '/v1/programs/ProgramUpdateForLibrary',
 };
