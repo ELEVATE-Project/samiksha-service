@@ -224,6 +224,7 @@ module.exports = async function (req, res, next) {
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
     'userExtension/bulkUpload',
+    'solutions/fetchLinkInternal',
     'admin/deleteResource',
     'admin/deleteSolutionResource',
     'library/categories/create',
