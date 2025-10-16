@@ -2271,7 +2271,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static fetchLink(solutionId, userId, userToken) {
+  static fetchLink(solutionId, userId="", userToken="") {
     return new Promise(async (resolve, reject) => {
       try {
         let solutionData = await solutionsQueries.solutionDocuments(
@@ -2307,25 +2307,28 @@ module.exports = class SolutionsHelper {
 
         if (!solutionLink) {
           solutionLink = await gen.utils.md5Hash(solution._id + '###' + solution.author);
-          // update link to the solution documents
-          let updateSolution = await this.update(
-            solutionId,
-            { link: solutionLink },
-            userId,
-            false,
-            //  Only Super Admin can generate links for all tenant and org hence replace tenantData is replcaed with solution tenantData
-            {
-              tenantId: solution?.tenantId,
-              orgId: [solution?.orgId],
-            }
-          );
+          // Prepare update object
+          let updateData = { link: solutionLink };
 
-          if (!updateSolution?.success) {
-            throw {
-              message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
-              status: httpStatusCode.bad_request.status,
-            };
-          }
+           if (userId && userToken) {
+              updateData.updatedBy = userId
+            }
+          // update link to the solution documents
+          let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
+            {
+              _id: solutionId,
+              tenantId:  solution?.tenantId,
+            },
+            updateData,
+            { new: true }
+          );
+  
+            if (!solutionUpdatedData._id) {
+              throw {
+                message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
+                status: httpStatusCode.bad_request.status,
+              };
+            }
         }
         // Generate link for each domain
            // fetch tenant domain by calling  tenant details API
@@ -2462,12 +2465,6 @@ module.exports = class SolutionsHelper {
             if (privateProgramAndSolutionDetails.result != '') {
               checkForTargetedSolution.result['solutionId'] = privateProgramAndSolutionDetails.result;
             }
-          } else {
-            // Not targeted solution and not available for private consumption
-            throw {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.OBSERVATION_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
-            };
           }
         } else if (solutionData.type === messageConstants.common.SURVEY) {
           // Get survey submissions of user
