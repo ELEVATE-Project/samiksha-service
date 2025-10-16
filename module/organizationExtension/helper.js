@@ -64,7 +64,7 @@ module.exports = class organisationExtensionHelper {
       throw error;
     }
   }
- 
+
   /**
    * orgExtension create
    * @method
@@ -80,26 +80,25 @@ module.exports = class organisationExtensionHelper {
           message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
         };
       }
-      
-       // Query to get the orgExtension document
-       let orgExtensionFilter = {
+
+      // Query to get the orgExtension document
+      let orgExtensionFilter = {
         tenantId: eventBody.tenant_code,
         orgId: eventBody.code,
       };
-  
-      // Getting organizationExtension document 
+
+      // Getting organizationExtension document
       let organizationExtensionDocuments = await organizationExtensionQueries.organizationExtensionDocuments(
         orgExtensionFilter
       );
-       
+
       //Check orgExtension already exists or else create new one
-      if(organizationExtensionDocuments.length > 0) {
+      if (organizationExtensionDocuments.length > 0) {
         return {
           success: false,
           status: httpStatusCode.bad_request.status,
-          message:messageConstants.apiResponses.ORGANIZATION_EXTENSION_ALREADY_EXISTS,
+          message: messageConstants.apiResponses.ORGANIZATION_EXTENSION_ALREADY_EXISTS,
         };
-  
       }
       let extensionData = {
         orgId: eventBody.code,
@@ -122,7 +121,7 @@ module.exports = class organisationExtensionHelper {
     }
   }
 
-    /**
+  /**
    * update multiple library solutions resources based on related_orgs changes.
    * @method
    * @name updateRelatedOrgs
@@ -133,60 +132,57 @@ module.exports = class organisationExtensionHelper {
    * @param {Object} userDetails - logged in userDetails
    * @returns {Promise<Object>} - Returns success status with solutionUpdateData or error information.
    */
-    static updateRelatedOrgs(bodyData, userDetails) {
-      return new Promise(async (resolve, reject) => {
-        try {
-          if (!bodyData || !bodyData.code || !bodyData.tenant_code) {
-            return {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
-            };
-          }
-          //get org and tenantId for userDetails if its admin updating relatedOrgs
-          let org_code = userDetails?.tenantAndOrgInfo?.orgId?.[0] || bodyData.code;
-          let tenant_code = userDetails?.tenantAndOrgInfo?.tenantId || bodyData.tenant_code;
-          let userId = userDetails?.userId || bodyData.updated_by;
-          let solutionUpdate = {};
-          if (
-            bodyData?.changes?.hasOwnProperty('related_orgs') &&
-            bodyData?.hasOwnProperty('related_org_details')
-          ) {
-            //get the code to store it in  visibleToOrganizations key
-            let visibleOrg = bodyData.related_org_details?.map((eachValue) => {
-              return eachValue.code;
-            });
-  
-            //  update query
-            const filterQuery = { orgId: org_code, tenantId: tenant_code, isReusable: true };
-            const updateQuery = {
-              $set: { visibleToOrganizations: visibleOrg, updatedAt: new Date(), updatedBy: userId },
-            };
-  
-            //update the solutions
-            solutionUpdate = await solutionsQueries.update(filterQuery, updateQuery);
-  
-            if (!solutionUpdate || !solutionUpdate.acknowledged) {
-              return resolve({
-                status: httpStatusCode.internal_server_error.status,
-                message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
-                result: solutionUpdate,
-              });
-            }
-          }
-  
-          return resolve({
-            success: true,
-            message: messageConstants.apiResponses.SOLUTION_UPDATED,
-            result: solutionUpdate,
-          });
-        } catch (error) {
-          console.log(error,"this is error")
-          return reject({
-            status: error.status || httpStatusCode.internal_server_error.status,
-            message: error.message || httpStatusCode.internal_server_error.message,
-            errorObject: error,
-          });
+  static updateRelatedOrgs(bodyData, userDetails) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!bodyData || !bodyData.code || !bodyData.tenant_code) {
+          return {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.MISSING_TENANT_AND_ORG_FIELDS,
+          };
         }
-      });
-    }
+        //get org and tenantId for userDetails if its admin updating relatedOrgs
+        let org_code = userDetails?.tenantAndOrgInfo?.orgId?.[0] || bodyData.code;
+        let tenant_code = userDetails?.tenantAndOrgInfo?.tenantId || bodyData.tenant_code;
+        let userId = userDetails?.userId || bodyData.updated_by;
+        let solutionUpdate = {};
+        if (bodyData?.hasOwnProperty('related_org_details')) {
+          //get the code to store it in  visibleToOrganizations key
+          let visibleOrg = bodyData.related_org_details?.map((eachValue) => {
+            return eachValue.code;
+          });
+
+          //  update query
+          const filterQuery = { orgId: org_code, tenantId: tenant_code, isReusable: true };
+          const updateQuery = {
+            $set: { visibleToOrganizations: visibleOrg, updatedAt: new Date(), updatedBy: userId },
+          };
+
+          //update the solutions
+          solutionUpdate = await solutionsQueries.update(filterQuery, updateQuery);
+
+          if (!solutionUpdate || !solutionUpdate.acknowledged) {
+            return resolve({
+              status: httpStatusCode.internal_server_error.status,
+              message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+              result: solutionUpdate,
+            });
+          }
+        }
+
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.SOLUTION_UPDATED,
+          result: solutionUpdate,
+        });
+      } catch (error) {
+        console.log(error, 'this is error');
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
 };

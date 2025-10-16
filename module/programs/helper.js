@@ -1580,4 +1580,37 @@ module.exports = class ProgramsHelper {
       }
     })
   }
+
+
+  /**
+ * @function programDocuments
+ * @description Fetches program documents from the database based on given filters and fields.
+ *              Wraps the query in a Promise and returns a structured response.
+ *
+ * @param {Object} filterQuery - MongoDB-style filter query to match program documents.
+ * @param {Array<string>} fieldsArray - Array of fields to select (projection).
+ *
+ * @returns {Promise<Object>} Resolves Promise
+ */
+  static programDocuments(filterQuery, fieldsArray) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        // Query program documents from DB
+        let programDocument = await programsQueries.programDocuments(filterQuery, fieldsArray);        
+        // Return success response
+        return resolve({
+          success: true,
+          message: messageConstants.apiResponses.PROGRAM_IMPORTED,
+          result: programDocument,
+        });
+      } catch (error) {
+        return resolve({
+          success: false,
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
+          message: error.message,
+        });
+      }
+    });
+  }
 }

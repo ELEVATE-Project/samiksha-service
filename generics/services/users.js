@@ -214,7 +214,7 @@ const fetchPublicTenantDetails = function (tenantId) {
       const options = {
         headers: {
           'content-type': 'application/json',
-          tenantid: tenantId,
+          'x-tenant-code': tenantId,
         },
       };
       request.get(url, options, publicBranding);
@@ -306,5 +306,5 @@ module.exports = {
   getOrgDetails,
   fetchTenantDetails,
   fetchPublicTenantDetails,
-  getUserProfileByIdentifier
+  getUserProfileByIdentifier,
 };

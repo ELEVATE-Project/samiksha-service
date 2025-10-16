@@ -186,7 +186,8 @@ module.exports = class SolutionsHelper {
             );
           }else if(solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project'){
               //call project service to update program components
-              let currentComponents = programData[0]?.components || [];
+              let newprogramDocument = await projectService.programDetails(userToken,solutionData.programId,userDetails,tenantData);
+              let currentComponents = newprogramDocument?.result.components || [];
               let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},tenantData, userDetails);
               if( !programUpdateStatus || !programUpdateStatus.success) {
                 throw {
@@ -2464,12 +2465,6 @@ module.exports = class SolutionsHelper {
             if (privateProgramAndSolutionDetails.result != '') {
               checkForTargetedSolution.result['solutionId'] = privateProgramAndSolutionDetails.result;
             }
-          } else {
-            // Not targeted solution and not available for private consumption
-            throw {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.OBSERVATION_SOLUTION_NOT_ALLOWED_TO_BE_CONSUMED,
-            };
           }
         } else if (solutionData.type === messageConstants.common.SURVEY) {
           // Get survey submissions of user
@@ -2933,9 +2928,21 @@ module.exports = class SolutionsHelper {
           programData.tenantData = {};
           programData.tenantData.tenantId = tenantData.tenantId;
           programData.tenantData.orgId = [tenantData.orgId];
-          userPrivateProgram = await programsHelper.create(programData);
+          programData.scope= data.scope
+          if(data.isExternalProgram){
+            programData['requestForPIIConsent'] = true
+            userPrivateProgram = await projectService.createProgram(programData,userDetails);
+          }else{
+            userPrivateProgram = await programsHelper.create(programData ,true,userDetails);
+          }
         }
-
+        
+        if (!userPrivateProgram._id) {
+          return resolve({
+            status: httpStatusCode['bad_request'].status,
+            message: messageConstants.apiResponses.SOLUTION_PROGRAMS_NOT_CREATED,
+          });
+        }
         let solutionDataToBeUpdated = {
           programId: userPrivateProgram._id,
           programExternalId: userPrivateProgram.externalId,
@@ -3143,10 +3150,18 @@ module.exports = class SolutionsHelper {
         if (solution && solution._id) {
           let length = userPrivateProgram.components ? userPrivateProgram.components.length : 0;
           // Add solution to the program components
-          await programsQueries.findOneAndUpdate(
-            { _id: userPrivateProgram._id },
-            { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
-          );
+          if(data.isExternalProgram){
+            await projectService.ProgramUpdateForLibrary(
+              userToken,
+             userPrivateProgram._id ,
+             {components:[{_id:solution._id,order:length + 1}]}
+            );
+          }else{
+            await programsQueries.findOneAndUpdate(
+              { _id: userPrivateProgram._id },
+              { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
+            );            
+          }
         }
 
         return resolve({

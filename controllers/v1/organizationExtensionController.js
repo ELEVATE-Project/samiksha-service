@@ -1,4 +1,3 @@
-
 /**
  * name : organizationExtension.js
  * author : PraveenDass
@@ -12,7 +11,7 @@ const organizationHelper = require(MODULES_BASE_PATH + '/organizationExtension/h
  * userCourses
  * @class
  */
-module.exports = class  OrganizationExtension extends Abstract {
+module.exports = class OrganizationExtension extends Abstract {
   constructor() {
     super(organizationExtensionSchema);
   }
@@ -65,7 +64,7 @@ module.exports = class  OrganizationExtension extends Abstract {
   async update(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let organizationExtensionData = await organizationHelper.update(req.body,req.params._id, req.userDetails);
+        let organizationExtensionData = await organizationHelper.update(req.body, req.params._id, req.userDetails);
         organizationExtensionData['result'] = organizationExtensionData.data;
         return resolve(organizationExtensionData);
       } catch (error) {
@@ -77,7 +76,6 @@ module.exports = class  OrganizationExtension extends Abstract {
       }
     });
   }
-
 
   /**
     * @api {post} /survey/v1/organizationExtension/create
@@ -130,7 +128,7 @@ module.exports = class  OrganizationExtension extends Abstract {
     return new Promise(async (resolve, reject) => {
       try {
         //passing true for update userCourses doucment with isDeleted true
-        let organizationExtensionData = await organizationHelper.create(req.body,req.userDetails);
+        let organizationExtensionData = await organizationHelper.create(req.body, req.userDetails);
         organizationExtensionData['result'] = organizationExtensionData.data;
         return resolve(organizationExtensionData);
       } catch (error) {
@@ -143,7 +141,7 @@ module.exports = class  OrganizationExtension extends Abstract {
     });
   }
 
-     /**
+  /**
      * @api {post} /survey/v1/organizationExtension/updateRelatedOrgs
      * update related organizations for solutions (visibleToOrganizations).     
      * @apiVersion 1.0.0
@@ -152,8 +150,7 @@ module.exports = class  OrganizationExtension extends Abstract {
      * @param {json} Request-Body:
       {
    
-        "changes": {
-          "related_org_details" :[
+        "related_org_details" :[
                 {
                    id:"2",
                    code:"mys"
@@ -162,8 +159,7 @@ module.exports = class  OrganizationExtension extends Abstract {
                    id:"2",
                    code:"SLOrg"
                 } 
-         ]         
-        },
+         ], 
         "code": "blr",
         "tenant_code": "shikshagraha",
       }
@@ -186,7 +182,7 @@ module.exports = class  OrganizationExtension extends Abstract {
   async updateRelatedOrgs(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let result = await organizationHelper.updateRelatedOrgs(req.body,req.userDetails);
+        let result = await organizationHelper.updateRelatedOrgs(req.body, req.userDetails);
         resolve(result);
       } catch (error) {
         return reject({
@@ -197,5 +193,4 @@ module.exports = class  OrganizationExtension extends Abstract {
       }
     });
   }
-
 };

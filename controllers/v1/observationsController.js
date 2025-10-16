@@ -277,6 +277,7 @@ module.exports = class Observations extends Abstract {
           req.body.userRoleAndProfileInformation,
           req.userDetails.tenantData,
           req.query.programId,
+          req.userDetails
         );
         return resolve({
           message: messageConstants.apiResponses.OBSERVATION_CREATED,
