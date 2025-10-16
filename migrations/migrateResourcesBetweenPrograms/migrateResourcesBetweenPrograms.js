@@ -108,7 +108,7 @@ const {
 const fs = require('fs');
 const { randomUUID } = require('crypto');
 let orgId = null;
-
+const jwt = require('jsonwebtoken');
 async function modifyProgramsCollection() {
   console.log(`Starting migration for collection: programs`);
   await dbClient.connect();
@@ -309,21 +309,19 @@ async function modifyProgramsCollection() {
   const identifier = getArgValue('identifier');
   const password = getArgValue('password');
   const origin = getArgValue('origin');
+  const token = getArgValue('token');
 
-  if (!origin || !domain || !identifier || !password || !tenantId) {
+  if (!tenantId  || !token || !domain) {
     console.error('❌ Missing required flags.');
     process.exit(1);
   }
 
-  const userInfo = await loginAsAdminAndGetToken(domain, identifier, password, origin);
+const result = isJwtValidWithoutSecret(token);
 
-  const token = userInfo?.access_token ?? null;
-
-  if (!token) {
-    console.error('❌ Failed to authenticate. Please check your credentials.');
-    process.exit(1);
-  }
-  console.log('✅ Authentication successful.');
+if (!result.valid) {
+  console.log(result.reason, '<---token validation failed');
+  process.exit(1);
+}
 
   const idPairs =
     projectServiceProgramId && surveyServiceProgramId
@@ -519,3 +517,29 @@ modifyProgramsCollection().catch((error) => {
   process.exit(1);
 });
 
+
+function isJwtValidWithoutSecret(token) {
+  try {
+    const decoded = jwt.decode(token, { complete: true });
+    if (!decoded) return { valid: false, reason: 'Invalid token format' };
+
+    const now = Math.floor(Date.now() / 1000);
+    const { exp, nbf, iat } = decoded.payload;
+
+    if (exp && now >= exp) {
+      return { valid: false, reason: 'Token expired' };
+    }
+
+    if (nbf && now < nbf) {
+      return { valid: false, reason: 'Token not yet active' };
+    }
+
+    if (iat && now < iat) {
+      return { valid: false, reason: 'Issued-at time is in the future' };
+    }
+
+    return { valid: true, payload: decoded.payload };
+  } catch (err) {
+    return { valid: false, reason: err.message };
+  }
+}
