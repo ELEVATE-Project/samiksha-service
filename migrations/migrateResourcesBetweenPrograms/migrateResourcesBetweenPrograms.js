@@ -101,8 +101,6 @@ const {
   pushCompletedSurveySubmissionToKafka,
   pushInCompletedObservationSubmissionToKafka,
   pushInCompletedSurveySubmissionToKafka,
-  projectServiceProgramUpdate,
-  projectServiceProgramDetails
 } = require('../migrationUtils/helper');
 
 const fs = require('fs');
