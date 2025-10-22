@@ -443,11 +443,11 @@ module.exports = class criteriaHelper {
    * @param {Object} userDetails - Information about the user performing duplication.
    * @param {string} programId - External program ID associated with the duplication.
    * @param {boolean} isExternalProgram - Flag to check if the program is external.
-   *
+   * @param {String} entityTypeForImps - entity type for improvement projects.
    * @returns {Object}  old and new Mapped criteria id Object .
    */
 
-  static duplicate(themes = [],tenantData,userDetails,programId,isExternalProgram) {
+  static duplicate(themes = [],tenantData,userDetails,programId,isExternalProgram,entityTypeForImps) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!themes.length) {
@@ -532,7 +532,8 @@ module.exports = class criteriaHelper {
                 projectTemplateExternalIds,
                 userDetails,
                 programId,
-                isExternalProgram
+                isExternalProgram,
+                entityTypeForImps
               );
 
                // childProjectTemplates = {
