@@ -188,102 +188,6 @@ async function pushCompletedSurveySubmissionToKafka(id, token, DOMAIN, completed
     });
   });
 }
-const projectServiceProgramUpdate = function ({
-  projectServiceUrl,
-  userToken,
-  programId,
-  payload = {},
-  tenantInfo,
-  INTERNAL_ACCESS_TOKEN,
-  PROJECT_SERVICE_NAME,
-  ADMIN_AUTH_TOKEN
-}) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let url = `${projectServiceUrl}/${PROJECT_SERVICE_NAME}${PROGRAM_UPDATE}/${programId}`;
-
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          'internal-access-token': INTERNAL_ACCESS_TOKEN,
-          ...tenantInfo,
-          'admin-auth-token': ADMIN_AUTH_TOKEN,
-        },
-        json: { ...payload },
-      };
-
-      if (userToken) {
-        options.headers['X-auth-token'] = userToken;
-      }
-
-      request.post(url, options, projectServiceCallback);
-
-      let result = { success: true };
-
-      function projectServiceCallback(err, data) {
-        if (err) {
-          result.success = false;
-        } else {
-          let response = data.body;
-          if (typeof response !== 'object') response = JSON.parse(response);
-          result = response;
-          if (result.status === 200) return resolve(result);
-          result.success = false;
-        }
-        return resolve(result);
-      }
-
-      setTimeout(() => resolve({ success: false }), 5000);
-    } catch (error) {
-      return reject(error);
-    }
-  });
-};
-
-const projectServiceProgramDetails = function ({userToken, programId, payload = {},PROJECT_SERVICE_NAME,INTERNAL_ACCESS_TOKEN}) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let url = `${projectServiceUrl}/${PROJECT_SERVICE_NAME}${EXTERNAL_PROGRAM_READ}/${programId}`;
-      
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          'internal-access-token': INTERNAL_ACCESS_TOKEN,
-        },
-        json: {  ...payload },
-      };
-
-      if (userToken) {
-        options.headers['X-auth-token'] = userToken;
-      }
-
-      request.get(url, options, projectServiceCallback);
-
-      let result = { success: true };
-
-      function projectServiceCallback(err, data) {
-        
-        if (err) {
-          result.success = false;
-        } else {
-          let response = data.body;
-
-          
-
-          if (typeof response !== 'object') response = JSON.parse(response);
-          result = response;
-          if (result.status === 200) return resolve(result);
-          result.success = false;
-        }
-        return resolve(result);
-      }
-
-      setTimeout(() => resolve({ success: false }), 5000);
-    } catch (error) {
-      return reject(error);
-    }
-  });
-};
 
 module.exports = {
   pushCompletedObservationSubmissionToKafka,
@@ -291,6 +195,4 @@ module.exports = {
   loginAsAdminAndGetToken,
   pushInCompletedObservationSubmissionToKafka,
   pushInCompletedSurveySubmissionToKafka,
-  projectServiceProgramUpdate,
-  projectServiceProgramDetails
 };
