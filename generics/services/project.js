@@ -332,11 +332,11 @@ const pullSolutionsFromProgramComponents = function (solutionId,tenantId) {
  * @param {Object} userDetails - Information about the user making the request.
  * @param {string} programId - External ID of the program.
  * @param {boolean} isExternalProgram - Whether the program is external (true/false).
- *
+ * @param {string} entityType - The type of entity (e.g., "state" or "school").
  * @returns {Promise<Object>} Resolves with the API response if successful,
  *                            or with `{ success: false }` in case of errors or timeouts.
  */
-const createChildProjectTemplate = function (projectTemplateExternalIds,userDetails,programId,isExternalProgram) {
+const createChildProjectTemplate = function (projectTemplateExternalIds,userDetails,programId,isExternalProgram,entityType) {
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -347,7 +347,7 @@ const createChildProjectTemplate = function (projectTemplateExternalIds,userDeta
       let IsExternalProgramFalse = !isExternalProgram;
       
       // Construct the URL for the project service
-      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${IsExternalProgramFalse}`;
+      let url = `${projectServiceUrl}${process.env.PROJECT_SERVICE_NAME}${messageConstants.endpoints.CREATE_CHILD_PROJECT_TEMPLATE}?programExternalId=${programId}&isExternalProgram=${IsExternalProgramFalse}&entityType=${entityType}`;
 
       // Setup request options (headers + body)
       const options = {
