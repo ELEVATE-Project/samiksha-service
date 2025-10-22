@@ -108,7 +108,7 @@ const {
 const fs = require('fs');
 const { randomUUID } = require('crypto');
 let orgId = null;
-const jwt = require('jsonwebtoken');
+
 async function modifyProgramsCollection() {
   console.log(`Starting migration for collection: programs`);
   await dbClient.connect();
@@ -309,19 +309,24 @@ async function modifyProgramsCollection() {
   const identifier = getArgValue('identifier');
   const password = getArgValue('password');
   const origin = getArgValue('origin');
-  const token = getArgValue('token');
+  const projectDBName = getArgValue('projectdb');
+  const projectDb = dbClient.db(projectDBName)
 
-  if (!tenantId  || !token || !domain) {
+
+  if (!origin || !domain || !identifier || !password || !tenantId || !projectDBName) {
     console.error('❌ Missing required flags.');
     process.exit(1);
   }
 
-const result = isJwtValidWithoutSecret(token);
+  const userInfo = await loginAsAdminAndGetToken(domain, identifier, password, origin);
 
-if (!result.valid) {
-  console.log(result.reason, '<---token validation failed');
-  process.exit(1);
-}
+  const token = userInfo?.access_token ?? null;
+
+  if (!token) {
+    console.error('❌ Failed to authenticate. Please check your credentials.');
+    process.exit(1);
+  }
+  console.log('✅ Authentication successful.');
 
   const idPairs =
     projectServiceProgramId && surveyServiceProgramId
@@ -343,6 +348,7 @@ if (!result.valid) {
     console.log(`\n🔄 Starting migration for Old ID: ${projectProgramId} to New ID: ${surveyProgramId}`);
 
     //let programDocument = await programDetails(undefined, projectProgramId, undefined, { tenantId });
+   /*
     let programDocument = await projectServiceProgramDetails({
       userToken:undefined,
       programId:projectProgramId,
@@ -352,8 +358,18 @@ if (!result.valid) {
       PROJECT_SERVICE_NAME:projectServiceSubDomain,
       INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN
     });
+    */
 
-    if (!programDocument || !programDocument?.result) {
+    let programDocument = await projectServiceProgramDetailsViaDBCall({
+      dbConnection:projectDb,
+      collectionName:'programs',
+      filter:{
+        _id:new ObjectId(projectProgramId),
+        tenantId:tenantId
+      }
+    });
+
+    if (!programDocument || !programDocument?.success || programDocument?.records.length <= 0) {
       console.error('❌ Program not found with given id');
       migrationResults.push({
         oldProgramId:  surveyProgramId,
@@ -363,7 +379,9 @@ if (!result.valid) {
       return;
     }
 
-    programDocument = programDocument.result;
+    programDocument = programDocument.records[0];
+
+    console.log(programDocument,'pgmdocument')
 
     orgId = programDocument.orgId;
 
@@ -480,6 +498,7 @@ if (!result.valid) {
           ...solutionIds.filter((solId) => !currentComponents.includes(solId)), // Add only the ones not in currentComponents
         ];
 
+        /*
         let result = await projectServiceProgramUpdate({
           projectServiceUrl,
           userToken:token,
@@ -492,12 +511,40 @@ if (!result.valid) {
             orgId
           },
           INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN,
-          PROJECT_SERVICE_NAME:projectServiceSubDomain
+          PROJECT_SERVICE_NAME:projectServiceSubDomain,
+          ADMIN_AUTH_TOKEN:process.env.ADMIN_ACCESS_TOKEN
         });
 
         if(result.status == 200){
           console.log('program components updated successfully in project service...')
+        }else {
+          console.log("programs component update failed...")
+          console.log(result,'result')
         }
+
+      */
+
+      newComponent = newComponent.map((currentComponent)=>{
+          try{
+            return new ObjectId(currentComponent)
+          }catch(er){
+            return currentComponent;
+          }
+        })
+
+        let result = await projectServiceProgramUpdateViaDBCall({
+          dbConnection:projectDb,
+          collectionName:'programs',
+          filter:{
+            _id:new ObjectId(programId)
+          },
+          setObject:{
+            components:newComponent
+          }
+        });
+
+        require('fs').writeFileSync('programUpdate'+Date.now()+'.json',JSON.stringify(result));
+
 
         // You can now safely use programId and solutionIds
       } else {
@@ -518,28 +565,41 @@ modifyProgramsCollection().catch((error) => {
 });
 
 
-function isJwtValidWithoutSecret(token) {
-  try {
-    const decoded = jwt.decode(token, { complete: true });
-    if (!decoded) return { valid: false, reason: 'Invalid token format' };
 
-    const now = Math.floor(Date.now() / 1000);
-    const { exp, nbf, iat } = decoded.payload;
+async function projectServiceProgramDetailsViaDBCall({ dbConnection, collectionName, filter, projection }) {
 
-    if (exp && now >= exp) {
-      return { valid: false, reason: 'Token expired' };
-    }
+try{
+  const records = await dbConnection
+    .collection(collectionName)
+    .find({...filter})
+    .toArray();
 
-    if (nbf && now < nbf) {
-      return { valid: false, reason: 'Token not yet active' };
-    }
 
-    if (iat && now < iat) {
-      return { valid: false, reason: 'Issued-at time is in the future' };
-    }
+  return {success:true,records};
+}catch(err){
+  return {success:false}
+}
 
-    return { valid: true, payload: decoded.payload };
-  } catch (err) {
-    return { valid: false, reason: err.message };
-  }
+}
+
+
+async function projectServiceProgramUpdateViaDBCall({ dbConnection, collectionName, filter, setObject }) {
+
+try{
+
+  console.log({ dbConnection, collectionName, filter, setObject },'<--******update object*******')
+     let updateOperation =  await dbConnection.collection(collectionName).updateOne(
+        { ...filter },
+        {
+          $set: {
+            ...setObject
+          },
+        }
+      );
+
+  return updateOperation;
+}catch(err){
+  return false;
+}
+
 }
