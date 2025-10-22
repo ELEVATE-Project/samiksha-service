@@ -230,7 +230,7 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
             });
           }
         }
-        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData,userDetails,programId,newSolutionDocument.isExternalProgram);
+        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData,userDetails,programId,newSolutionDocument.isExternalProgram,newSolutionDocument.entityType);
         if (!duplicateCriteriasResponse.success) {
           throw {
             message: duplicateCriteriasResponse.message ,
