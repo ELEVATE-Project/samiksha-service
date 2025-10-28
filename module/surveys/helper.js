@@ -989,7 +989,7 @@ module.exports = class SurveysHelper {
             programDocument = programDocument.data.data;
           }
         }
-
+        console.log(programDocument, "PPPPPPPPPPP*************&&&&&&&&&&&&&\n")
         let solutionDocumentFieldList = await this.solutionDocumentFieldListInResponse();
 
         let result = {};
