@@ -7128,7 +7128,7 @@ paths:
       summary: List all the available categories.
     parameters: &ref_8
       - name: categoryId
-        in: path
+        in: query
         required: true
         schema:
           type: string
@@ -8108,13 +8108,13 @@ paths:
         information by passing its valid externalId.
     parameters:
       - name: externalId
-        in: path
+        in: query
         required: true
         schema:
           type: string
         description: ''
-      - name: Boolean
-        in: path
+      - name: frameworkIdExists
+        in: query
         required: true
         schema:
           type: string
