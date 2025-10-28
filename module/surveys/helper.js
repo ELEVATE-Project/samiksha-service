@@ -969,7 +969,7 @@ module.exports = class SurveysHelper {
                 message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
               };
             }
-            programDocument = [_.pick(programDocument.result, ['_id', 'externalId', 'name', 'description'])];
+            programDocument = [_.pick(programDocument.result, ['_id', 'externalId', 'name', 'description', 'orgId'])];
           } else {
             /*
                 arguments passed to programsHelper.list() are:
@@ -981,7 +981,7 @@ module.exports = class SurveysHelper {
               */
             programDocument = await programsHelper.list(
               programQueryObject,
-              ['externalId', 'name', 'description', 'imageCompression', 'isAPrivateProgram'],
+              ['externalId', 'name', 'description', 'imageCompression', 'isAPrivateProgram', 'orgId'],
               '',
               '',
               ''
