@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "6d5c95b2-5212-469c-9517-a7ebec0c0233",
+		"_postman_id": "04340839-998e-4bb6-840e-52a9b4efdc6f",
 		"name": "Samiksha Service",
 		"description": "This API collection serves the Survey Service, covering both Observations and Surveys. It provides various endpoints for managing and interacting with surveys and observations, along with comprehensive report generation functionalities.\n\nObservations:\nObservations with Rubric: Allows assessment based on predefined rubrics.\nObservations without Rubric: Flexible observations without structured rubrics.\nReports:\nSurvey Reports: Generate detailed reports based on survey submissions.\nObservation Reports: Includes:\nEntity Reports: Focuses on specific entities being observed.\nInstance Reports: Provides detailed information on specific instances of observation.\nPDF Reports: Available for both entity and instance reports.\nThis API collection supports essential workflows such as criteria upload, observation submission, report generation, and program management. It simplifies the process of collecting, managing, and analyzing data for both surveys and observations.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -51,6 +51,178 @@
 										"v1",
 										"criteria",
 										"upload"
+									]
+								},
+								"description": "The Upload Criteria API allows users to upload a CSV file containing information about the criteria used to observe or evaluate an entity. Each record in the CSV should include a criteriaId, criteriaName, type, and other relevant information. The API processes this file, validates the data, and stores the criteria details in the system for further use in reports and evaluations."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "x-auth-token",
+												"value": "<string>",
+												"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+											},
+											{
+												"key": "Content-Type",
+												"value": "multipart/form-data"
+											},
+											{
+												"key": "Accept",
+												"value": "text/plain"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "criteria",
+													"type": "file",
+													"src": []
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/criteria/upload",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"criteria",
+												"upload"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										},
+										{
+											"key": "Server",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Date",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-Type",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Connection",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-disposition",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": "<string>"
+								}
+							]
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "<string>",
+										"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+									},
+									{
+										"key": "Content-Type",
+										"value": "multipart/form-data"
+									},
+									{
+										"key": "Accept",
+										"value": "text/plain"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "criteria",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/criteria/update?externalId={externalId}&frameworkIdExists={Boolean}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"criteria",
+										"update"
+									],
+									"query": [
+										{
+											"key": "externalId",
+											"value": "{externalId}"
+										},
+										{
+											"key": "frameworkIdExists",
+											"value": "{Boolean}"
+										}
 									]
 								},
 								"description": "The Upload Criteria API allows users to upload a CSV file containing information about the criteria used to observe or evaluate an entity. Each record in the CSV should include a criteriaId, criteriaName, type, and other relevant information. The API processes this file, validates the data, and stores the criteria details in the system for further use in reports and evaluations."
@@ -367,14 +539,13 @@
 									}
 								],
 								"body": {
-									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "framework",
-											"type": "file",
-											"src": []
+									"mode": "raw",
+									"raw": "{\n    \"categories\":[\"test_green_school_yojane_03_556\",\"test_green_school_yojane_03_556733\",\"test\"]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
 										}
-									]
+									}
 								},
 								"url": {
 									"raw": "{{baseUrl}}/v1/observations/importFromFramework?frameworkId=<string>&entityType=<string>",
@@ -1286,6 +1457,349 @@
 									"body": "{}"
 								}
 							]
+						},
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "<string>",
+										"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"role\": \"HM\",\n    \"state\": \"236f5cff-c9af-4366-b0b6-253a1789766a\",\n    \"district\": \"1dcbc362-ec4c-4559-9081-e0c2864c2931\",\n    \"school\": \"c5726207-4f9f-4f45-91f1-3e9e8e84d824\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/observationSubmissions/create/{observationId}?entityId={entityId}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"observationSubmissions",
+										"create",
+										"{observationId}"
+									],
+									"query": [
+										{
+											"key": "entityId",
+											"value": "{entityId}"
+										}
+									]
+								},
+								"description": "The Observation Submission API is used to submit answers to a questionnaire for a specific observation. By providing the observation_id and the corresponding answers, this API updates the answers in the database.\n\n\nRequest Parameters:\nobservation_id (required): The ID of the observation for which answers are being submitted.\nanswers (required): A collection of answers corresponding to the questionnaire questions. This should be structured according to the format specified in the questionnaire.\n\n\n"
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "x-auth-token",
+												"value": "<string>",
+												"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/observationSubmissions/update/:observationSubmissionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"observationSubmissions",
+												"update",
+												":observationSubmissionId"
+											],
+											"variable": [
+												{
+													"key": "observationSubmissionId"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-Type",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-Length",
+											"value": "<integer>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "ETag",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Date",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Connection",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								}
+							]
+						},
+						{
+							"name": "solutionList",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "<string>",
+										"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n     \"role\" : \"HM\",\n   \t\t\"state\" : \"236f5cff-c9af-4366-b0b6-253a1789766a\",\n      \"district\" : \"1dcbc362-ec4c-4559-9081-e0c2864c2931\",\n      \"school\" : \"c5726207-4f9f-4f45-91f1-3e9e8e84d824\"\n    }",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/observationSubmissions/solutionList",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"observationSubmissions",
+										"solutionList"
+									]
+								},
+								"description": "The Observation Submission API is used to submit answers to a questionnaire for a specific observation. By providing the observation_id and the corresponding answers, this API updates the answers in the database.\n\n\nRequest Parameters:\nobservation_id (required): The ID of the observation for which answers are being submitted.\nanswers (required): A collection of answers corresponding to the questionnaire questions. This should be structured according to the format specified in the questionnaire.\n\n\n"
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "x-auth-token",
+												"value": "<string>",
+												"description": "Every request to the API requires an x-auth-token in the header for authentication. This token is generated when a user logs in and must be included in each subsequent request to verify the user’s session and permissions."
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/observationSubmissions/update/:observationSubmissionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"observationSubmissions",
+												"update",
+												":observationSubmissionId"
+											],
+											"variable": [
+												{
+													"key": "observationSubmissionId"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-Type",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Content-Length",
+											"value": "<integer>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "ETag",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Date",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Connection",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								}
+							]
 						}
 					]
 				},
@@ -1500,7 +2014,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{}",
+									"raw": "{\n    \"name\": \"survey support test\",\n    \"description\": \"This is Testing for survey upload\",\n    \"externalId\": \"a383af8d-7e4e-4c3b-a79d-ccf2bd14de515\",\n    \"author\": \"\",\n    \"startDate\": \"2022-04-29T13:57:28.259Z\",\n    \"endDate\": \"2024-05-02T12:00:00.259Z\",\n    \"linkTitle\": \"\",\n    \"linkUrl\": \"\",\n    \"status\": \"active\",\n    \"categories\":[\"test_green_school_yojane_03_556\",\"test_green_school_yojane_03_5567\",\"test\"]\n}",
 									"options": {
 										"raw": {
 											"headerFamily": "json",
@@ -2018,7 +2532,12 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "<string>"
+									"raw": "{\n  \"createdFor\": [],\n  \"rootOrganisations\": [],\n  \"programExternalId\": \"PISA test-1598030013395\",\n  \"entities\": [\n    \"5f33c3d85f637784791cd830\"\n  ],\n  \"entityType\": \"school\",\n  \"externalId\": \"TN-Program-1597301830742\",\n  \"name\": \"Improvement Project 3\",\n  \"description\": \"Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities.\",\n  \"subType\": \"observation\",\n  \"type\": \"observation\",\n  \"excludeScope\": false,\n  \"isReusable\": false,\n  \"isAPrivateProgram\": false,\n  \"scope\": {\n    \"district\": [\n      \"67c82d37bad58c889bc5a5de\"\n    ]\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "{{baseUrl}}/v1/solutions/create",
@@ -2104,7 +2623,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{}",
+									"raw": "{\n  \"externalId\": \"Dev\",\n  \"name\": \"dev_testing\",\n  \"description\": \"dev testing\"\n}",
 									"options": {
 										"raw": {
 											"headerFamily": "json",
@@ -2206,63 +2725,6 @@
 							]
 						},
 						{
-							"name": "details",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/v1/solutions/details/:solutionId",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"solutions",
-										"details",
-										":solutionId"
-									],
-									"variable": [
-										{
-											"key": "solutionId"
-										}
-									]
-								},
-								"description": "This API retrieves the details of a specific solution using the solutionId. It provides comprehensive information about the solution, including its status, categories, tasks, and associated resources.\n\n\nresponse example:\n\n{\n  \"message\": \"Successfully fetched details\",\n  \"status\": 200,\n  \"result\": {\n    \"_id\": \"5f97d2f6bf3a3b1c0116c80a\",\n    \"status\": \"published\",\n    \"isDeleted\": false,\n    \"categories\": [\n      {\n        \"_id\": \"5f102331665bee6a740714e8\",\n        \"name\": \"Teachers\",\n        \"externalId\": \"teachers\"\n      },\n      {\n        \"name\": \"newCategory\",\n        \"externalId\": \"\",\n        \"_id\": \"\"\n      }\n    ],\n    \"tasks\": [\n      {\n        \"_id\": \"289d9558-b98f-41cf-81d3-92486f114a49\",\n        \"name\": \"Task 1\",\n        \"description\": \"Task 1 description\",\n        \"status\": \"notStarted\",\n        \"isACustomTask\": false,\n        \"startDate\": \"2020-09-29T09:08:41.667Z\",\n        \"endDate\": \"2020-09-29T09:08:41.667Z\",\n        \"lastModifiedAt\": \"2020-09-29T09:08:41.667Z\",\n        \"type\": \"single\",\n        \"isDeleted\": false,\n        \"attachments\": [\n          {\n            \"name\": \"download(2).jpeg\",\n            \"type\": \"image/jpeg\",\n            \"sourcePath\": \"projectId/userId/imageName\"\n          }\n        ],\n        \"remarks\": \"Tasks completed\",\n        \"assignee\": \"Aman\",\n        \"children\": [\n          {\n            \"_id\": \"289d9558-b98f-41cf-81d3-92486f114a50\",\n            \"name\": \"Task 2\",\n            \"description\": \"Task 2 description\",\n            \"status\": \"notStarted\",\n            \"children\": [],\n            \"isACustomTask\": false,\n            \"startDate\": \"2020-09-29T09:08:41.667Z\",\n            \"endDate\": \"2020-09-29T09:08:41.667Z\",\n            \"lastModifiedAt\": \"2020-09-29T09:08:41.667Z\",\n            \"type\": \"single\",\n            \"isDeleted\": false,\n            \"externalId\": \"task 2\",\n            \"isDeleteable\": false,\n            \"createdAt\": \"2020-10-28T05:58:24.907Z\",\n            \"updatedAt\": \"2020-10-28T05:58:24.907Z\",\n            \"isImportedFromLibrary\": false\n          }\n        ],\n        \"externalId\": \"task 1\",\n        \"isDeleteable\": false,\n        \"createdAt\": \"2020-10-28T05:58:24.907Z\",\n        \"updatedAt\": \"2020-10-28T05:58:24.907Z\",\n        \"isImportedFromLibrary\": false\n      }\n    ],\n    \"resources\": [],\n    \"deleted\": false,\n    \"__v\": 0,\n    \"description\": \"Project 1 description\"\n  }\n}\n"
-							},
-							"response": [
-								{
-									"name": "200 response",
-									"originalRequest": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{baseUrl}}/v1/solutions/details/:solutionId",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"solutions",
-												"details",
-												":solutionId"
-											],
-											"variable": [
-												{
-													"key": "solutionId"
-												}
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "text",
-									"header": [],
-									"cookie": [],
-									"body": ""
-								}
-							]
-						},
-						{
 							"name": "targetedSolutions",
 							"request": {
 								"method": "POST",
@@ -2283,7 +2745,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{}",
+									"raw": "{\n  \"scope\": {\n    \"district\": [\n      \"67c82d37bad58c889bc5a5de\"\n    ]\n  }\n}",
 									"options": {
 										"raw": {
 											"headerFamily": "json",
@@ -2424,7 +2886,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{}",
+									"raw": "{\n  \"scope\": {\n    \"state\": [\n      \"67c82d37bad58c889bc5a5de\"\n    ]\n  }\n}",
 									"options": {
 										"raw": {
 											"headerFamily": "json",
@@ -2623,7 +3085,12 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "<string>"
+									"raw": "{\n  \"evidenceMethods\": {\n    \"OB\": {\n      \"externalId\": \"OB\",\n      \"tip\": null,\n      \"name\": \"Observation\",\n      \"description\": null,\n      \"modeOfCollection\": \"onfield\",\n      \"canBeNotApplicable\": false,\n      \"notApplicable\": false,\n      \"canBeNotAllowed\": false,\n      \"remarks\": null\n    }\n  },\n  \"sections\": {\n    \"S1\": \"Observation Question\"\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "{{baseUrl}}/v1/solutions/update/:solutionId",
@@ -2644,60 +3111,7 @@
 								},
 								"description": "~~~~ The Solution Update API is used to update information related to a solution, such as the evidence upload method or other details. This allows users to modify existing solution configurations to reflect changes in how evidence is collected or to update other solution-specific information."
 							},
-							"response": [
-								{
-									"name": "Successful response",
-									"originalRequest": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "x-auth-token",
-												"value": "<string>"
-											},
-											{
-												"key": "Content-Type",
-												"value": "*/*"
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "<string>"
-										},
-										"url": {
-											"raw": "{{baseUrl}}/v1/solutions/update/:solutionId",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"solutions",
-												"update",
-												":solutionId"
-											],
-											"variable": [
-												{
-													"key": "solutionId"
-												}
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "json",
-									"header": [
-										{
-											"key": "Content-Type",
-											"value": "application/json"
-										}
-									],
-									"cookie": [],
-									"body": ""
-								}
-							]
+							"response": []
 						},
 						{
 							"name": "getDetails",
@@ -2720,7 +3134,12 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "<string>"
+									"raw": "{\n  \"programExternalId\": \"MAHARASTHA-AUTO-TARGETING\",\n  \"entityType\": \"school\",\n  \"externalId\": \"SCOPE_MAHARASTHA_SURVEY\",\n  \"name\": \"Survey testing\",\n  \"description\": \"Improvement project test solution\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "{{baseUrl}}/v1/solutions/getDetails/:solutionId",
@@ -3322,10 +3741,15 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "<string>"
+									"raw": "{\n  \"scope\": {\n    \"district\": [\n      \"67c82d37bad58c889bc5a5de\"\n    ]\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/v1/solutions/details/:solution-id",
+									"raw": "{{baseUrl}}/v1/solutions/details/:solutionId",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -3333,11 +3757,12 @@
 										"v1",
 										"solutions",
 										"details",
-										":solution-id"
+										":solutionId"
 									],
 									"variable": [
 										{
-											"key": "solution-id"
+											"key": "solutionId",
+											"value": ""
 										}
 									]
 								},
@@ -4747,7 +5172,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
+									"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -4796,7 +5221,7 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>&pdf=<boolean>",
+											"raw": "{{baseUrl}}/v1/reports/submissionReport?submissionId=<string>",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -5034,7 +5459,7 @@
 					"name": "userExtension",
 					"item": [
 						{
-							"name": "Bulkupload",
+							"name": "bulkUpload",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -5148,9 +5573,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{SamikshaUrl}}/v1/admin/createIndex/programs",
+									"raw": "{{baseUrl}}/v1/admin/createIndex/programs",
 									"host": [
-										"{{SamikshaUrl}}"
+										"{{baseUrl}}"
 									],
 									"path": [
 										"v1",
@@ -5194,9 +5619,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{SamikshaUrl}}/v1/admin/createIndex/deleteResource/_id?type=program",
+									"raw": "{{baseUrl}}/v1/admin/createIndex/deleteResource/_id?type=program",
 									"host": [
-										"{{SamikshaUrl}}"
+										"{{baseUrl}}"
 									],
 									"path": [
 										"v1",
@@ -5216,6 +5641,417 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "libraryCategories",
+					"item": [
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJSbTBGOTlnMnd4SmZKelJwa2YzTnRlaE5CYlJnZXRCaCJ9.CjDN6GufxylpAM5J_6j9fD0wq7S2qr1F6FOzAZtQ6XU",
+										"disabled": true
+									},
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "admin-auth-token",
+										"value": "N0DM5NAwwCN5KNXKJwlwu6c0nQQt6Rcl",
+										"disabled": true
+									},
+									{
+										"key": "tenantId",
+										"value": "shikshalokam",
+										"disabled": true
+									},
+									{
+										"key": "orgid",
+										"value": "SLOrg",
+										"disabled": true
+									},
+									{
+										"key": "visibleToOrganizations",
+										"value": "SLOrg,SoT",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{   \n    \"name\": \"Test courses2\",\n    \"description\": \"Summa ulalali.\"\n    \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/library/categories/update",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"library",
+										"categories",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "surveysList",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/v1/library/surveys/list",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"library",
+										"surveys",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "list",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{   \n    \"externalId\": \"test_green_school_yojane_03_556789\",\n    \"name\": \"Test courses\",\n    \"description\": \"Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities.\"\n    \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/library/categories/list",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"library",
+										"categories",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "import",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"state\": \"67c82d0c538125889163f197\",\n    \"district\": \"67c82d37bad58c889bc5a5de\",\n    \"block\": \"67c82d7abad58c889bc5a643\",\n    \"cluster\": \"67c82d53538125889163f3cd\",\n    \"school\": \"67c82d985381258891643d0b\",\n    \"professional_role\": \"681b076ef21c88cef9517e0a\",\n    \"professional_subroles\": \"681b0894f21c88cef9517e12,681b0a369c57cdcf03c79ae7,681b0af29c57cdcf03c79aeb,6822fd5f4e2812081f342608,6822fdd94e2812081f34260f,6822fdf64e2812081f342613,6822fe0d4e2812081f342617,6822fe2a4e2812081f34261b,6822fe4d4e2812081f34261f,6822fe774e2812081f342623\",\n    \"organizations\": \"[object Object]\",\n    \"programName\": \"test\",\n    \"solutionName\": \"test123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/library/observations/import/{_id}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"library",
+										"observations",
+										"import",
+										"{_id}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "observationsList",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/v1/library/observations/list?categoryId=test_green_school_yojane_03_556",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"library",
+										"observations",
+										"list"
+									],
+									"query": [
+										{
+											"key": "categoryId",
+											"value": "test_green_school_yojane_03_556"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "organizationExtension",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJSbTBGOTlnMnd4SmZKelJwa2YzTnRlaE5CYlJnZXRCaCJ9.CjDN6GufxylpAM5J_6j9fD0wq7S2qr1F6FOzAZtQ6XU",
+										"disabled": true
+									},
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "admin-auth-token",
+										"value": "N0DM5NAwwCN5KNXKJwlwu6c0nQQt6Rcl",
+										"disabled": true
+									},
+									{
+										"key": "tenantId",
+										"value": "shikshalokam",
+										"disabled": true
+									},
+									{
+										"key": "orgid",
+										"value": "SLOrg",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{   \n    \"externalId\": \"test_green_school_yojane_03_556789\",\n    \"name\": \"Test courses\",\n    \"description\": \"Leveraging the huge number of private schools to show the significance of the financial problem by creating a petition and presenting to the authorities.\",\n    \"tenant_code\":\"shikshagraha\",\n    \"code\":\"blr\"\n    \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/organizationExtension/create",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"organizationExtension",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJSbTBGOTlnMnd4SmZKelJwa2YzTnRlaE5CYlJnZXRCaCJ9.CjDN6GufxylpAM5J_6j9fD0wq7S2qr1F6FOzAZtQ6XU",
+										"disabled": true
+									},
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "admin-auth-token",
+										"value": "N0DM5NAwwCN5KNXKJwlwu6c0nQQt6Rcl",
+										"disabled": true
+									},
+									{
+										"key": "tenantId",
+										"value": "shikshagraha",
+										"disabled": true
+									},
+									{
+										"key": "orgid",
+										"value": "SLOrg",
+										"disabled": true
+									},
+									{
+										"key": "visibleToOrganizations",
+										"value": "SLOrg,SoT"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{   \n    \"observationResourceVisibilityPolicy\": \"ALL\"    \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/organizationExtension/update/689c4b1d3752d47770713d97",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"organizationExtension",
+										"update",
+										"689c4b1d3752d47770713d97"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "userController",
+					"item": [
+						{
+							"name": "deleteUserPIIData",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-auth-token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\":1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/usersController/deleteUserPIIData",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"usersController",
+										"deleteUserPIIData"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
@@ -5223,7 +6059,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://{{samikshaurl}}"
+			"value": "http://{{baseUrl}}"
 		}
 	]
 }

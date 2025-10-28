@@ -1253,11 +1253,10 @@ module.exports = class Solutions extends Abstract {
    * @apiParam {String} solutionId Solution External ID.
    * @apiParamExample {json} Request-Body:
    * {
-   * "externalId": ""
-   * "name": "",
-   * "description": ""
-   * "programExternalId": ""
-   * }
+    "externalId": "Dev",
+    "name": "dev_testing",
+    "description": "dev testing"
+    }
    * @apiSampleRequest /samiksha/v1/solutions/importFromSolution?solutionId=Mantra-STL-2019-001
    * @apiUse successBody
    * @apiUse errorBody
