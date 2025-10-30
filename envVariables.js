@@ -422,6 +422,11 @@ let enviromentVariables = {
     optional: true,
     default: 'elevate_user_account_event_listener',
   },
+  SERVICE_NAME_HEALTH_CHECK: {
+    message: 'Required SERVICE_NAME_HEALTH_CHECK',
+    optional: true,
+    default: 'SamikshaService',
+  },
 };
 
 let success = true;
