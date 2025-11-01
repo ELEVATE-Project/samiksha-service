@@ -2804,7 +2804,6 @@ module.exports = class ObservationsHelper {
         }
 
         let solutionEntityType = solutionDocument[0].entityType;
-        let topLevelEntityId = bodyData[topLevelEntityType];
 
         let tenantDetails = await userService.fetchPublicTenantDetails(tenantData.tenantId);
         if (!tenantDetails.success || !tenantDetails?.data?.meta) {
@@ -2834,42 +2833,45 @@ module.exports = class ObservationsHelper {
           .flatMap((key) => bodyData[key].split(',').map((role) => role.trim()));
 
         let entityTypeArr = [];
+        // if roles are not found in the request body send error
+        if (!roles.length > 0) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+          };
+        }
+        // make a single call to entity service to fetch all role details
 
-        for (let roleIndex = 0; roleIndex < roles.length; roleIndex++) {
-          let rolesDocumentAPICall = await entityManagementService.entityDocuments(
-            {
-              _id: roles[roleIndex],
-              tenantId: solutionDocument[0].tenantId,
-              orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
-            },
-            ['metaInformation.targetedEntityTypes']
-          );
+        let rolesDocumentAPICall = await entityManagementService.entityDocuments(
+          {
+            _id: { $in: roles },
+            tenantId: solutionDocument[0].tenantId,
+            orgIds: { $in: ['ALL', solutionDocument[0].orgId] },
+          },
+          ['metaInformation.targetedEntityTypes']
+        );
 
-          if (
-            rolesDocumentAPICall?.success &&
-            Array.isArray(rolesDocumentAPICall.data) &&
-            rolesDocumentAPICall.data[0]?.metaInformation?.targetedEntityTypes &&
-            rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes.length > 0
-          ) {
-            let targetedEntityTypes = rolesDocumentAPICall.data[0].metaInformation.targetedEntityTypes;
-            for (let entityTypeData of targetedEntityTypes) {
-              if (!entityTypeData.entityType) {
-                throw {
-                  status: httpStatusCode.bad_request.status,
-                  message: messageConstants.apiResponses.INVALID_ENTITY_TYPE,
-                };
-              }
-              entityTypeArr.push(entityTypeData.entityType);
+        // From all the user role data fetched, aggregate all valid entity types for the user roles into a single array
+        let entityTypesForUserRoles = [];
+        rolesDocumentAPICall.data.forEach((roleDoc) => {
+          const targetedEntityTypes = roleDoc?.metaInformation?.targetedEntityTypes || [];
+          targetedEntityTypes.forEach((entityObj) => {
+            if (entityObj?.entityType) {
+              entityTypesForUserRoles.push(entityObj.entityType);
             }
-          } else {
-            throw {
-              status: httpStatusCode.bad_request.status,
-              message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
-            };
-          }
+          });
+        });
+
+        // if there is no valid entity type found for user roles, throw error
+        if (!entityTypesForUserRoles.length > 0) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+          };
         }
 
-        const uniqueEntityTypeArr = _.uniq(entityTypeArr);
+        // check if solution entity type is present in the user roles valid entity types array
+        const uniqueEntityTypeArr = _.uniq(entityTypesForUserRoles);
         if (uniqueEntityTypeArr.includes(solutionEntityType)) {
           resolve({
             success: true,
@@ -3097,20 +3099,18 @@ module.exports = class ObservationsHelper {
             result: result,
           };
 
-          if(newBaseSolution.categories && newBaseSolution.categories.length > 0){
+          if (newBaseSolution.categories && newBaseSolution.categories.length > 0) {
             let categories = newBaseSolution.categories.map((category) => {
-              return category._id
-            })
-             await libraryCategoriesQueries.updateMany(
+              return category._id;
+            });
+            await libraryCategoriesQueries.updateMany(
               {
                 _id: { $in: categories },
               },
               {
                 $inc: { noOfSolutions: 1 },
-              },
-      
-            )
-          
+              }
+            );
           }
 
           return resolve(response);
