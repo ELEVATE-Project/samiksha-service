@@ -2851,6 +2851,19 @@ module.exports = class ObservationsHelper {
           ['metaInformation.targetedEntityTypes']
         );
 
+        // if no user role data found throw error immediately
+        if (
+          !rolesDocumentAPICall.success ||
+          !rolesDocumentAPICall.data ||
+          !Array.isArray(rolesDocumentAPICall.data) ||
+          !rolesDocumentAPICall.data.length > 0
+        ) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.USER_ROLES_NOT_FOUND,
+          };
+        }
+
         // From all the user role data fetched, aggregate all valid entity types for the user roles into a single array
         let entityTypesForUserRoles = [];
         rolesDocumentAPICall.data.forEach((roleDoc) => {
