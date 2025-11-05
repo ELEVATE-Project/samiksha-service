@@ -5,7 +5,6 @@
  * Description : Solution related helper functionality.
  */
 
-
 //Dependencies
 const userExtensionHelper = require(MODULES_BASE_PATH + '/userExtension/helper');
 const programsHelper = require(MODULES_BASE_PATH + '/programs/helper');
@@ -19,13 +18,12 @@ const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const entityManagementService = require(ROOT_PATH + '/generics/services/entity-management');
 const userService = require(ROOT_PATH + '/generics/services/users');
 const projectService = require(ROOT_PATH + '/generics/services/project');
-const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSolutionUtilities')
+const programSolutionUtility = require(ROOT_PATH + '/generics/helpers/programSolutionUtilities');
 const surveyHelperUtils = require(ROOT_PATH + '/generics/helpers/surveyUtils');
 const assessmentsHelper = require(MODULES_BASE_PATH + '/assessments/helper');
-const solutionsUtils = require("../../generics/helpers/solutionsUtils");
-const moment = require('moment-timezone'); 
+const solutionsUtils = require('../../generics/helpers/solutionsUtils');
+const moment = require('moment-timezone');
 const organizationExtensionQueries = require(DB_QUERY_BASE_PATH + '/organizationExtension');
-
 
 /**
  * SolutionsHelper
@@ -72,8 +70,8 @@ module.exports = class SolutionsHelper {
               'scope',
               'endDate',
               'startDate',
-              "externalId",
-              "components"
+              'externalId',
+              'components',
             ]);
             if (!programData.length) {
               throw {
@@ -182,18 +180,29 @@ module.exports = class SolutionsHelper {
             let currentComponents = programData[0]?.components || [];
             await programsQueries.findOneAndUpdate(
               { _id: solutionData.programId },
-              { $addToSet: { components: {_id:solutionCreation._id,order:currentComponents.length+1} } }
+              { $addToSet: { components: { _id: solutionCreation._id, order: currentComponents.length + 1 } } }
             );
-          }else if(solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project'){
-              //call project service to update program components
-              let newprogramDocument = await projectService.programDetails(userToken,solutionData.programId,userDetails,tenantData);
-              let currentComponents = newprogramDocument?.result.components || [];
-              let programUpdateStatus = await projectService.programUpdate(userToken, programData[0]._id,{components:[{_id:solutionCreation._id,order:currentComponents.length + 1}]},tenantData, userDetails);
-              if( !programUpdateStatus || !programUpdateStatus.success) {
-                throw {
-                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
-                };
-              }
+          } else if (solutionData?.isExternalProgram == true && solutionData?.referenceFrom !== 'project') {
+            //call project service to update program components
+            let newprogramDocument = await projectService.programDetails(
+              userToken,
+              solutionData.programId,
+              userDetails,
+              tenantData
+            );
+            let currentComponents = newprogramDocument?.result.components || [];
+            let programUpdateStatus = await projectService.programUpdate(
+              userToken,
+              programData[0]._id,
+              { components: [{ _id: solutionCreation._id, order: currentComponents.length + 1 }] },
+              tenantData,
+              userDetails
+            );
+            if (!programUpdateStatus || !programUpdateStatus.success) {
+              throw {
+                message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
+              };
+            }
           }
         }
         // adding scope to the solution document
@@ -647,7 +656,7 @@ module.exports = class SolutionsHelper {
         }
 
         delete filterQuery['scope.entityType'];
-        filterQuery.tenantId = data.tenantId
+        filterQuery.tenantId = data.tenantId;
         return resolve({
           success: true,
           data: filterQuery,
@@ -677,7 +686,16 @@ module.exports = class SolutionsHelper {
    * @returns {JSON} - List of solutions based on role and location.
    */
 
-  static forUserRoleAndLocation(bodyData, type, subType = '', programId, pageSize, pageNo, searchText = '',additionalFilters = {}) {
+  static forUserRoleAndLocation(
+    bodyData,
+    type,
+    subType = '',
+    programId,
+    pageSize,
+    pageNo,
+    searchText = '',
+    additionalFilters = {}
+  ) {
     return new Promise(async (resolve, reject) => {
       try {
         //Getting query based on roles and entity
@@ -714,8 +732,8 @@ module.exports = class SolutionsHelper {
           matchQuery['programId'] = new ObjectId(programId);
         }
         matchQuery['startDate'] = { $lte: new Date() };
-        
-        matchQuery = {...matchQuery, ...additionalFilters};
+
+        matchQuery = { ...matchQuery, ...additionalFilters };
         //listing the solution based on type and query
         let targetedSolutions = await this.list(type, subType, matchQuery, pageNo, pageSize, searchText, [
           'name',
@@ -733,8 +751,8 @@ module.exports = class SolutionsHelper {
           'entityType',
           'certificateTemplateId',
           'status',
-          "linkUrl",
-					"linkTitle"
+          'linkUrl',
+          'linkTitle',
         ]);
         return resolve({
           success: true,
@@ -758,19 +776,24 @@ module.exports = class SolutionsHelper {
    * @param {String} programId -  programId.
    * @param {String} solutionId - solution id.
    * @param {Object} scopeData - scope data.
-	 * @param {Object} userDetails - loggedin user info
+   * @param {Object} userDetails - loggedin user info
    * @param {Object} solutionDocument - solutionDetails
    * @returns {JSON} - scope in solution.
    */
 
-  static setScope(programId, solutionId, scopeData, userDetails,solutionDocument) {
+  static setScope(programId, solutionId, scopeData, userDetails, solutionDocument) {
     return new Promise(async (resolve, reject) => {
       try {
         // Getting program documents
         let programData;
         if (programId) {
-           if(solutionDocument?.isExternalProgram){
-            programData = await projectService.programDetails(userDetails.userToken, programId, userDetails,userDetails.tenantAndOrgInfo);
+          if (solutionDocument?.isExternalProgram) {
+            programData = await projectService.programDetails(
+              userDetails.userToken,
+              programId,
+              userDetails,
+              userDetails.tenantAndOrgInfo
+            );
             if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -778,9 +801,7 @@ module.exports = class SolutionsHelper {
               };
             }
             programData = [programData.result];
-
-           }else{
-             
+          } else {
             programData = await programsQueries.programDocuments({ _id: programId }, ['_id', 'scope']);
 
             if (!(programData.length > 0)) {
@@ -789,8 +810,7 @@ module.exports = class SolutionsHelper {
                 message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
               });
             }
-           }
-        
+          }
         }
         // Getting solution document to set the scope
         let solutionData = await solutionsQueries.solutionDocuments({ _id: solutionId }, ['_id']);
@@ -813,31 +833,30 @@ module.exports = class SolutionsHelper {
             userDetails.tenantAndOrgInfo.tenantId,
             userDetails.userToken,
             true
-          )
+          );
           if (!validOrgs.success) {
             throw {
               success: false,
               status: httpStatusCodes['bad_request'].status,
               message: messageConstants.apiResponses.ORG_DETAILS_FETCH_UNSUCCESSFUL_MESSAGE,
-            }
+            };
           }
-          validOrgs = validOrgs.data
-          validOrgs = validOrgs.map((org) => org.toLowerCase())
-          scopeData.organizations = scopeData.organizations.map((id) => id.toLowerCase())
-          
+          validOrgs = validOrgs.data;
+          validOrgs = validOrgs.map((org) => org.toLowerCase());
+          scopeData.organizations = scopeData.organizations.map((id) => id.toLowerCase());
 
           // filter valid orgs
           scopeData.organizations = scopeData.organizations.filter(
             (id) => validOrgs.includes(id) || id.toLowerCase() == messageConstants.common.ALL
-          )
+          );
         } else {
-          scopeData['organizations'] = userDetails.tenantAndOrgInfo.orgId
+          scopeData['organizations'] = userDetails.tenantAndOrgInfo.orgId;
         }
 
         if (Array.isArray(scopeData.organizations)) {
-          scopeData.organizations = scopeData.organizations.map(orgId =>
+          scopeData.organizations = scopeData.organizations.map((orgId) =>
             orgId === messageConstants.common.ALL ? 'ALL' : orgId
-          )
+          );
         }
 
         //if program documents has scope update the scope in solution document
@@ -847,7 +866,6 @@ module.exports = class SolutionsHelper {
           let solutionScope = scopeData;
           // Usage
           scopeData = filterSolutionScope(programScope, solutionScope);
-
         }
         // if (validateEntity !== messageConstants.common.OFF) {
         // if (Object.keys(scopeData).length > 0) {
@@ -978,15 +996,13 @@ module.exports = class SolutionsHelper {
 
         let tenantDetails = await userService.fetchPublicTenantDetails(userDetails.tenantAndOrgInfo.tenantId);
         if (!tenantDetails.data || !tenantDetails.data.meta || tenantDetails.success !== true) {
-          throw ({
+          throw {
             message: messageConstants.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS,
-          });
+          };
         }
         let tenantPublicDetailsMetaField = tenantDetails.data.meta;
-        
+
         let filteredScope = gen.utils.getFilteredScope(scopeData, tenantPublicDetailsMetaField);
-        
-        
 
         const updateObject = {
           $set: {},
@@ -1068,7 +1084,11 @@ module.exports = class SolutionsHelper {
         }
 
         // Getting solution document to update based on solution id
-        let solutionDocument = await solutionsQueries.solutionDocuments(queryObject, ['_id', 'programId',"isExternalProgram"]);
+        let solutionDocument = await solutionsQueries.solutionDocuments(queryObject, [
+          '_id',
+          'programId',
+          'isExternalProgram',
+        ]);
         if (!(solutionDocument.length > 0)) {
           return resolve({
             status: httpStatusCode.bad_request.status,
@@ -1083,9 +1103,13 @@ module.exports = class SolutionsHelper {
           (solutionData.hasOwnProperty('endDate') || solutionData.hasOwnProperty('endDate'))
         ) {
           let programData;
-           if( solutionDocument[0].isExternalProgram ){
-             
-            programData = await projectService.programDetails(userDetails.userToken, solutionDocument[0].programId, userDetails,tenantData);
+          if (solutionDocument[0].isExternalProgram) {
+            programData = await projectService.programDetails(
+              userDetails.userToken,
+              solutionDocument[0].programId,
+              userDetails,
+              tenantData
+            );
             if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -1093,21 +1117,21 @@ module.exports = class SolutionsHelper {
               };
             }
             programData = [programData.result];
-           }else{
-             // getting program document to update start and end date
-             programData = await programsQueries.programDocuments(
-             {
-              _id: solutionDocument[0].programId,
-              tenantId: tenantData.tenantId,
-             },
-             ['_id', 'endDate', 'startDate']
+          } else {
+            // getting program document to update start and end date
+            programData = await programsQueries.programDocuments(
+              {
+                _id: solutionDocument[0].programId,
+                tenantId: tenantData.tenantId,
+              },
+              ['_id', 'endDate', 'startDate']
             );
             if (!(programData.length > 0)) {
               throw {
-               message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+                message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
               };
-           }
-         }
+            }
+          }
           if (solutionData.hasOwnProperty('endDate')) {
             solutionData.endDate = gen.utils.getEndDate(solutionData.endDate, timeZoneDifference);
             if (solutionData.endDate > programData[0].endDate) {
@@ -1141,7 +1165,7 @@ module.exports = class SolutionsHelper {
           updateObject['$set'][updationData] = solutionUpdateData[updationData];
         });
         updateObject['$set']['updatedBy'] = userId;
-        if(!solutionUpdateData['status']){
+        if (!solutionUpdateData['status']) {
           updateObject['$set']['status'] = messageConstants.common.ACTIVE_STATUS;
         }
         //updating solution document
@@ -1161,7 +1185,6 @@ module.exports = class SolutionsHelper {
 
         // If req body has scope to update for the solution document
         if (solutionData.scope && Object.keys(solutionData.scope).length > 0) {
-
           let solutionScope = await this.setScope(
             solutionUpdatedData.programId,
             solutionUpdatedData._id,
@@ -1899,7 +1922,7 @@ module.exports = class SolutionsHelper {
    * @returns {Array} - Solution templates lists.
    */
 
-  static templates(type, searchText, limit, page, userId, token,categoryId,userDetails) {
+  static templates(type, searchText, limit, page, userId, token, categoryId, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
         let matchQuery = {};
@@ -1910,13 +1933,12 @@ module.exports = class SolutionsHelper {
         };
 
         //Adding query based on tenantId
-        matchQuery['$match']['tenantId'] = userDetails.tenantData.tenantId
-
+        matchQuery['$match']['tenantId'] = userDetails.tenantData.tenantId;
 
         //Add orgPolicies changes
         // Query to get the orgExtension document
         let orgExtensionFilter = {
-          tenantId:userDetails.tenantData.tenantId,
+          tenantId: userDetails.tenantData.tenantId,
           orgId: userDetails.tenantData.orgId,
         };
 
@@ -1932,35 +1954,43 @@ module.exports = class SolutionsHelper {
           });
         }
         organizationExtensionDocuments = organizationExtensionDocuments[0];
-         //get orgPolicy based on solutionType from orgExtension
-         let orgPolicies = type === messageConstants.common.OBSERVATION ? organizationExtensionDocuments?.externalObservationResourceVisibilityPolicy : organizationExtensionDocuments?.externalSurveyResourceVisibilityPolicy
-         let visibilityQuery =[]
-         // Generate a Query based on policies
-         switch (orgPolicies) {
+        //get orgPolicy based on solutionType from orgExtension
+        let orgPolicies =
+          type === messageConstants.common.OBSERVATION
+            ? organizationExtensionDocuments?.externalObservationResourceVisibilityPolicy
+            : organizationExtensionDocuments?.externalSurveyResourceVisibilityPolicy;
+        let visibilityQuery = [];
+        // Generate a Query based on policies
+        switch (orgPolicies) {
           case messageConstants.common.CURRENT:
-            matchQuery['$match']['orgId'] = userDetails.tenantData.orgId
-            break
+            matchQuery['$match']['orgId'] = userDetails.tenantData.orgId;
+            break;
           case messageConstants.common.ALL_POLICY:
             visibilityQuery = [
               { visibility: messageConstants.common.ALL_POLICY },
-              { visibility:{$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
-              { orgId: userDetails.tenantData.orgId }
+              {
+                visibility: { $ne: messageConstants.common.CURRENT },
+                visibleToOrganizations: { $in: [userDetails.tenantData.orgId] },
+              },
+              { orgId: userDetails.tenantData.orgId },
             ];
-            break
+            break;
           case messageConstants.common.ASSOCIATED:
             visibilityQuery = [
-              { visibility: {$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
-              { orgId: userDetails.tenantData.orgId },      
-            ] 
-            break
-            default:
-               return resolve({
-                message: messageConstants.apiResponses.INVALID_POLICY,
-                result: [],
-                success:false
-               })
-         }
-       
+              {
+                visibility: { $ne: messageConstants.common.CURRENT },
+                visibleToOrganizations: { $in: [userDetails.tenantData.orgId] },
+              },
+              { orgId: userDetails.tenantData.orgId },
+            ];
+            break;
+          default:
+            return resolve({
+              message: messageConstants.apiResponses.INVALID_POLICY,
+              result: [],
+              success: false,
+            });
+        }
 
         if (type === messageConstants.common.OBSERVATION || type === messageConstants.common.SURVEY) {
           matchQuery['$match']['type'] = type;
@@ -1970,10 +2000,9 @@ module.exports = class SolutionsHelper {
         }
         //Adding query based on categoryId
         if (categoryId && categoryId !== '') {
-					matchQuery['$match']['categories.externalId'] = categoryId
-				}
-        
-        
+          matchQuery['$match']['categories.externalId'] = categoryId;
+        }
+
         if (process.env.USE_USER_ORGANISATION_ID_FILTER && process.env.USE_USER_ORGANISATION_ID_FILTER === 'ON') {
           let organisationAndRootOrganisation = await shikshalokamHelper.getUserOrganisation(token, userId);
 
@@ -1981,26 +2010,26 @@ module.exports = class SolutionsHelper {
             $in: organisationAndRootOrganisation.createdFor,
           };
         }
-        
-         let matchAndQuery = [];
-         // Add visibility OR block if it has conditions
-         if (visibilityQuery.length > 0) {
-          matchAndQuery.push({ $or: visibilityQuery });
-         }
 
-         // 2️⃣ Build search OR conditions
-         if (searchText && searchText.trim()) {
-            let searchOr = [
-              { name: new RegExp(searchText, 'i') },
-              { description: new RegExp(searchText, 'i') },
-              { keywords: new RegExp(searchText, 'i') }
-            ];
-            matchAndQuery.push({ $or: searchOr });
-          }
-        if (matchAndQuery.length >0){
-            matchQuery['$match'] ["$and"] =  matchAndQuery 
+        let matchAndQuery = [];
+        // Add visibility OR block if it has conditions
+        if (visibilityQuery.length > 0) {
+          matchAndQuery.push({ $or: visibilityQuery });
         }
-        let solutionDocument =  await this.search(matchQuery, limit, page, {
+
+        // 2️⃣ Build search OR conditions
+        if (searchText && searchText.trim()) {
+          let searchOr = [
+            { name: new RegExp(searchText, 'i') },
+            { description: new RegExp(searchText, 'i') },
+            { keywords: new RegExp(searchText, 'i') },
+          ];
+          matchAndQuery.push({ $or: searchOr });
+        }
+        if (matchAndQuery.length > 0) {
+          matchQuery['$match']['$and'] = matchAndQuery;
+        }
+        let solutionDocument = await this.search(matchQuery, limit, page, {
           name: 1,
           description: 1,
           externalId: 1,
@@ -2033,7 +2062,7 @@ module.exports = class SolutionsHelper {
       try {
         let solutionData = await solutionsQueries.solutionDocuments(
           { _id: solutionId, tenantId: tenantFilter.tenantId },
-          ['type', 'projectTemplateId', 'programId','isExternalProgram']
+          ['type', 'projectTemplateId', 'programId', 'isExternalProgram']
         );
 
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
@@ -2076,8 +2105,13 @@ module.exports = class SolutionsHelper {
         if (solutionData.programId) {
           // add ["rootOrganisations","requestForPIIConsent","programJoined"] values to response. Based on these values front end calls PII consent
           let programData;
-          if(solutionData.isExternalProgram){
-            programData = await projectService.programDetails(bodyData.userToken, solutionData.programId, bodyData,tenantFilter);
+          if (solutionData.isExternalProgram) {
+            programData = await projectService.programDetails(
+              bodyData.userToken,
+              solutionData.programId,
+              bodyData,
+              tenantFilter
+            );
             if (programData.status != httpStatusCode.ok.status || !programData?.result?._id) {
               throw {
                 status: httpStatusCode.bad_request.status,
@@ -2085,17 +2119,16 @@ module.exports = class SolutionsHelper {
               };
             }
             programData = [programData.result];
-          }else{
+          } else {
             // getting program document to update start and end date
-          programData = await programsQueries.programDocuments(
-            {
-              _id: solutionData.programId,
-              tenantId: tenantFilter.tenantId,
-            },
-            ['rootOrganisations', 'requestForPIIConsent', 'name']
-          );
-
-         }
+            programData = await programsQueries.programDocuments(
+              {
+                _id: solutionData.programId,
+                tenantId: tenantFilter.tenantId,
+              },
+              ['rootOrganisations', 'requestForPIIConsent', 'name']
+            );
+          }
 
           templateOrQuestionDetails.result.rootOrganisations = programData[0].rootOrganisations
             ? programData[0].rootOrganisations[0]
@@ -2243,17 +2276,17 @@ module.exports = class SolutionsHelper {
   ) {
     return new Promise(async (resolve, reject) => {
       try {
-          let duplicateSolutionDocument = await solutionsUtils.importFromSolution(  
-            solutionId,
-            programId,
-            userId,
-            data,
-            createdFor = '',
-            tenantData,
-            requestingUserAuthToken,
-            userDetails
-            )
-          return resolve(duplicateSolutionDocument);       
+        let duplicateSolutionDocument = await solutionsUtils.importFromSolution(
+          solutionId,
+          programId,
+          userId,
+          data,
+          (createdFor = ''),
+          tenantData,
+          requestingUserAuthToken,
+          userDetails
+        );
+        return resolve(duplicateSolutionDocument);
       } catch (error) {
         return reject(error);
       }
@@ -2271,7 +2304,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static fetchLink(solutionId, userId="", userToken="") {
+  static fetchLink(solutionId, userId = '', userToken = '') {
     return new Promise(async (resolve, reject) => {
       try {
         let solutionData = await solutionsQueries.solutionDocuments(
@@ -2310,51 +2343,50 @@ module.exports = class SolutionsHelper {
           // Prepare update object
           let updateData = { link: solutionLink };
 
-           if (userId && userToken) {
-              updateData.updatedBy = userId
-            }
+          if (userId && userToken) {
+            updateData.updatedBy = userId;
+          }
           // update link to the solution documents
           let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
             {
               _id: solutionId,
-              tenantId:  solution?.tenantId,
+              tenantId: solution?.tenantId,
             },
             updateData,
             { new: true }
           );
-  
-            if (!solutionUpdatedData._id) {
-              throw {
-                message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
-                status: httpStatusCode.bad_request.status,
-              };
-            }
+
+          if (!solutionUpdatedData._id) {
+            throw {
+              message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
+              status: httpStatusCode.bad_request.status,
+            };
+          }
         }
         // Generate link for each domain
-           // fetch tenant domain by calling  tenant details API
-           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
-           const domains = tenantDetailsResponse?.data?.domains || [];
-           // Error handling if API failed or no domains found
-           if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
-             throw {
-               status: httpStatusCode.bad_request.status,
-               message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
-             };
-           }
-   
-           // Collect all verified domains into an array
-           let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
-   
-           // Generate link for each domain
-            let links = allDomains.map((domain) => {
-             return _generateLink(
-               `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
-               prefix,
-               solutionLink,
-               solutionData[0].type
-             );
-           });
-     
+        // fetch tenant domain by calling  tenant details API
+        let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
+        const domains = tenantDetailsResponse?.data?.domains || [];
+        // Error handling if API failed or no domains found
+        if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.DOMAIN_FETCH_FAILED,
+          };
+        }
+
+        // Collect all verified domains into an array
+        let allDomains = domains.filter((domainObj) => domainObj.verified).map((domainObj) => domainObj.domain);
+
+        // Generate link for each domain
+        let links = allDomains.map((domain) => {
+          return _generateLink(
+            `https://${domain}${process.env.APP_PORTAL_DIRECTORY}`,
+            prefix,
+            solutionLink,
+            solutionData[0].type
+          );
+        });
 
         return resolve({
           success: true,
@@ -2387,17 +2419,16 @@ module.exports = class SolutionsHelper {
   static verifyLink(link = '', bodyData = {}, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
-        let {userId='', userToken='', tenantData} = userDetails;
+        let { userId = '', userToken = '', tenantData } = userDetails;
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
 
-				if (!verifySolution.success) {
-					throw {
-						status: httpStatusCode.bad_request.status,
-						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
-					}
-				}
-
+        // if (!verifySolution.success) {
+        //   throw {
+        //     status: httpStatusCode.bad_request.status,
+        //     message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
+        //   };
+        // }
 
         // Check targeted solution based on role and location
         let checkForTargetedSolution = await this.checkForTargetedSolution(
@@ -2407,13 +2438,19 @@ module.exports = class SolutionsHelper {
           userToken,
           tenantData
         );
+        console.log('checkForTargetedSolution', checkForTargetedSolution);
         if (!checkForTargetedSolution || Object.keys(checkForTargetedSolution.result).length <= 0) {
           return resolve(checkForTargetedSolution);
         }
 
         let solutionData = checkForTargetedSolution.result;
         let isSolutionActive = solutionData.status === messageConstants.common.INACTIVE_STATUS ? false : true;
+        console.log('isSolutionActive', isSolutionActive);
         if (solutionData.type == messageConstants.common.OBSERVATION) {
+          console.log(
+            'checkForTargetedSolution.result.isATargetedSolution',
+            checkForTargetedSolution.result.isATargetedSolution
+          );
           // Targeted solution
           if (checkForTargetedSolution.result.isATargetedSolution) {
             // Logic specific to "observation" solution type
@@ -2443,7 +2480,9 @@ module.exports = class SolutionsHelper {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
           } else if (checkForTargetedSolution.result.availableForPrivateConsumption) {
+            console.log('reached here +++++++++++++');
             if (!isSolutionActive) {
+              console.log('reached here -----------');
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
 
@@ -2506,7 +2545,7 @@ module.exports = class SolutionsHelper {
             } else if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
-          } else  if(checkForTargetedSolution.result.availableForPrivateConsumption) {
+          } else if (checkForTargetedSolution.result.availableForPrivateConsumption) {
             if (!isSolutionActive) {
               throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
             }
@@ -2589,10 +2628,17 @@ module.exports = class SolutionsHelper {
             isReusable: false,
             tenantId: tenantData.tenantId,
           },
-          ['type', 'status', 'endDate','startDate']
+          ['type', 'status', 'endDate', 'startDate']
         );
 
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
+          return resolve({
+            message: messageConstants.apiResponses.INVALID_LINK,
+            result: [],
+          });
+        }
+
+        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
           return resolve({
             message: messageConstants.apiResponses.INVALID_LINK,
             result: [],
@@ -2619,17 +2665,23 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-          return resolve({
-            message: messageConstants.apiResponses.INVALID_LINK,
-            result: [],
-          });
-        }
+        // if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+        //   return resolve({
+        //     message: messageConstants.apiResponses.INVALID_LINK,
+        //     result: [],
+        //   });
+        // }
 
         // check start date is greater than current date
-        if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
+        if (solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)) {
           return resolve({
-            message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
+            message:
+              messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET +
+              moment(solutionData[0].startDate)
+                .utc()
+                .utcOffset(timeZoneDifference)
+                .add(1, 'minute')
+                .format('ddd, D MMM YYYY, hh:mm A'),
             result: [],
           });
         }
@@ -2638,7 +2690,7 @@ module.exports = class SolutionsHelper {
         return resolve({
           message: messageConstants.apiResponses.LINK_VERIFIED,
           result: response,
-          success:true
+          success: true,
         });
       } catch (error) {
         return resolve({
@@ -2680,9 +2732,9 @@ module.exports = class SolutionsHelper {
           'programName',
           'status',
           'availableForPrivateConsumption',
-          'isExternalProgram'
+          'isExternalProgram',
         ]);
-
+        console.log('solutionDetails', solutionDetails);
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
         let queryData = await this.queryBasedOnRoleAndLocation(bodyData);
@@ -2691,14 +2743,17 @@ module.exports = class SolutionsHelper {
         }
         queryData.data['link'] = link;
         let matchQuery = queryData.data;
+        delete matchQuery.status;
+        console.log('matchQuery', matchQuery);
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, [
           '_id',
           'link',
           'type',
           'programId',
           'name',
-          'projectTemplateId'
+          'projectTemplateId',
         ]);
+        console.log('solutionData', solutionData);
         // Check the user is targeted to the solution or not
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
           response.solutionId = solutionDetails[0]._id;
@@ -2707,8 +2762,8 @@ module.exports = class SolutionsHelper {
           response.programId = solutionDetails[0].programId;
           response.programName = solutionDetails[0].programName;
           response.status = solutionDetails[0].status;
-					response.availableForPrivateConsumption = solutionDetails[0].availableForPrivateConsumption ?? false //obs/survey will not be available for private consumption by default
-					response.isExternalProgram = solutionDetails[0].isExternalProgram ?? false
+          response.availableForPrivateConsumption = solutionDetails[0].availableForPrivateConsumption ?? false; //obs/survey will not be available for private consumption by default
+          response.isExternalProgram = solutionDetails[0].isExternalProgram ?? false;
 
           return resolve({
             success: true,
@@ -2749,7 +2804,7 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the private solution.
    */
 
-  static privateProgramAndSolutionDetails(solutionData, userId = '', tenantData,userDetails,userToken) {
+  static privateProgramAndSolutionDetails(solutionData, userId = '', tenantData, userDetails, userToken) {
     return new Promise(async (resolve, reject) => {
       try {
         // Check if a private program and private solution already exist or not for this user.
@@ -2760,7 +2815,7 @@ module.exports = class SolutionsHelper {
             type: solutionData.type,
             isAPrivateProgram: true,
           },
-          ['_id', 'programId', 'programName','isExternalProgram']
+          ['_id', 'programId', 'programName', 'isExternalProgram']
         );
 
         if (!(privateSolutionDetails.length > 0)) {
@@ -2825,7 +2880,7 @@ module.exports = class SolutionsHelper {
    * @returns {Array} - Created user program and solution.
    */
 
-  static createProgramAndSolution(userId, data, createADuplicateSolution = '', tenantData,userDetails,userToken) {
+  static createProgramAndSolution(userId, data, createADuplicateSolution = '', tenantData, userDetails, userToken) {
     return new Promise(async (resolve, reject) => {
       try {
         let userPrivateProgram = {};
@@ -2837,14 +2892,14 @@ module.exports = class SolutionsHelper {
         if (data.programId && data.programId !== '') {
           let filterQuery = {
             _id: data.programId,
-            tenantId: tenantData.tenantId
+            tenantId: tenantData.tenantId,
           };
 
           if (createADuplicateSolution === false) {
             filterQuery.createdBy = userId;
           }
 
-          let checkforProgramExist = []
+          let checkforProgramExist = [];
           if (data.isExternalProgram) {
             const programResponse = await projectService.programDetails(
               userToken,
@@ -2863,7 +2918,6 @@ module.exports = class SolutionsHelper {
           } else {
             checkforProgramExist = await programsQueries.programDocuments(filterQuery, 'all', ['__v']);
           }
-
 
           if (!(checkforProgramExist.length > 0)) {
             return resolve({
@@ -2895,7 +2949,7 @@ module.exports = class SolutionsHelper {
             if (checkforProgramExist[0].hasOwnProperty('requestForPIIConsent')) {
               duplicateProgram.requestForPIIConsent = checkforProgramExist[0].requestForPIIConsent;
             }
-            duplicateProgram.tenantData = {}
+            duplicateProgram.tenantData = {};
             duplicateProgram.tenantData.tenantId = tenantData.tenantId;
             duplicateProgram.tenantData.orgId = [tenantData.orgId];
             userPrivateProgram = await programsHelper.create(_.omit(duplicateProgram, ['_id', 'components', 'scope']));
@@ -2928,15 +2982,15 @@ module.exports = class SolutionsHelper {
           programData.tenantData = {};
           programData.tenantData.tenantId = tenantData.tenantId;
           programData.tenantData.orgId = [tenantData.orgId];
-          programData.scope= data.scope
-          if(data.isExternalProgram){
-            programData['requestForPIIConsent'] = true
-            userPrivateProgram = await projectService.createProgram(programData,userDetails);
-          }else{
-            userPrivateProgram = await programsHelper.create(programData ,true,userDetails);
+          programData.scope = data.scope;
+          if (data.isExternalProgram) {
+            programData['requestForPIIConsent'] = true;
+            userPrivateProgram = await projectService.createProgram(programData, userDetails);
+          } else {
+            userPrivateProgram = await programsHelper.create(programData, true, userDetails);
           }
         }
-        
+
         if (!userPrivateProgram._id) {
           return resolve({
             status: httpStatusCode['bad_request'].status,
@@ -3005,30 +3059,27 @@ module.exports = class SolutionsHelper {
           //   solutionDataToBeUpdated['entities'] = entitiesData;
           // }
         }
-        
+
         // entities for new solution
 
-        if(data.entityType &&  data.entityType !== ''){
-          solutionDataToBeUpdated.entityType = data.entityType
+        if (data.entityType && data.entityType !== '') {
+          solutionDataToBeUpdated.entityType = data.entityType;
 
-          if(data.reqBody){
-              
-           let entityId = data.reqBody[`${data.entityType}`];
-           let filterData = {
-            _id: {$in:[entityId]},
-            tenantId:tenantData.tenantId,
-            // orgId: {$in:['ALL',tenantData.orgId]}
-           };
-         
-          //Retrieving the entity from the Entity Management Service
-           let entitiesDocument = await entityManagementService.entityDocuments(
-             filterData,["_id"]
-           );
-           if (entitiesDocument.success && entitiesDocument?.data?.length > 0) {
-            solutionDataToBeUpdated.entities = [entitiesDocument.data[0]._id];
+          if (data.reqBody) {
+            let entityId = data.reqBody[`${data.entityType}`];
+            let filterData = {
+              _id: { $in: [entityId] },
+              tenantId: tenantData.tenantId,
+              // orgId: {$in:['ALL',tenantData.orgId]}
+            };
+
+            //Retrieving the entity from the Entity Management Service
+            let entitiesDocument = await entityManagementService.entityDocuments(filterData, ['_id']);
+            if (entitiesDocument.success && entitiesDocument?.data?.length > 0) {
+              solutionDataToBeUpdated.entities = [entitiesDocument.data[0]._id];
+            }
           }
-          }
-         }
+        }
         //solution part
         let solution = '';
         if (data.solutionId && data.solutionId !== '') {
@@ -3052,7 +3103,7 @@ module.exports = class SolutionsHelper {
               'startDate',
               'endDate',
               'isReusable',
-              'entityType'
+              'entityType',
             ]
           );
 
@@ -3089,7 +3140,7 @@ module.exports = class SolutionsHelper {
             _.merge(duplicateSolution, solutionDataToBeUpdated);
             duplicateSolution.tenantId = tenantData.tenantId;
             duplicateSolution.orgId = tenantData.orgId;
-            duplicateSolution.isReusable =false;
+            duplicateSolution.isReusable = false;
             solution = await this.create(_.omit(duplicateSolution, ['_id', 'link']));
             parentSolutionInformation.solutionId = duplicateSolution._id;
             parentSolutionInformation.link = duplicateSolution.link;
@@ -3143,24 +3194,22 @@ module.exports = class SolutionsHelper {
           );
           _.merge(solutionDataToBeUpdated, createSolutionData);
           solutionDataToBeUpdated.tenantId = tenantData.tenantId;
-          solutionDataToBeUpdated.orgId = tenantData.orgId;       
+          solutionDataToBeUpdated.orgId = tenantData.orgId;
           solution = await this.create(solutionDataToBeUpdated);
         }
 
         if (solution && solution._id) {
           let length = userPrivateProgram.components ? userPrivateProgram.components.length : 0;
           // Add solution to the program components
-          if(data.isExternalProgram){
-            await projectService.ProgramUpdateForLibrary(
-              userToken,
-             userPrivateProgram._id ,
-             {components:[{_id:solution._id,order:length + 1}]}
-            );
-          }else{
+          if (data.isExternalProgram) {
+            await projectService.ProgramUpdateForLibrary(userToken, userPrivateProgram._id, {
+              components: [{ _id: solution._id, order: length + 1 }],
+            });
+          } else {
             await programsQueries.findOneAndUpdate(
               { _id: userPrivateProgram._id },
-              { $addToSet: { components: {"_id":new ObjectId(solution._id),order:length+1} } }
-            );            
+              { $addToSet: { components: { _id: new ObjectId(solution._id), order: length + 1 } } }
+            );
           }
         }
 
@@ -3214,7 +3263,7 @@ module.exports = class SolutionsHelper {
           return resolve(queryData);
         }
         queryData.data['_id'] = solutionId;
-        let matchQuery = queryData.data;    
+        let matchQuery = queryData.data;
         //Check solutions collection based on rolesandLocation query
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, ['_id', 'type', 'programId', 'name']);
 
@@ -4057,18 +4106,17 @@ module.exports = class SolutionsHelper {
    * @method
    * @name addEntitiesInScope
    * @param {String} solutionId - solution Id.
-	 * @param {Object} bodyData - body data.
-	 * @param {Object} userDetails - User Details
+   * @param {Object} bodyData - body data.
+   * @param {Object} userDetails - User Details
    * @returns {JSON} - Added entities data.
    */
 
   static addEntitiesInScope(solutionId, bodyData, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
-
         // Extract tenant and org IDs from user details
-        let tenantId = userDetails.tenantAndOrgInfo.tenantId
-        let orgId = userDetails.tenantAndOrgInfo.orgId[0]
+        let tenantId = userDetails.tenantAndOrgInfo.tenantId;
+        let orgId = userDetails.tenantAndOrgInfo.orgId[0];
 
         // Fetch the program document to ensure it exists and has a scope
         let solutionData = await solutionsQueries.solutionDocuments(
@@ -4087,7 +4135,7 @@ module.exports = class SolutionsHelper {
           return resolve({
             status: httpStatusCode.bad_request.status,
             message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
-            status: httpStatusCode.bad_request.status
+            status: httpStatusCode.bad_request.status,
           });
         }
         //Check if the solution is part of program or not
@@ -4096,59 +4144,59 @@ module.exports = class SolutionsHelper {
           programData = await programsQueries.programDocuments(
             {
               _id: solutionData[0].programId,
-              tenantId: tenantId
+              tenantId: tenantId,
             },
             ['scope']
           );
         }
 
         if (!programData.length > 0) {
-					throw({
-						status: httpStatusCode.bad_request.status,
-						message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
-					})
-				}
-      // This logic we need to re-look --------------------------------------------
-      // if (solutionData[0].scope !== programData[0].scope) {
-      // 	let checkEntityInParent = await entityManagementService.entityDocuments(
-      // 		{
-      // 			_id: programData[0].scope.entities,- state
-      // 			[`groups.${solutionData[0].scope.entityType}`]: entities,- district
-      // 		},
-      // 		['_id']
-      // 	)
-      // 	if (!checkEntityInParent.success) {
-      // 		throw {
-      // 			message: messageConstants.apiResponses.ENTITY_NOT_EXISTS_IN_PARENT,
-      // 		}
-      // 	}
-      // }
+          throw {
+            status: httpStatusCode.bad_request.status,
+            message: messageConstants.apiResponses.PROGRAM_NOT_FOUND,
+          };
+        }
+        // This logic we need to re-look --------------------------------------------
+        // if (solutionData[0].scope !== programData[0].scope) {
+        // 	let checkEntityInParent = await entityManagementService.entityDocuments(
+        // 		{
+        // 			_id: programData[0].scope.entities,- state
+        // 			[`groups.${solutionData[0].scope.entityType}`]: entities,- district
+        // 		},
+        // 		['_id']
+        // 	)
+        // 	if (!checkEntityInParent.success) {
+        // 		throw {
+        // 			message: messageConstants.apiResponses.ENTITY_NOT_EXISTS_IN_PARENT,
+        // 		}
+        // 	}
+        // }
 
         let updateObjectData = await programSolutionUtility.getUpdateObjectTOAddScope(
-					bodyData,
-					tenantId,
-					orgId,
-					userDetails
-				)
-				if (!updateObjectData?.success) {
-					throw {
-						message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
-						status: httpStatusCode.bad_request.status,
-					}
-				}
+          bodyData,
+          tenantId,
+          orgId,
+          userDetails
+        );
+        if (!updateObjectData?.success) {
+          throw {
+            message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
+            status: httpStatusCode.bad_request.status,
+          };
+        }
         // Setup for MongoDB update operation using $addToSet
-        
+
         let updateSolution = await solutionsQueries.updateSolutionDocument(
           {
             _id: solutionId,
           },
           updateObjectData.updateObject,
           { new: true }
-        )
+        );
         if (!updateSolution || !updateSolution._id) {
           throw {
             message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
-            status: httpStatusCode.bad_request.status
+            status: httpStatusCode.bad_request.status,
           };
         }
 
@@ -4254,19 +4302,18 @@ module.exports = class SolutionsHelper {
    * @method
    * @name removeEntitiesInScope
    * @param {String} solutionId - Program Id.
-	 * @param {Object} bodyData - body data.
-	 * @param {Object} userDetails - User Details
+   * @param {Object} bodyData - body data.
+   * @param {Object} userDetails - User Details
    * @returns {JSON} - Removed entities from solution scope.
    */
 
   static removeEntitiesInScope(solutionId, bodyData, userDetails) {
     return new Promise(async (resolve, reject) => {
       try {
-
         // Extract tenant and org IDs from userDetails
-        let tenantId = userDetails.tenantAndOrgInfo.tenantId
-        let orgId = userDetails.tenantAndOrgInfo.orgId[0]
-        const ALL_SCOPE_VALUE = messageConstants.common.ALL_SCOPE_VALUE
+        let tenantId = userDetails.tenantAndOrgInfo.tenantId;
+        let orgId = userDetails.tenantAndOrgInfo.orgId[0];
+        const ALL_SCOPE_VALUE = messageConstants.common.ALL_SCOPE_VALUE;
 
         // Fetch the solution to verify it exists and has a scope field
         let solutionData = await solutionsQueries.solutionDocuments(
@@ -4289,31 +4336,29 @@ module.exports = class SolutionsHelper {
         }
 
         // Initialize the update object to be used in MongoDB update query
-				const currentScope = solutionData[0].scope || {};
-				let updateObjectData = await programSolutionUtility.getUpdateObjectToRemoveScope(
-					currentScope,
-					bodyData,
-					tenantId,
-					userDetails
-				)
-				if (!updateObjectData?.success) {
-					throw {
-						message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
-						status: httpStatusCode.bad_request.status,
-					}
-				}
-
-				// Prepare update object
-				let updateObject = {
-					$set: {
-						scope: updateObjectData.updatedScope,
-					},
-				}
-        const updateSolution = await solutionsQueries.updateSolutionDocument(
-          { _id: solutionId },
-          updateObject,
-          { new: true }
+        const currentScope = solutionData[0].scope || {};
+        let updateObjectData = await programSolutionUtility.getUpdateObjectToRemoveScope(
+          currentScope,
+          bodyData,
+          tenantId,
+          userDetails
         );
+        if (!updateObjectData?.success) {
+          throw {
+            message: messageConstants.apiResponses.UPDATE_OBJECT_FAILED,
+            status: httpStatusCode.bad_request.status,
+          };
+        }
+
+        // Prepare update object
+        let updateObject = {
+          $set: {
+            scope: updateObjectData.updatedScope,
+          },
+        };
+        const updateSolution = await solutionsQueries.updateSolutionDocument({ _id: solutionId }, updateObject, {
+          new: true,
+        });
         if (!updateSolution || !updateSolution._id) {
           throw {
             message: messageConstants.apiResponses.SOLUTION_NOT_UPDATED,
@@ -4620,7 +4665,7 @@ function _createSolutionData(
 
 /**
  * Filters solutionScope based on programScope. Returns undefined for empty results or type mismatches.
- * 
+ *
  * @param {Array|Object|string} programScope - Reference scope for filtering
  * @param {Array|Object|string} solutionScope - Scope to be filtered
  * @returns {Array|Object|string|undefined} Filtered result or undefined to delete key
