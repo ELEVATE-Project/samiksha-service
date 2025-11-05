@@ -2390,13 +2390,15 @@ module.exports = class SolutionsHelper {
         let {userId='', userToken='', tenantData} = userDetails;
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
-
-				// if (!verifySolution.success) {
-				// 	throw {
-				// 		status: httpStatusCode.bad_request.status,
-				// 		message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
-				// 	}
-				// }
+        console.log("verifySolution",verifySolution)
+        // if link access is requested before start date return error
+				if (verifySolution.result && verifySolution.result.isValidStartDate === false) {
+          console.log("link start date expired")
+					throw {
+						status: httpStatusCode.bad_request.status,
+						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
+					}
+				}
 
 
         // Check targeted solution based on role and location
@@ -2410,8 +2412,9 @@ module.exports = class SolutionsHelper {
         if (!checkForTargetedSolution || Object.keys(checkForTargetedSolution.result).length <= 0) {
           return resolve(checkForTargetedSolution);
         }
-
+        console.log("checkForTargetedSolution",checkForTargetedSolution)
         let solutionData = checkForTargetedSolution.result;
+        console.log("solutionData",solutionData)
         let isSolutionActive = solutionData.status === messageConstants.common.INACTIVE_STATUS ? false : true;
         if (solutionData.type == messageConstants.common.OBSERVATION) {
           // Targeted solution
@@ -2435,7 +2438,7 @@ module.exports = class SolutionsHelper {
               // observation not found for this user
               observationDetailFromLink = null;
             }
-
+            console.log("createNewObservation observationDetailFromLink",observationDetailFromLink, isSolutionActive )
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
                 observationDetailFromLink._id != '' ? observationDetailFromLink._id : '';
@@ -2631,11 +2634,14 @@ module.exports = class SolutionsHelper {
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
             message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
-            result: [],
+            result: {
+              isValidStartDate: false
+            },
           });
         }
 
         response.verified = true;
+
         return resolve({
           message: messageConstants.apiResponses.LINK_VERIFIED,
           result: response,
@@ -2683,7 +2689,7 @@ module.exports = class SolutionsHelper {
           'availableForPrivateConsumption',
           'isExternalProgram'
         ]);
-
+        console.log("solutionDetails+++++++",solutionDetails)
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
         let queryData = await this.queryBasedOnRoleAndLocation(bodyData);
@@ -2692,15 +2698,19 @@ module.exports = class SolutionsHelper {
         }
         queryData.data['link'] = link;
         let matchQuery = queryData.data;
+        
         delete matchQuery.status;
+        console.log("matchQuery+++++++",matchQuery)
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, [
           '_id',
           'link',
           'type',
           'programId',
           'name',
+          'status',
           'projectTemplateId'
         ]);
+        console.log("solutionData+++++++",solutionData)
         // Check the user is targeted to the solution or not
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
           response.solutionId = solutionDetails[0]._id;
@@ -2724,6 +2734,7 @@ module.exports = class SolutionsHelper {
         response.solutionId = solutionData[0]._id;
         response.projectTemplateId = solutionDetails[0].projectTemplateId ? solutionDetails[0].projectTemplateId : '';
         response.programName = solutionDetails[0].programName;
+        response.status = solutionData[0].status;
         delete response._id;
 
         return resolve({
