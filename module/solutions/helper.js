@@ -3690,6 +3690,7 @@ module.exports = class SolutionsHelper {
             subType: 1,
             isReusable: 1,
             minNoOfSubmissionsRequired: 1,
+            allowMultipleAssessemts: 1
           };
         }
 

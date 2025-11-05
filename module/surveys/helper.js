@@ -1150,7 +1150,7 @@ module.exports = class SurveysHelper {
             submissionDocument.programInformation = programDocument[0];
           }
 
-          submissionDocument.orgId = roleInformation.orgId;
+          submissionDocument.orgId = roleInformation.orgId? roleInformation.orgId : roleInformation.organizations[0]
           submissionDocument.tenantId = roleInformation.tenantId;
           let submissionDoc = await database.models.surveySubmissions.create(submissionDocument);
 
