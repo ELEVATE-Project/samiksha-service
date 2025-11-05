@@ -2391,12 +2391,12 @@ module.exports = class SolutionsHelper {
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
 
-				if (!verifySolution.success) {
-					throw {
-						status: httpStatusCode.bad_request.status,
-						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
-					}
-				}
+				// if (!verifySolution.success) {
+				// 	throw {
+				// 		status: httpStatusCode.bad_request.status,
+				// 		message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
+				// 	}
+				// }
 
 
         // Check targeted solution based on role and location
@@ -2592,12 +2592,13 @@ module.exports = class SolutionsHelper {
           ['type', 'status', 'endDate','startDate']
         );
 
-        if (!Array.isArray(solutionData) || solutionData.length < 1) {
+        if (!Array.isArray(solutionData) || solutionData.length < 1 || solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
           return resolve({
             message: messageConstants.apiResponses.INVALID_LINK,
             result: [],
           });
         }
+         
 
         // if endDate less than current date change solution status to inActive
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
@@ -2619,12 +2620,12 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-          return resolve({
-            message: messageConstants.apiResponses.INVALID_LINK,
-            result: [],
-          });
-        }
+        // if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+        //   return resolve({
+        //     message: messageConstants.apiResponses.INVALID_LINK,
+        //     result: [],
+        //   });
+        // }
 
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
@@ -2691,6 +2692,7 @@ module.exports = class SolutionsHelper {
         }
         queryData.data['link'] = link;
         let matchQuery = queryData.data;
+        delete matchQuery.status;
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, [
           '_id',
           'link',
