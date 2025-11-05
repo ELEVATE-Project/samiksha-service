@@ -2689,8 +2689,11 @@ module.exports = class SolutionsHelper {
         }
         queryData.data['link'] = link;
         let matchQuery = queryData.data;
+        // Remove status from match query to get solution even though it is inactive- aim is to check if solution was targeted or not at any point in time 
+        if (matchQuery.status) {
+          delete matchQuery.status;
+        }
         
-        delete matchQuery.status;
         
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, [
           '_id',
