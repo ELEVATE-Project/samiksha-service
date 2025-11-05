@@ -2390,10 +2390,9 @@ module.exports = class SolutionsHelper {
         let {userId='', userToken='', tenantData} = userDetails;
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
-        console.log("verifySolution",verifySolution)
+        
         // if link access is requested before start date return error
 				if (verifySolution.result && verifySolution.result.isValidStartDate === false) {
-          console.log("link start date expired")
 					throw {
 						status: httpStatusCode.bad_request.status,
 						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
@@ -2412,9 +2411,8 @@ module.exports = class SolutionsHelper {
         if (!checkForTargetedSolution || Object.keys(checkForTargetedSolution.result).length <= 0) {
           return resolve(checkForTargetedSolution);
         }
-        console.log("checkForTargetedSolution",checkForTargetedSolution)
+
         let solutionData = checkForTargetedSolution.result;
-        console.log("solutionData",solutionData)
         let isSolutionActive = solutionData.status === messageConstants.common.INACTIVE_STATUS ? false : true;
         if (solutionData.type == messageConstants.common.OBSERVATION) {
           // Targeted solution
@@ -2438,7 +2436,7 @@ module.exports = class SolutionsHelper {
               // observation not found for this user
               observationDetailFromLink = null;
             }
-            console.log("createNewObservation observationDetailFromLink",observationDetailFromLink, isSolutionActive )
+           
             if (observationDetailFromLink) {
               checkForTargetedSolution.result['observationId'] =
                 observationDetailFromLink._id != '' ? observationDetailFromLink._id : '';
@@ -2623,13 +2621,6 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        // if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
-        //   return resolve({
-        //     message: messageConstants.apiResponses.INVALID_LINK,
-        //     result: [],
-        //   });
-        // }
-
         // check start date is greater than current date
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
@@ -2689,7 +2680,7 @@ module.exports = class SolutionsHelper {
           'availableForPrivateConsumption',
           'isExternalProgram'
         ]);
-        console.log("solutionDetails+++++++",solutionDetails)
+        
         bodyData.tenantId = tenantData.tenantId;
         bodyData.orgId = tenantData.orgId;
         let queryData = await this.queryBasedOnRoleAndLocation(bodyData);
@@ -2700,7 +2691,7 @@ module.exports = class SolutionsHelper {
         let matchQuery = queryData.data;
         
         delete matchQuery.status;
-        console.log("matchQuery+++++++",matchQuery)
+        
         let solutionData = await solutionsQueries.solutionDocuments(matchQuery, [
           '_id',
           'link',
@@ -2710,7 +2701,7 @@ module.exports = class SolutionsHelper {
           'status',
           'projectTemplateId'
         ]);
-        console.log("solutionData+++++++",solutionData)
+       
         // Check the user is targeted to the solution or not
         if (!Array.isArray(solutionData) || solutionData.length < 1) {
           response.solutionId = solutionDetails[0]._id;
