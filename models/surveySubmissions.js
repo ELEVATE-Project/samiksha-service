@@ -49,12 +49,12 @@ module.exports = {
     programInformation: Object,
     orgId: {
       type: String,
-      require: true,
+      required: true,
       index: true,
     },
     tenantId: {
       type: String,
-      require: true,
+      required: true,
       index: true,
     },
     project: Object,
