@@ -2390,15 +2390,14 @@ module.exports = class SolutionsHelper {
         let {userId='', userToken='', tenantData} = userDetails;
         // check solution document is exists and  end date validation
         let verifySolution = await this.verifySolutionDetails(link, userId, userToken, tenantData);
-        
-        // if link access is requested before start date return error
-				if (verifySolution.result && verifySolution.result.isValidStartDate === false) {
+       
+        // if link access is requested before start date return error or if solution not found return error
+        if (verifySolution.returnError) {
 					throw {
 						status: httpStatusCode.bad_request.status,
 						message: verifySolution.message ? verifySolution.message : messageConstants.apiResponses.INVALID_LINK,
 					}
 				}
-
 
         // Check targeted solution based on role and location
         let checkForTargetedSolution = await this.checkForTargetedSolution(
@@ -2592,14 +2591,21 @@ module.exports = class SolutionsHelper {
           },
           ['type', 'status', 'endDate','startDate']
         );
-
-        if (!Array.isArray(solutionData) || solutionData.length < 1 || solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
+        
+        if (!Array.isArray(solutionData) || solutionData.length < 1 ) {
+          return resolve({
+            message: messageConstants.apiResponses.NO_SOLUTION_FOUND_FOR_THE_LINK,
+            result: [],
+            returnError: true,
+          });
+        }
+         
+         if (solutionData[0].status !== messageConstants.common.ACTIVE_STATUS) {
           return resolve({
             message: messageConstants.apiResponses.INVALID_LINK,
             result: [],
           });
         }
-         
 
         // if endDate less than current date change solution status to inActive
         if (solutionData[0].endDate && new Date() > new Date(solutionData[0].endDate)) {
@@ -2625,9 +2631,8 @@ module.exports = class SolutionsHelper {
         if(solutionData[0].startDate && new Date() < new Date(solutionData[0].startDate)){
           return resolve({
             message: messageConstants.apiResponses.LINK_IS_NOT_ACTIVE_YET+moment(solutionData[0].startDate).utc().utcOffset(timeZoneDifference).add(1, "minute").format("ddd, D MMM YYYY, hh:mm A"),
-            result: {
-              isValidStartDate: false
-            },
+            result: [],
+            returnError: true
           });
         }
 
