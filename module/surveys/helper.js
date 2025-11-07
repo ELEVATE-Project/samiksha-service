@@ -785,7 +785,7 @@ module.exports = class SurveysHelper {
         );
 
         if (!solutionDocument.length) {
-          throw new Error(messageConstants.apiResponses.SOLUTION_NOT_FOUND);
+          throw new Error(messageConstants.apiResponses.NO_SOLUTION_FOUND_FOR_THE_LINK);
         }
 
         if (solutionDocument[0].startDate > new Date()) {
