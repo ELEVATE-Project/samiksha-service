@@ -1991,6 +1991,7 @@ module.exports = class ObservationsHelper {
             entities: entitiesList.data.entities,
             entityType: entitiesList.data.entityType,
             parentEntityKey: solutionData[0].parentEntityKey,
+            isSolutionActive: solutionData[0].status === messageConstants.common.ACTIVE_STATUS ? true : false
           },
         });
       } catch (error) {
