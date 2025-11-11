@@ -7,7 +7,6 @@
 
 module.exports = {
   name: process.env.SERVICE_NAME_HEALTH_CHECK,
-  version: '1.0.0',
   checks: {
     mongodb: {
       enabled: true,
