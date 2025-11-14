@@ -1,5 +1,6 @@
 const { validate: uuidValidate, v4: uuid } = require('uuid');
 const md5 = require('md5');
+const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 
 function camelCaseToTitleCase(in_camelCaseString) {
   var result = in_camelCaseString // "ToGetYourGEDInTimeASongAboutThe26ABCsIsOfTheEssenceButAPersonalIDCardForUser456InRoom26AContainingABC26TimesIsNotAsEasyAs123ForC3POOrR2D2Or2R2D"
@@ -658,6 +659,23 @@ function getFilteredScope(scopeData, tenantPublicDetailsMetaField) {
   return filteredScope;
 }
 
+async function updateSolution(solutionId) {
+  try{
+    const queryObj = {
+      _id : solutionId
+    }
+    const updateObj = {
+      $set : {
+        "status" : messageConstants.common.INACTIVE_STATUS
+      }
+    }
+    await solutionsQueries.updateSolutionDocument(queryObj, updateObj);
+  }
+  catch(error){
+    return error
+  }
+}
+
 module.exports = {
   camelCaseToTitleCase: camelCaseToTitleCase,
   lowerCase: lowerCase,
@@ -699,4 +717,5 @@ module.exports = {
   extractScopeFactors:extractScopeFactors,
   targetingQuery:targetingQuery,
   getFilteredScope:getFilteredScope,
+  updateSolution: updateSolution
 };

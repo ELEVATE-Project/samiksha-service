@@ -1978,21 +1978,53 @@ module.exports = class ObservationsHelper {
               _id: observationData[0].solutionId,
               tenantId: tenantData.tenantId,
             },
-            ['allowMultipleAssessemts', 'parentEntityKey']
+            ['allowMultipleAssessemts', 'parentEntityKey', 'status', 'endDate']
           );
+        }
+
+        let responseData = {
+          allowMultipleAssessemts: solutionData[0].allowMultipleAssessemts,
+          _id: observationId,
+          entities: entitiesList.data.entities,
+          entityType: entitiesList.data.entityType,
+          parentEntityKey: solutionData[0].parentEntityKey,
+          isSolutionActive: true
+        }
+
+        if(solutionData && (solutionData[0].status == messageConstants.common.INACTIVE_STATUS)){
+          responseData['isSolutionActive'] = false
+          return resolve({
+            success: false,
+            message: messageConstants.apiResponses.OBS_EXPIRED,
+            status : httpStatusCode['bad_request'].status,
+            data: responseData
+          })
+        }
+
+        if(solutionData &&  (solutionData[0].status == messageConstants.common.ACTIVE_STATUS) && (new Date().toISOString() > solutionData[0].endDate)){
+          responseData['isSolutionActive'] = false
+          await gen.utils.updateSolution(
+            {
+              _id : solutionData[0]._id
+            },                            // query object
+            {
+              $set : {
+                "status" : messageConstants.common.INACTIVE_STATUS
+              }
+            }                             // update object
+          )
+          return resolve({
+            success: false,
+            message: messageConstants.apiResponses.OBS_EXPIRED,
+            status : httpStatusCode['bad_request'].status,
+            data: responseData
+          })
         }
 
         return resolve({
           success: true,
           message: messageConstants.apiResponses.OBSERVATION_ENTITIES_FETCHED,
-          data: {
-            allowMultipleAssessemts: solutionData[0].allowMultipleAssessemts,
-            _id: observationId,
-            entities: entitiesList.data.entities,
-            entityType: entitiesList.data.entityType,
-            parentEntityKey: solutionData[0].parentEntityKey,
-            isSolutionActive: solutionData[0].status === messageConstants.common.ACTIVE_STATUS ? true : false
-          },
+          data: responseData
         });
       } catch (error) {
         return resolve({
@@ -2282,8 +2314,7 @@ module.exports = class ObservationsHelper {
 
       let solutionDocument = await solutionsQueries.solutionDocuments(
         {
-          _id: observationDocument.solutionId,
-          status: 'active',
+          _id: observationDocument.solutionId
         },
         [
           'externalId',
@@ -2302,6 +2333,8 @@ module.exports = class ObservationsHelper {
           'referenceFrom',
           'criteriaLevelReport',
           'isExternalProgram',
+          'status',
+          'endDate'
         ]
       );
 
@@ -2309,6 +2342,21 @@ module.exports = class ObservationsHelper {
         return resolve({
           status: httpStatusCode.bad_request.status,
           message: messageConstants.apiResponses.SOLUTION_NOT_FOUND,
+        });
+      }
+      
+      if(solutionDocument[0].status == messageConstants.common.INACTIVE_STATUS){
+        return resolve({
+          status: httpStatusCode.bad_request.status,
+          message: messageConstants.apiResponses.OBS_EXPIRED,
+        });
+      }
+
+      if((solutionDocument[0].status == messageConstants.common.ACTIVE_STATUS) && (new Date().toISOString() > solutionDocument[0].endDate)){
+        await gen.utils.updateSolution(solutionDocument[0]._id)
+        return resolve({
+          status: httpStatusCode.bad_request.status,
+          message: messageConstants.apiResponses.OBS_EXPIRED,
         });
       }
 

@@ -18,6 +18,7 @@ const solutionsQueries = require(DB_QUERY_BASE_PATH + '/solutions');
 const validateEntities = process.env.VALIDATE_ENTITIES ? process.env.VALIDATE_ENTITIES : 'OFF';
 const criteriaQuestionHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper')
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
 
 /**
  * ObservationSubmissionsHelper
@@ -618,6 +619,35 @@ module.exports = class ObservationSubmissionsHelper {
           });
         }
 
+        const observationData = await observationQueries.observationDocuments(
+          {
+            _id : observationId
+          },
+          ["solutionId"]
+        )
+
+        const solutionData = await solutionsQueries.solutionDocuments(
+          {
+            _id : observationData[0].solutionId
+          },
+          ["status", "endDate"]
+        )
+        let solutionExpData = {
+          solutionExpMsg : "",
+          isSolutionActive : true
+        }
+
+        if(solutionData[0].status == messageConstants.common.INACTIVE_STATUS){
+          solutionExpData["solutionExpMsg"] = messageConstants.apiResponses.OBS_EXPIRED
+          solutionExpData["isSolutionActive"] = false
+        }
+
+        if((solutionData[0].status == messageConstants.common.ACTIVE_STATUS) && (new Date().toISOString() > solutionData[0].endDate)){
+          await gen.utils.updateSolution(solutionData[0]._id)
+          solutionExpData["solutionExpMsg"] = messageConstants.apiResponses.OBS_EXPIRED
+          solutionExpData["isSolutionActive"] = false
+        }
+
         result = result.map((resultedData) => {
           resultedData.observationName =
             resultedData.observationInformation && resultedData.observationInformation.name
@@ -646,6 +676,9 @@ module.exports = class ObservationSubmissionsHelper {
 
             return evidenceStatus;
           });
+
+          resultedData["solutionExpMsg"] = solutionExpData.solutionExpMsg
+          resultedData["isSolutionActive"] = solutionExpData.isSolutionActive
 
           delete resultedData.observationInformation;
           return _.omit(resultedData, ['completedDate']);
