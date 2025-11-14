@@ -93,9 +93,15 @@ module.exports = class ReportsHelper {
         throw { message: messageConstants.apiResponses.SUBMISSION_NOT_FOUND };
       }
 
-      //adding question options, externalId to answers array
+      // Adding question metadata to submission
       if (surveySubmissionsDocument.answers && Object.keys(surveySubmissionsDocument.answers).length > 0) {
-        surveySubmissionsDocument = await questionsHelper.addOptionsToSubmission(surveySubmissionsDocument);
+        try{
+          surveySubmissionsDocument = await questionsHelper.addQuestionMetadataToSubmission(surveySubmissionsDocument);
+        }
+        catch(error){                  
+          // Log and proceed without metadata to keep report generation resilient
+          console.warn("addQuestionMetadataToSubmission failed:", error?.message || error);
+        }
       }
 
       let solutionDocument = await solutionsQueries.solutionDocuments(
@@ -123,6 +129,10 @@ module.exports = class ReportsHelper {
         );
 
         surveySubmissionsDocument['programInfo'] = programDocument[0];
+      }
+
+      if (req.body.filter && Object.keys(req.body.filter).length > 0) {
+        surveySubmissionsDocument = await this.filterSurveyReport(surveySubmissionsDocument, req.body.filter);
       }
 
       let report = await helperFunc.generateSubmissionReportWithoutDruid(surveySubmissionsDocument);
@@ -191,13 +201,14 @@ module.exports = class ReportsHelper {
 
         // Process the returned document(s)
         allCriteriaDocument.map((criteria) => {
+          const level = criteria && criteria.rubric && criteria.rubric.levels && criteria.rubric.levels[criterias.score];
+          if (level &&level['improvement-projects']) {
           criteria.criteriaId = criteria._id;
           criteria.criteriaName = criteria.name;
-          criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level?criteria.rubric.levels[criterias.score].level:"No Level Matched";
-          criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
-          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
-            criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
-          }
+          criteria.level = level.level ? level.level : "No Level Matched";
+          criteria.label = level.label ? level.label : "No Level Matched";
+          criteria.improvementProjects = level['improvement-projects'] ? level['improvement-projects'] : [];
+        }
 
           // Clean up the object by removing unneeded properties
           delete criteria.rubric;
@@ -206,10 +217,11 @@ module.exports = class ReportsHelper {
         });
 
         // Since we're only expecting one match, push the first document to the suggestions array
-        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        if(allCriteriaDocument.length > 0 && Object.keys(allCriteriaDocument[0]).length > 0){
+          improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        }
       }
     }
-
 
     let solutionDocument = await solutionsQueries.solutionDocuments({
       _id: submissionDocument.solutionId,
@@ -323,12 +335,15 @@ module.exports = class ReportsHelper {
 
         // Process the returned document(s)
         allCriteriaDocument.map((criteria) => {
-          criteria.criteriaId = criteria._id;
-          criteria.criteriaName = criteria.name;
-          criteria.level = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].level? criteria.rubric.levels[criterias.score].level :" No Level Matched";
-          criteria.label = criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score].label?criteria.rubric.levels[criterias.score].label:"No Level Matched";
-          if (criteria.rubric.levels[criterias.score]&&criteria.rubric.levels[criterias.score]['improvement-projects']) {
-            criteria.improvementProjects = criteria.rubric.levels[criterias.score]['improvement-projects'];
+          const level =
+            criteria && criteria.rubric && criteria.rubric.levels && criteria.rubric.levels[criterias.score];
+
+          if (level && level['improvement-projects']) {
+            criteria.criteriaId = criteria._id;
+            criteria.criteriaName = criteria.name;
+            criteria.level = level.level ? level.level : ' No Level Matched';
+            criteria.label = level.label ? level.label : 'No Level Matched';
+            criteria.improvementProjects = level['improvement-projects'];
           }
 
           // Clean up the object by removing unneeded properties
@@ -338,7 +353,9 @@ module.exports = class ReportsHelper {
         });
 
         // Since we're only expecting one match, push the first document to the suggestions array
-        improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        if (allCriteriaDocument.length > 0 && Object.keys(allCriteriaDocument[0]).length > 0) {
+          improvementProjectSuggestions.push(allCriteriaDocument[0]);
+        }
       }
     }
 
@@ -489,6 +506,41 @@ module.exports = class ReportsHelper {
     }
 
   }
+  /**
+   * filter survey report based on the filter
+   * @name filterSurveyReport
+   * @param {Object} reportData -  Report data without filtered
+   * @param {Object} filter  - FilterObject which will be contain details about the filter
+   * @returns {Array} - filtered report data
+   */
+static filterSurveyReport(reportData, filter) {
+    try {
+        let filteredResults = {
+            ...reportData
+        };
+
+        if (filter.questionId && Array.isArray(filter.questionId) && filter.questionId.length > 0) {
+            const questionIdSet = new Set(filter.questionId);
+            const filteredAnswers = {};
+
+            for (let key of Object.keys(reportData.answers)) {
+                const value = reportData.answers[key];
+                if (value?.externalId && questionIdSet.has(value.externalId)) {
+                    filteredAnswers[key] = value;
+                }
+            }
+
+            filteredResults.answers = filteredAnswers;
+        }
+
+        return filteredResults;
+    } catch (e) {
+        throw {
+            status: httpStatusCode.internal_server_error.status,
+            message: messageConstants.apiResponses.SOMETHING_WENT_WRONG
+        };
+    }
+}
 };
 
 // Filter Array

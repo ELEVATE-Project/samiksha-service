@@ -25,6 +25,10 @@ function camelCaseToTitleCase(in_camelCaseString) {
 function lowerCase(str) {
   return str.toLowerCase();
 }
+// Convert string to upper case
+function upperCase(str) {
+  return str.toUpperCase();
+}
 
 function checkIfStringIsUrl(str) {
   var pattern = new RegExp(
@@ -654,12 +658,10 @@ function getFilteredScope(scopeData, tenantPublicDetailsMetaField) {
   return filteredScope;
 }
 
-
-
-
 module.exports = {
   camelCaseToTitleCase: camelCaseToTitleCase,
   lowerCase: lowerCase,
+  upperCase: upperCase,
   checkIfStringIsUrl: checkIfStringIsUrl,
   generateRandomCharacters: generateRandomCharacters,
   getCriteriaIds: getCriteriaIds,
