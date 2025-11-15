@@ -1,29 +1,27 @@
 openapi: 3.0.0
 info:
   title: Survey Service
-  version: 1.0.0
+  version: 3.4
   description: >
     This API collection serves the Survey Service, covering both Observations
     and Surveys. It provides various endpoints for managing and interacting with
     surveys and observations, along with comprehensive report generation
     functionalities.
 
+    - **Observations with Rubric:** Allows assessment based on predefined rubrics.
 
-    Observations:
-
-    - Observations with Rubric: Allows assessment based on predefined rubrics.
-
-    - Observations without Rubric: Flexible observations without structured
+    - **Observations without Rubric:** Flexible observations without structured
     rubrics.
 
-    - Reports: Survey Reports: Generate detailed reports based on survey
+    - **Survey** : Are designed to gather valuable opinions and feedback from users without being associated with any specific entity.
+
+    - **Reports**: Survey Reports: Generate detailed reports based on survey
     submissions.
 
-    - Observation Reports: Includes:
-      - Entity Reports: Focuses on specific entities being observed.
-      - Instance Reports: Provides detailed information on specific instances of observation.
-    - PDF Reports: Available for both entity and instance reports.
-
+    - **Observation Reports**: Includes:
+      - **Entity Reports**: Focuses on specific entities being observed.
+      - **Instance Reports**: Provides detailed information on specific instances of observation.
+    - **PDF Reports**: Available for both entity and instance reports.
 
 
     **🔐 Note for Admin/System Admin:**  
@@ -53,6 +51,11 @@ tags:
     externalDocs:
       description: ''
       url: ''
+  - name: User Extension
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
   - name: Survey
     description: ''
     externalDocs:
@@ -73,7 +76,7 @@ tags:
     externalDocs:
       description: ''
       url: ''
-  - name: surveySubmissions
+  - name: Survey Submissions
     description: ''
     externalDocs:
       description: ''
@@ -88,7 +91,7 @@ tags:
     externalDocs:
       description: ''
       url: ''
-  - name: observationSubmissions
+  - name: Observation Submissions
     description: ''
     externalDocs:
       description: ''
@@ -98,7 +101,7 @@ tags:
     externalDocs:
       description: ''
       url: ''
-  - name: healthCheck
+  - name: Health Check
     description: ''
     externalDocs:
       description: ''
@@ -113,10 +116,25 @@ tags:
     externalDocs:
       description: ''
       url: ''
+  - name: Library Categories
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
+  - name: Organization Extension
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
+  - name: User Controller
+    description: ''
+    externalDocs:
+      description: ''
+      url: ''
 paths:
   /v1/criteria/upload:
     post:
-      tags:
+      tags: &ref_14
         - Criteria
       summary: criteria is uploaded via use of csv file
       requestBody:
@@ -128,7 +146,7 @@ paths:
                 criteria:
                   type: string
                   format: binary
-      parameters:
+      parameters: &ref_15
         - name: x-auth-token
           in: header
           schema:
@@ -142,7 +160,7 @@ paths:
       responses:
         '200':
           description: Success response
-          headers: {}
+          headers: &ref_16 {}
           content:
             text:
               schema:
@@ -154,7 +172,7 @@ paths:
                     Id"
 
                     "Cleanliness","PRV_16_09_2024_13_05_163662571997","66f159b8a15533ac19d7a681"
-        '400':
+        '400': &ref_17
           description: Failure response
           headers: {}
           content:
@@ -236,7 +254,7 @@ paths:
         This API is used to create solutions based on a framework upload. Users
         must provide a frameworkID (UUID) and specify the entityType as defined
         in the template.
-  /v1/observations/importFromFramework:
+  /v1/observations/importFromFramework?frameworkId={frameworkId}:
     post:
       tags:
         - Observation
@@ -247,13 +265,21 @@ paths:
         in the template.
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
-                framework:
-                  type: string
-                  format: binary
+                categories:
+                  type: array
+                  items:
+                    type: string
+            examples:
+              sampleBodyData:
+                value:
+                  categories:
+                    - test_green_school_yojane_03_556
+                    - test_green_school_yojane_03_556733
+                    - test
       parameters:
         - name: x-auth-token
           in: header
@@ -306,6 +332,13 @@ paths:
                   value:
                     status: 500
                     message: Oops! Something Went Wrong.
+    parameters:
+      - name: frameworkId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
   /v1/questions/bulkCreate:
     post:
       tags:
@@ -941,11 +974,12 @@ paths:
                     result: []
   /v1/observationSubmissions/list/:observationSubmissionId:
     get:
-      tags:
-        - observationSubmissions
+      tags: &ref_18
+        - Observation Submissions
       summary: Lists Observation submission
       parameters:
-        - name: x-auth-token
+        - &ref_19
+          name: x-auth-token
           in: header
           schema:
             type: string
@@ -957,7 +991,7 @@ paths:
             and permissions.
         - name: entityId
           in: query
-          schema:
+          schema: &ref_20
             type: string
           example: 64e82cf2a87fdf4cccb96944
           description: EntityId for which the submission have been made
@@ -1040,7 +1074,7 @@ paths:
                         - observationName
                         - submissionDate
                         - ratingCompletedAt
-              example:
+              example: &ref_21
                 message: Successfully fetched observation submissions
                 status: 200
                 result:
@@ -1104,7 +1138,21 @@ paths:
                     observationName: 2.0 Feedback Form Ankit
                     submissionDate: ''
                     ratingCompletedAt: ''
-        '400':
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Successfully fetched observation submissions
+                    status: 200
+                    result:
+                      - _id: 5d8de379bccbfb51d4450d05
+                        entityId: 5bfe53ea1d0c350d61b78d0f
+                        entityExternalId: '1208138'
+                        entityType: school
+                        status: started
+                        submissionNumber: 1
+                        updatedAt: '2019-09-27T10:24:57.182Z'
+                        createdAt: '2019-09-27T10:24:57.182Z'
+        '400': &ref_22
           description: ''
           headers: {}
           content:
@@ -1129,7 +1177,7 @@ paths:
   /v1/observationSubmissions/update/:observationSubmissionId:
     post:
       tags:
-        - observationSubmissions
+        - Observation Submissions
       summary: API to submit/update observation Submissions
       requestBody:
         content:
@@ -1384,6 +1432,11 @@ paths:
                     startDate: '2023-08-28T09:37:25.313Z'
                     endDate: '2024-08-28T09:37:25.686Z'
                     solutionId: 64ec693ae67838d0267c7e88
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Observation submission updated successfully
+                    status: 200
         '400':
           description: Failure response
           headers: {}
@@ -1503,26 +1556,45 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                name: survey support test
-                description: This is Testing for survey upload
-                externalId: a383af8d-7e4e-4c3b-a79d-ccf2bd14de57
-                author: ''
-                startDate: '2022-04-29T13:57:28.259Z'
-                endDate: '2026-05-02T12:00:00.259Z'
-                linkTitle: ''
-                linkUrl: ''
-                status: active
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                externalId:
+                  type: string
+                author:
+                  type: string
+                startDate:
+                  type: string
+                endDate:
+                  type: string
+                linkTitle:
+                  type: string
+                linkUrl:
+                  type: string
+                status:
+                  type: string
+                categories:
+                  type: array
+                  items:
+                    type: string
             examples:
               ReqestBodyExample:
                 value:
-                  name: Survey
-                  description: School Assessment
-                  externalId: school-assessment-survey
-                  startDate: 2025/10/10
-                  endDate: 2025/12/25
-                  linkTite: Read more about the solution
-                  linkUrl: http://www.africau.edu/images/default/sample.pdf
+                  name: survey support test
+                  description: This is Testing for survey upload
+                  externalId: a383af8d-7e4e-4c3b-a79d-ccf2bd14de515
+                  author: ''
+                  startDate: '2022-04-29T13:57:28.259Z'
+                  endDate: '2024-05-02T12:00:00.259Z'
+                  linkTitle: ''
+                  linkUrl: ''
+                  status: active
+                  categories:
+                    - test_green_school_yojane_03_556
+                    - test_green_school_yojane_03_5567
+                    - test
       parameters:
         - name: x-auth-token
           in: header
@@ -1749,27 +1821,47 @@ paths:
         content:
           '*/*':
             schema:
-              type: string
-              example: >-
-                "{\n    \"createdFor\": [],\n    \"rootOrganisations\": [],\n   
-                \"programExternalId\": \"TESTING_BY_DEV_TEAM_2\",\n   
-                \"entities\": [\n      \"5f33c3d85f637784791cd830\"\n    ],\n   
-                \"entityType\": \"school\",\n    \"externalId\":
-                \"TN-Program-1597301830742\",\n    \"name\": \"Improvement
-                Project 3\",\n    \"description\": \"Leveraging the huge number
-                of private schools to show the significance of the financial
-                problem by creating a petition and presenting to the
-                authorities.\",\n    // \"startDate\": \"2021-06-16
-                00:00:00\",\n    // \"endDate\": \"2025-06-21 00:00:00\",\n   
-                \"subType\": \"observation\",\n    \"type\":
-                \"observation\",\n    \"excludeScope\":false,\n    
-                \"isReusable\": false,\n    \"isAPrivateProgram\": false,\n   
-                \"scope\": {\n    \"entityType\": \"state\",\n    \"entities\":
-                [\n      \"5f33c3d85f637784791cd830\"\n    ],\n    \"roles\":
-                \"HM\"\n      \n    \n  }\n  \n\n    \n    //
-                \"entities\":[\n    // 
-                \"db331a8c-b9e2-45f8-b3c0-7ec1e826b6df\",\"6cbce49e-c33d-4f4c-aaa8-c689a1f067f3\"\n   
-                // ]\n}"
+              type: object
+              properties:
+                createdFor:
+                  type: array
+                  items:
+                    type: string
+                rootOrganisations:
+                  type: array
+                  items:
+                    type: string
+                programExternalId:
+                  type: string
+                entities:
+                  type: array
+                  items:
+                    type: string
+                entityType:
+                  type: string
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                subType:
+                  type: string
+                type:
+                  type: string
+                excludeScope:
+                  type: boolean
+                isReusable:
+                  type: boolean
+                isAPrivateProgram:
+                  type: boolean
+                scope:
+                  type: object
+                  properties:
+                    district:
+                      type: array
+                      items:
+                        type: string
             examples:
               sampleBodyData:
                 value:
@@ -1791,10 +1883,8 @@ paths:
                   isReusable: false
                   isAPrivateProgram: false
                   scope:
-                    entityType: state
-                    entities:
-                      - 5f33c3d85f637784791cd830
-                    roles: HM
+                    district:
+                      - 67c82d37bad58c889bc5a5de
       parameters:
         - name: X-auth-token
           in: header
@@ -3595,74 +3685,6 @@ paths:
         passing the solutionId and the role details in the request body, the
         specified roles are removed from interacting with the solution.
 
-  /v1/programs/join/:programId:
-    post:
-      tags:
-        - Program
-      summary: makes the user join the program
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n    \"userRoleInformation\": {\n        \"district\":
-                \"2f76dcf5-e43b-4f71-a3f2-c8f19e1fce03\",\n        \"block\":
-                \"966c3be4-c125-467d-aaff-1eb1cd525923\",\n        \"state\":
-                \"bc75cc99-9205-463e-a722-5326857838f8\",\n        \"school\":
-                \"28226200910\",\n        \"role\": \"HM,DEO,MEO,CRP,Complex
-                HM,SPD\"\n    },\n    \"isResource\": true,\n   
-                \"consentShared\": true\n}"
-            examples:
-              sampleBodyData:
-                value:
-                  userRoleInformation:
-                    district: 2f76dcf5-e43b-4f71-a3f2-c8f19e1fce03
-                    block: 966c3be4-c125-467d-aaff-1eb1cd525923
-                    state: bc75cc99-9205-463e-a722-5326857838f8
-                    school: '28226200910'
-                    role: HM,DEO,MEO,CRP,Complex HM,SPD
-                  isResource: true
-                  consentShared: true
-      parameters:
-        - name: X-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{token}}'
-      responses:
-        '200':
-          description: Success response
-          content:
-            application/json:
-              examples:
-                SuccessResponse:
-                  value:
-                    message: You have joined this program successfully
-                    success: true
-                    data:
-                      _id: 5f34ec17585244939f89f90c
-        '400':
-          description: Failure response
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  status:
-                    type: number
-              examples:
-                FailureResponse:
-                  value:
-                    status: 500
-                    message: Oops! Something Went Wrong.
-      description: >-
-        This API allows a user to join a program by providing the programId in
-        the path parameters. Once the user is successfully added to the program,
-        they will be able to participate in the program.
   /v1/programs/create:
     post:
       tags:
@@ -4426,7 +4448,7 @@ paths:
   /v1/surveySubmissions/update/:surveySubmissionId:
     post:
       tags:
-        - surveySubmissions
+        - Survey Submissions
       summary: updates surveySubmission record
       requestBody:
         content:
@@ -4563,7 +4585,7 @@ paths:
   /v1/surveySubmissions/getStatus/:surveySubmissionId:
     get:
       tags:
-        - surveySubmissions
+        - Survey Submissions
       summary: Returns current status of the surveySubmission record
       parameters:
         - name: X-auth-token
@@ -4632,7 +4654,7 @@ paths:
   /v1/surveySubmissions/list:
     post:
       tags:
-        - surveySubmissions
+        - Survey Submissions
       summary: Fetches list of survey submissions done by user
       parameters:
         - name: X-auth-token
@@ -4768,7 +4790,7 @@ paths:
   /v1/surveySubmissions/isAllowed/:surveySubmissionId:
     get:
       tags:
-        - surveySubmissions
+        - Survey Submissions
       summary: checks if survey submission is allowed for the passed id
       parameters:
         - name: x-auth-token
@@ -5580,7 +5602,7 @@ paths:
         It provides information about the survey's solution, program,
         assessment, and the associated questionnaire, including questions and
         response options.
-  /v1/solutions/details/:solution-id:
+  /v1/solutions/details/{solution_id}:
     post:
       tags:
         - Solutions
@@ -5591,27 +5613,19 @@ paths:
             schema:
               type: object
               properties:
-                entityType:
-                  type: string
-                entityTypeId:
-                  type: string
-                entities:
-                  type: array
-                  items:
-                    type: string
-                role:
-                  type: string
+                scope:
+                  type: object
+                  properties:
+                    district:
+                      type: array
+                      items:
+                        type: string
             examples:
               sampleBodyData:
                 value:
-                  entityType: state
-                  entityTypeId: 5f32d8228e0dc8312404056e
-                  entities:
-                    - 5f33c3d85f637784791cd830
-                    - 5fd098e2e049735a86b748ac
-                    - 5fd1b52ab53a6416aaeefc83
-                    - 5fd1b52ab53a6416aaeefb20
-                  role: BEO,HM
+                  scope:
+                    district:
+                      - 67c82d37bad58c889bc5a5de
       parameters:
         - name: X-auth-token
           in: header
@@ -5623,6 +5637,13 @@ paths:
             authentication. This token is generated when a user logs in and must
             be included in each subsequent request to verify the user’s session
             and permissions.
+          required: true
+        - in: path
+          name: solution_id
+          description: Valid Solution Id need to passed
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Success response
@@ -6126,6 +6147,13 @@ paths:
                     status: 500
                     message: Oops! Something Went Wrong.
       description: ' This API retrieves the details of a specific solution using the solution''s id. It returns comprehensive information about the solution, including metadata, configuration, and any related data required for further operations.'
+    parameters:
+      - name: solution_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
   /v1/observations/updateEntities/:observation_id:
     post:
       tags:
@@ -6470,9 +6498,8 @@ paths:
   /v1/userExtension/bulkUpload:
     post:
       tags:
-        - userExtension
-      summary: >-
-        Bulk user role management API
+        - User Extension
+      summary: Bulk upload
       description: >-
         Bulk user role management API that processes CSV data to create or
         update user-program role assignments with support for multiple
@@ -6582,7 +6609,7 @@ paths:
         * This is a mandatory parameter and cannot be empty or null
       operationId: ''
       tags:
-        - healthCheck
+        - Health Check
       parameters: []
       responses:
         '200':
@@ -6739,7 +6766,9 @@ paths:
       parameters:
         - in: path
           name: type
-          description: 'Need to pass Resource Type that we need to delete Ex: solution or program'
+          description: >-
+            Need to pass Resource Type that we need to delete Ex: solution or
+            program
           schema: &ref_1
             type: string
         - in: header
@@ -6847,5 +6876,1417 @@ paths:
                       - location: query
                         param: type
                         msg: Invalid resource type. Must be "program" or "solution"
+  /v1/library/categories/update/{_id}:
+    post:
+      description: >+
+        Updates an existing category using its ID and the updated details
+        provided in the request body.
+
+      operationId: ''
+      tags: &ref_3
+        - Library Categories
+      parameters:
+        - &ref_4
+          in: header
+          name: x-auth-token
+          description: >-
+            Every request to the API requires an x-auth-token in the header for
+            authentication. This token is generated when a user logs in and must
+            be included in each subsequent request to verify the user’s session
+            and permissions.
+          schema: &ref_2
+            type: string
+        - in: header
+          name: internal-access-token
+          description: 'internal-access-token '
+          schema: *ref_2
+        - &ref_5
+          in: header
+          name: Content-Type
+          description: application/json
+          schema: *ref_2
+        - in: header
+          name: visibleToOrganizations
+          description: Passing Org id that need to be visible
+          schema: *ref_2
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              examples:
+                SuccessResponse:
+                  value:
+                    success: true
+                    message: Library categories updated successfully
+        '400':
+          description: Failure response
+          headers: &ref_6 {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        location:
+                          type: string
+                        param:
+                          type: string
+                        msg:
+                          type: string
+                      required:
+                        - location
+                        - param
+                        - msg
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      - location: params
+                        param: _id
+                        msg: required category id
+                      - location: params
+                        param: _id
+                        msg: invalid category id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  name: Test courses2
+                  description: Summa ulalali.
+      summary: Updates an existing category
+  /v1/library/surveys/list?categoryId={categoryId}:
+    get:
+      description: >
+        Retrieves a list of all the available categories based on the categoryId
+        passed for the surveys.
+      operationId: ''
+      tags: *ref_3
+      parameters: &ref_7
+        - *ref_4
+        - *ref_5
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            name:
+                              type: string
+                            externalId:
+                              type: string
+                            description:
+                              type: string
+                      count:
+                        type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Survey solutions list fetched successfully
+                    status: 200
+                    result:
+                      data:
+                        - _id: 5f57ad1283096e7c4474417d
+                          name: Test survey
+                          externalId: Test-survey
+                          description: Survey and feedback
+                      count: 1
+        '400':
+          description: Failure response
+          headers: *ref_6
+          content:
+            application/json:
+              schema: &ref_9
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      status:
+                        type: number
+                      message:
+                        type: string
+              examples:
+                FailureResponse:
+                  value:
+                    message: Survey solutions list fetched successfully
+                    status: 200
+                    result:
+                      status: 400
+                      message: Organization extension not found
+      summary: List all the available categories.
+    parameters: &ref_8
+      - name: categoryId
+        in: query
+        required: true
+        schema:
+          type: string
+        description: ''
+  /v1/library/categories/list:
+    get:
+      description: >
+        Retrieves a list of all the available categories based on the categoryId
+        passed.
+      operationId: ''
+      tags: *ref_3
+      parameters: *ref_7
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        icon:
+                          type: string
+                        externalId:
+                          type: string
+                        noOfSolutions:
+                          type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Library categories fetched successfully
+                    status: 200
+                    result:
+                      - _id: 689361aabfaffc768be24950
+                        name: Test courses
+                        icon: ''
+                        externalId: test_green_school_yojane_03_55678
+                        noOfSolutions: 0
+        '400':
+          description: Failure response
+          headers: *ref_6
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message: Could not found library categories
+      summary: List all the available categories.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  externalId: test_green_school_yojane_03_556789
+                  name: Test courses
+                  description: >-
+                    Leveraging the huge number of private schools to show the
+                    significance of the financial problem by creating a petition
+                    and presenting to the authorities.
+    parameters: *ref_8
+  /v1/library/observations/import/{_id}:
+    post:
+      description: >+
+        Updates an existing category using its ID and the updated details
+        provided in the request body.
+
+      operationId: ''
+      tags: *ref_3
+      parameters:
+        - *ref_4
+        - *ref_5
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      program:
+                        type: object
+                        properties:
+                          externalId:
+                            type: string
+                          name:
+                            type: string
+                          description:
+                            type: string
+                          owner:
+                            type: string
+                          createdBy:
+                            type: string
+                          updatedBy:
+                            type: string
+                          status:
+                            type: string
+                          startDate:
+                            type: string
+                          endDate:
+                            type: string
+                          resourceType:
+                            type: array
+                            items:
+                              type: string
+                          language:
+                            type: array
+                            items:
+                              type: string
+                          keywords:
+                            type: array
+                            items:
+                              type: string
+                          concepts:
+                            type: array
+                            items:
+                              type: string
+                          imageCompression:
+                            type: object
+                            properties:
+                              quality:
+                                type: number
+                          components:
+                            type: array
+                            items:
+                              type: string
+                          isAPrivateProgram:
+                            type: boolean
+                          isDeleted:
+                            type: boolean
+                          rootOrganisations:
+                            type: array
+                            items:
+                              type: string
+                          createdFor:
+                            type: array
+                            items:
+                              type: string
+                          orgId:
+                            type: string
+                          tenantId:
+                            type: string
+                          _id:
+                            type: string
+                          deleted:
+                            type: boolean
+                          updatedAt:
+                            type: string
+                          createdAt:
+                            type: string
+                          __v:
+                            type: number
+                      solution:
+                        type: object
+                        properties:
+                          externalId:
+                            type: string
+                          isReusable:
+                            type: boolean
+                          name:
+                            type: string
+                          description:
+                            type: string
+                          author:
+                            type: string
+                          parentSolutionId:
+                            type: string
+                          resourceType:
+                            type: array
+                            items:
+                              type: string
+                          language:
+                            type: array
+                            items:
+                              type: string
+                          keywords:
+                            type: array
+                            items:
+                              type: string
+                          concepts:
+                            type: array
+                            items:
+                              type: string
+                          themes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                type:
+                                  type: string
+                                label:
+                                  type: string
+                                externalId:
+                                  type: string
+                                weightage:
+                                  type: number
+                                criteria:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      criteriaId:
+                                        type: string
+                                      weightage:
+                                        type: number
+                                    required:
+                                      - criteriaId
+                                      - weightage
+                          flattenedThemes:
+                            type: array
+                            items:
+                              type: string
+                          entityType:
+                            type: string
+                          type:
+                            type: string
+                          subType:
+                            type: string
+                          entities:
+                            type: array
+                            items:
+                              type: string
+                          programId:
+                            type: string
+                          programExternalId:
+                            type: string
+                          programName:
+                            type: string
+                          programDescription:
+                            type: string
+                          status:
+                            type: string
+                          evidenceMethods:
+                            type: object
+                            properties:
+                              OB:
+                                type: object
+                                properties:
+                                  externalId:
+                                    type: string
+                                  tip:
+                                    type: 'null'
+                                  name:
+                                    type: string
+                                  description:
+                                    type: 'null'
+                                  modeOfCollection:
+                                    type: string
+                                  canBeNotApplicable:
+                                    type: boolean
+                                  notApplicable:
+                                    type: boolean
+                                  canBeNotAllowed:
+                                    type: boolean
+                                  remarks:
+                                    type: 'null'
+                          sections:
+                            type: object
+                            properties:
+                              S1:
+                                type: string
+                          registry:
+                            type: array
+                            items:
+                              type: string
+                          isRubricDriven:
+                            type: boolean
+                          enableQuestionReadOut:
+                            type: boolean
+                          updatedBy:
+                            type: string
+                          captureGpsLocationAtQuestionLevel:
+                            type: boolean
+                          isAPrivateProgram:
+                            type: boolean
+                          allowMultipleAssessemts:
+                            type: boolean
+                          isDeleted:
+                            type: boolean
+                          pageHeading:
+                            type: string
+                          minNoOfSubmissionsRequired:
+                            type: number
+                          availableForPrivateConsumption:
+                            type: boolean
+                          rootOrganisations:
+                            type: array
+                            items:
+                              type: string
+                          createdFor:
+                            type: array
+                            items:
+                              type: string
+                          orgId:
+                            type: string
+                          tenantId:
+                            type: string
+                          isExternalProgram:
+                            type: boolean
+                          parentEntityKey:
+                            type: 'null'
+                          visibleToOrganizations:
+                            type: array
+                            items:
+                              type: string
+                          visibility:
+                            type: string
+                          _id:
+                            type: string
+                          deleted:
+                            type: boolean
+                          categories:
+                            type: array
+                            items:
+                              type: string
+                          updatedAt:
+                            type: string
+                          createdAt:
+                            type: string
+                          __v:
+                            type: number
+                      parentSolutionInformation:
+                        type: object
+                        properties:
+                          solutionId:
+                            type: string
+              examples:
+                SuccessResponse:
+                  value:
+                    message: User program and solution created successfully
+                    status: 200
+                    result:
+                      program:
+                        externalId: test-1756108031820
+                        name: test
+                        description: test
+                        owner: '251'
+                        createdBy: ''
+                        updatedBy: '251'
+                        status: active
+                        startDate: '2025-08-25T07:47:11.820Z'
+                        endDate: '2026-08-25T07:47:11.820Z'
+                        resourceType:
+                          - Program
+                        language:
+                          - English
+                        keywords:
+                          - keywords 1
+                          - keywords 2
+                        concepts: []
+                        imageCompression:
+                          quality: 10
+                        components: []
+                        isAPrivateProgram: true
+                        isDeleted: false
+                        rootOrganisations: []
+                        createdFor: []
+                        orgId: blr
+                        tenantId: shikshagraha
+                        _id: 68ac14ff17a160d43101d234
+                        deleted: false
+                        updatedAt: '2025-08-25T07:47:11.825Z'
+                        createdAt: '2025-08-25T07:47:11.825Z'
+                        __v: 0
+                      solution:
+                        externalId: >-
+                          d3532558-315b-11f0-9c57-c52e41ff5959-OBSERVATION-TEMPLATE-1756108031820
+                        isReusable: false
+                        name: DEV OBS - 1 may 14 2250
+                        description: Observation Without Rubric
+                        author: '251'
+                        parentSolutionId: 682593a3cfa7cfe32cd833da
+                        resourceType: []
+                        language: []
+                        keywords: []
+                        concepts: []
+                        themes:
+                          - name: Observation Theme
+                            type: theme
+                            label: theme
+                            externalId: OB
+                            weightage: 40
+                            criteria:
+                              - criteriaId: 682593a3cfa7cfe32cd833d6
+                                weightage: 40
+                              - criteriaId: 682593a3cfa7cfe32cd833d7
+                                weightage: 40
+                        flattenedThemes: []
+                        entityType: state
+                        type: observation
+                        subType: ''
+                        entities:
+                          - 67c82d0c538125889163f197
+                        programId: 68ac14ff17a160d43101d234
+                        programExternalId: test-1756108031820
+                        programName: test
+                        programDescription: test
+                        status: active
+                        evidenceMethods:
+                          OB:
+                            externalId: OB
+                            tip: null
+                            name: Observation
+                            description: null
+                            modeOfCollection: onfield
+                            canBeNotApplicable: false
+                            notApplicable: false
+                            canBeNotAllowed: false
+                            remarks: null
+                        sections:
+                          S1: Observation Question
+                        registry: []
+                        isRubricDriven: false
+                        enableQuestionReadOut: false
+                        updatedBy: '251'
+                        captureGpsLocationAtQuestionLevel: false
+                        isAPrivateProgram: true
+                        allowMultipleAssessemts: false
+                        isDeleted: false
+                        pageHeading: Domains
+                        minNoOfSubmissionsRequired: 1
+                        availableForPrivateConsumption: false
+                        rootOrganisations: []
+                        createdFor: []
+                        orgId: blr
+                        tenantId: shikshagraha
+                        isExternalProgram: false
+                        parentEntityKey: null
+                        visibleToOrganizations: []
+                        visibility: CURRENT
+                        _id: 68ac150017a160d43101d237
+                        deleted: false
+                        categories: []
+                        updatedAt: '2025-08-25T07:47:12.084Z'
+                        createdAt: '2025-08-25T07:47:12.084Z'
+                        __v: 0
+                      parentSolutionInformation:
+                        solutionId: 682593a3cfa7cfe32cd833da
+        '400':
+          description: Failure response
+          headers: *ref_6
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+              examples:
+                FailureResponse:
+                  value:
+                    message: No solution found.
+                    status: 200
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                district:
+                  type: string
+                block:
+                  type: string
+                cluster:
+                  type: string
+                school:
+                  type: string
+                professional_role:
+                  type: string
+                professional_subroles:
+                  type: string
+                organizations:
+                  type: string
+                programName:
+                  type: string
+                solutionName:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  state: 67c82d0c538125889163f197
+                  district: 67c82d37bad58c889bc5a5de
+                  block: 67c82d7abad58c889bc5a643
+                  cluster: 67c82d53538125889163f3cd
+                  school: 67c82d985381258891643d0b
+                  professional_role: 681b076ef21c88cef9517e0a
+                  professional_subroles: >-
+                    681b0894f21c88cef9517e12,681b0a369c57cdcf03c79ae7,681b0af29c57cdcf03c79aeb,6822fd5f4e2812081f342608,6822fdd94e2812081f34260f,6822fdf64e2812081f342613,6822fe0d4e2812081f342617,6822fe2a4e2812081f34261b,6822fe4d4e2812081f34261f,6822fe774e2812081f342623
+                  organizations: '[object Object]'
+                  programName: test
+                  solutionName: test123
+      summary: Updates an existing category
+    parameters:
+      - name: _id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
+  /v1/library/observations/list?categoryId={categoryId}:
+    get:
+      description: >
+        Retrieves a list of all the available categories based on the categoryId
+        passed from the observations.
+      operationId: ''
+      tags: *ref_3
+      parameters: *ref_7
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            externalId:
+                              type: string
+                            name:
+                              type: string
+                            description:
+                              type: string
+                      count:
+                        type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Successfully fetched observations solutions list
+                    status: 200
+                    result:
+                      data:
+                        - _id: 5d15b0d7463d3a6961f91746
+                          externalId: AFRICA-ME-TEST-FRAMEWORK-TEMPLATE
+                          name: AFRICA-ME-TEST-FRAMEWORK
+                          description: AFRICA-ME-TEST-FRAMEWORK
+                      count: 1
+        '400':
+          description: Failure response
+          headers: *ref_6
+          content:
+            application/json:
+              schema: *ref_9
+              examples:
+                FailureResponse:
+                  value:
+                    message: Successfully fetched observations solutions list
+                    status: 200
+                    result:
+                      status: 400
+                      message: Organization extension not found
+      summary: List all the available categories.
+    parameters: *ref_8
+  /v1/organizationExtension/create:
+    post:
+      description: >-
+        This API is used to create organization based on the reqBody passed and
+        x-auth-token details. 
+      operationId: ''
+      tags: &ref_11
+        - Organization Extension
+      parameters:
+        - in: header
+          name: x-auth-token
+          description: >-
+            Every request to the API requires an x-auth-token in the header for
+            authentication. This token is generated when a user logs in and must
+            be included in each subsequent request to verify the user’s session
+            and permissions.
+          schema: &ref_10
+            type: string
+          required: true
+        - &ref_12
+          in: header
+          name: Content-Type
+          description: application/json
+          schema: *ref_10
+        - in: header
+          name: internal-access-token
+          description: Internal access token for authorization
+          schema: *ref_10
+          required: true
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      orgId:
+                        type: string
+                      observationResourceVisibilityPolicy:
+                        type: string
+                      externalObservationResourceVisibilityPolicy:
+                        type: string
+                      surveyResourceVisibilityPolicy:
+                        type: string
+                      externalSurveyResourceVisibilityPolicy:
+                        type: string
+                      createdBy:
+                        type: string
+                      updatedBy:
+                        type: string
+                      tenantId:
+                        type: string
+                      _id:
+                        type: string
+                      deleted:
+                        type: boolean
+                      updatedAt:
+                        type: string
+                      createdAt:
+                        type: string
+                      __v:
+                        type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    status: 200
+                    result:
+                      orgId: SLOrg3
+                      observationResourceVisibilityPolicy: CURRENT
+                      externalObservationResourceVisibilityPolicy: CURRENT
+                      surveyResourceVisibilityPolicy: CURRENT
+                      externalSurveyResourceVisibilityPolicy: CURRENT
+                      createdBy: SYSTEM
+                      updatedBy: SYSTEM
+                      tenantId: shikshalokam
+                      _id: 68b698cc000046ee20489fbc
+                      deleted: false
+                      updatedAt: '2025-09-02T07:12:12.279Z'
+                      createdAt: '2025-09-02T07:12:12.279Z'
+                      __v: 0
+        '400':
+          description: Failure response
+          headers: &ref_13 {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+              examples:
+                FailureResponse:
+                  value:
+                    message: MISSING_TENANT_AND_ORG_FIELDS
+                    status: 400
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                externalId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                tenantId:
+                  type: string
+                entityId:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  externalId: test_green_school_yojane_03_556789
+                  name: Test courses
+                  description: >-
+                    Leveraging the huge number of private schools to show the
+                    significance of the financial problem by creating a petition
+                    and presenting to the authorities.
+                  tenantId: shikshalokam
+                  entityId: SLOrg3
+      summary: Create organization
+  /v1/organizationExtension/update/{_id}:
+    post:
+      description: >-
+        This API is used to update organization based on the reqBody passed and
+        x-auth-token details. 
+      operationId: ''
+      tags: *ref_11
+      parameters:
+        - in: header
+          name: x-auth-token
+          description: >-
+            Every request to the API requires an x-auth-token in the header for
+            authentication. This token is generated when a user logs in and must
+            be included in each subsequent request to verify the user’s session
+            and permissions.
+          schema: *ref_10
+          required: true
+        - *ref_12
+        - in: header
+          name: internal-access-token
+          description: Internal access token for authorization
+          schema: *ref_10
+          required: true
+        - in: header
+          name: visibleToOrganizations
+          description: Passing Org id that need to be visible
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      orgId:
+                        type: string
+                      observationResourceVisibilityPolicy:
+                        type: string
+                      externalObservationResourceVisibilityPolicy:
+                        type: string
+                      surveyResourceVisibilityPolicy:
+                        type: string
+                      externalSurveyResourceVisibilityPolicy:
+                        type: string
+                      createdBy:
+                        type: string
+                      updatedBy:
+                        type: string
+                      tenantId:
+                        type: string
+                      deleted:
+                        type: boolean
+                      updatedAt:
+                        type: string
+                      createdAt:
+                        type: string
+                      __v:
+                        type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Organization extension Updated successfully
+                    status: 200
+                    result:
+                      _id: 689c4b1d3752d47770713d97
+                      orgId: mys
+                      observationResourceVisibilityPolicy: ALL
+                      externalObservationResourceVisibilityPolicy: CURRENT
+                      surveyResourceVisibilityPolicy: CURRENT
+                      externalSurveyResourceVisibilityPolicy: CURRENT
+                      createdBy: SYSTEM
+                      updatedBy: '1'
+                      tenantId: shikshagraha
+                      deleted: false
+                      updatedAt: '2025-09-02T07:06:53.661Z'
+                      createdAt: '2025-08-13T08:21:49.524Z'
+                      __v: 0
+        '400':
+          description: Failure response
+          headers: *ref_13
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  currentDate:
+                    type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: ERR_INVALID_ORG
+                    message: Invalid orgId provided
+                    currentDate: '2025-10-23T10:45:59.109Z'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                observationResourceVisibilityPolicy:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  observationResourceVisibilityPolicy: ALL
+      summary: Update organization
+    parameters:
+      - name: _id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
+  /v1/usersController/deleteUserPIIData:
+    post:
+      summary: To delete the user transactional data
+      description: This endpoint helps to delete the user transactional data.
+      operationId: ''
+      tags:
+        - User Controller
+      parameters:
+        - in: header
+          name: X-auth-token
+          description: >-
+            To use this API, you require an X-auth-token. This token is
+            available in the login API Response.
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Data deleted successfully.
+                    status: 200
+        '400':
+          description: Bad response
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: object
+                    properties:
+                      location:
+                        type: string
+                      param:
+                        type: string
+                      msg:
+                        type: string
+              examples:
+                FailureResponse:
+                  value:
+                    status: 400
+                    message:
+                      location: body
+                      param: id
+                      msg: required id of the user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+            examples:
+              sampleBodyData:
+                value:
+                  id: 1
+  /v1/criteria/update?externalId={externalId}&frameworkIdExists={Boolean}:
+    post:
+      tags: *ref_14
+      summary: criteria is uploaded via use of csv file
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            examples:
+              sampleBodyData:
+                value:
+                  name: 'Construction,Potholes and Electricity '
+      parameters: *ref_15
+      responses:
+        '200':
+          description: Success response
+          headers: *ref_16
+          content:
+            text:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Criteria updated successfully
+                    status: 200
+        '400': *ref_17
+      description: >-
+        The update Criteria API allows users to update the existing criteria
+        information by passing its valid externalId.
+    parameters:
+      - name: externalId
+        in: query
+        required: true
+        schema:
+          type: string
+        description: ''
+      - name: frameworkIdExists
+        in: query
+        required: true
+        schema:
+          type: string
+        description: ''
+  /v1/observationSubmissions/create/{observationId}?entityId={entityId}:
+    post:
+      tags: *ref_18
+      summary: Create Observation submission
+      parameters:
+        - *ref_19
+        - name: observationId
+          in: query
+          schema: *ref_20
+          example: 64e82cf2a87fdf4cccb96944
+          description: Valid observationId to be passed
+        - in: query
+          name: entityId
+          description: EntityId for which the submission have been made
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        entities:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                              submissionStatus:
+                                type: string
+                              submissions:
+                                type: array
+                                items:
+                                  type: string
+                              name:
+                                type: string
+                            required:
+                              - _id
+                              - submissionStatus
+                              - submissions
+                              - name
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: string
+                        solutionId:
+                          type: string
+                        endDate:
+                          type: string
+                      required:
+                        - _id
+                        - entities
+                        - status
+                        - name
+                        - description
+                        - solutionId
+              example: *ref_21
+              examples:
+                SuccessResponse:
+                  value:
+                    result:
+                      - _id: 5d09c34d1f7fd5a2391f7251
+                        entities: []
+                        name: Observation 1
+                        description: Observation Description
+                        status: published
+                        solutionId: 5b98fa069f664f7e1ae7498c
+                      - _id: 5d1070326f6ed50bc34aec2c
+                        entities:
+                          - _id: 5cebbefe5943912f56cf8e16
+                            submissionStatus: pending
+                            submissions: []
+                            name: asd
+                          - _id: 5cebbf275943912f56cf8e18
+                            submissionStatus: pending
+                            submissions: []
+                            name: asd
+                        status: published
+                        endDate: '2019-06-24T00:00:00.000Z'
+                        name: asdasd
+                        description: asdasdasd
+                        solutionId: 5c6bd309af0065f0e0d4223b
+        '400': *ref_22
+      description: >-
+        This API creates a specific observation submission based on the
+        observation-submission-id. It provides information about the submission,
+        including responses to the observation's questionnaire, submission
+        status, and other relevant data.
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_23
+              type: object
+              properties:
+                role:
+                  type: string
+                state:
+                  type: string
+                district:
+                  type: string
+                school:
+                  type: string
+            examples:
+              sampleBodyData:
+                value: " {\n  *   \"role\" : \"HM\",\n   \t\t\"state\" : \"236f5cff-c9af-4366-b0b6-253a1789766a\",\n      \"district\" : \"1dcbc362-ec4c-4559-9081-e0c2864c2931\",\n      \"school\" : \"c5726207-4f9f-4f45-91f1-3e9e8e84d824\"\n    }"
+    parameters:
+      - name: observationId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
+      - name: entityId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ''
+  /v1/observationSubmissions/solutionList:
+    post:
+      tags: *ref_18
+      summary: Lists Observation submission
+      parameters:
+        - *ref_19
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  result:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            solutionId:
+                              type: string
+                            programId:
+                              type: string
+                            observationId:
+                              type: string
+                            scoringSystem:
+                              type: 'null'
+                            isRubricDriven:
+                              type: boolean
+                            entityType:
+                              type: string
+                            entities:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  _id:
+                                    type: string
+                                  externalId:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                  - _id
+                                  - externalId
+                                  - name
+                            programName:
+                              type: string
+                            name:
+                              type: string
+                      entityType:
+                        type: array
+                        items:
+                          type: string
+                      count:
+                        type: number
+              example: *ref_21
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Solutions fetched successfully
+                    status: 200
+                    result:
+                      data:
+                        - solutionId: 600b21c57ea68a7ed9278873
+                          programId: 600ab53cc7de076e6f993724
+                          observationId: 60113bcf2d0bbd2f0c3229dc
+                          scoringSystem: null
+                          isRubricDriven: false
+                          entityType: district
+                          entities:
+                            - _id: 5fd098e2e049735a86b748b7
+                              externalId: D_AP-D012
+                              name: ANANTAPUR
+                            - _id: 5fd098e2e049735a86b748b2
+                              externalId: D_AP-D007
+                              name: GUNTUR
+                          programName: AP-TEST-PROGRAM-3.6.5
+                          name: AP-TEST-PROGRAM-3.6.5-OBS-IMP-PROJECT-2-DEO
+                      entityType:
+                        - district
+                      count: 1
+        '400': *ref_22
+      description: >-
+        This API retrieves the details of a specific observation submission
+        based on the observation-submission-id. It provides information about
+        the submission, including responses to the observation's questionnaire,
+        submission status, and other relevant data.
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_23
+            examples:
+              sampleBodyData:
+                value:
+                  role: HM
+                  state: 236f5cff-c9af-4366-b0b6-253a1789766a
+                  district: 1dcbc362-ec4c-4559-9081-e0c2864c2931
+                  school: c5726207-4f9f-4f45-91f1-3e9e8e84d824
+    parameters: []
 components:
   securitySchemes: {}

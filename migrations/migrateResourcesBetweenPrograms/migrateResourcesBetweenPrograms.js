@@ -101,8 +101,6 @@ const {
   pushCompletedSurveySubmissionToKafka,
   pushInCompletedObservationSubmissionToKafka,
   pushInCompletedSurveySubmissionToKafka,
-  projectServiceProgramUpdate,
-  projectServiceProgramDetails
 } = require('../migrationUtils/helper');
 
 const fs = require('fs');
@@ -309,8 +307,11 @@ async function modifyProgramsCollection() {
   const identifier = getArgValue('identifier');
   const password = getArgValue('password');
   const origin = getArgValue('origin');
+  const projectDBName = getArgValue('projectdb');
+  const projectDb = dbClient.db(projectDBName)
 
-  if (!origin || !domain || !identifier || !password || !tenantId) {
+
+  if (!origin || !domain || !identifier || !password || !tenantId || !projectDBName) {
     console.error('❌ Missing required flags.');
     process.exit(1);
   }
@@ -345,6 +346,7 @@ async function modifyProgramsCollection() {
     console.log(`\n🔄 Starting migration for Old ID: ${projectProgramId} to New ID: ${surveyProgramId}`);
 
     //let programDocument = await programDetails(undefined, projectProgramId, undefined, { tenantId });
+   /*
     let programDocument = await projectServiceProgramDetails({
       userToken:undefined,
       programId:projectProgramId,
@@ -354,8 +356,18 @@ async function modifyProgramsCollection() {
       PROJECT_SERVICE_NAME:projectServiceSubDomain,
       INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN
     });
+    */
 
-    if (!programDocument || !programDocument?.result) {
+    let programDocument = await projectServiceProgramDetailsViaDBCall({
+      dbConnection:projectDb,
+      collectionName:'programs',
+      filter:{
+        _id:new ObjectId(projectProgramId),
+        tenantId:tenantId
+      }
+    });
+
+    if (!programDocument || !programDocument?.success || programDocument?.records.length <= 0) {
       console.error('❌ Program not found with given id');
       migrationResults.push({
         oldProgramId:  surveyProgramId,
@@ -365,7 +377,9 @@ async function modifyProgramsCollection() {
       return;
     }
 
-    programDocument = programDocument.result;
+    programDocument = programDocument.records[0];
+
+    console.log(programDocument,'pgmdocument')
 
     orgId = programDocument.orgId;
 
@@ -482,6 +496,7 @@ async function modifyProgramsCollection() {
           ...solutionIds.filter((solId) => !currentComponents.includes(solId)), // Add only the ones not in currentComponents
         ];
 
+        /*
         let result = await projectServiceProgramUpdate({
           projectServiceUrl,
           userToken:token,
@@ -494,12 +509,40 @@ async function modifyProgramsCollection() {
             orgId
           },
           INTERNAL_ACCESS_TOKEN:process.env.INTERNAL_ACCESS_TOKEN,
-          PROJECT_SERVICE_NAME:projectServiceSubDomain
+          PROJECT_SERVICE_NAME:projectServiceSubDomain,
+          ADMIN_AUTH_TOKEN:process.env.ADMIN_ACCESS_TOKEN
         });
 
         if(result.status == 200){
           console.log('program components updated successfully in project service...')
+        }else {
+          console.log("programs component update failed...")
+          console.log(result,'result')
         }
+
+      */
+
+      newComponent = newComponent.map((currentComponent)=>{
+          try{
+            return new ObjectId(currentComponent)
+          }catch(er){
+            return currentComponent;
+          }
+        })
+
+        let result = await projectServiceProgramUpdateViaDBCall({
+          dbConnection:projectDb,
+          collectionName:'programs',
+          filter:{
+            _id:new ObjectId(programId)
+          },
+          setObject:{
+            components:newComponent
+          }
+        });
+
+        require('fs').writeFileSync('programUpdate'+Date.now()+'.json',JSON.stringify(result));
+
 
         // You can now safely use programId and solutionIds
       } else {
@@ -519,3 +562,42 @@ modifyProgramsCollection().catch((error) => {
   process.exit(1);
 });
 
+
+
+async function projectServiceProgramDetailsViaDBCall({ dbConnection, collectionName, filter, projection }) {
+
+try{
+  const records = await dbConnection
+    .collection(collectionName)
+    .find({...filter})
+    .toArray();
+
+
+  return {success:true,records};
+}catch(err){
+  return {success:false}
+}
+
+}
+
+
+async function projectServiceProgramUpdateViaDBCall({ dbConnection, collectionName, filter, setObject }) {
+
+try{
+
+  console.log({ dbConnection, collectionName, filter, setObject },'<--******update object*******')
+     let updateOperation =  await dbConnection.collection(collectionName).updateOne(
+        { ...filter },
+        {
+          $set: {
+            ...setObject
+          },
+        }
+      );
+
+  return updateOperation;
+}catch(err){
+  return false;
+}
+
+}
