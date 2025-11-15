@@ -2278,11 +2278,11 @@ module.exports = class ObservationsHelper {
       if (entityDocument.registryDetails && Object.keys(entityDocument.registryDetails).length > 0) {
         entityDocument.metaInformation.registryDetails = entityDocument.registryDetails;
       }
-
+        /* We are not applying the status filter here because if the user has already consumed the solution and created at least one observation,
+         new submissions should be allowed. Additionally, the logic above ensures that we verify the existence of the observation. */
       let solutionDocument = await solutionsQueries.solutionDocuments(
         {
-          _id: observationDocument.solutionId,
-          status: 'active',
+          _id: observationDocument.solutionId
         },
         [
           'externalId',
