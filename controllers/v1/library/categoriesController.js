@@ -143,10 +143,10 @@ module.exports = class LibraryCategories extends Abstract {
 	 * @apiGroup Library Categories
 	 * @apiSampleRequest /survey/v1/library/categories/update
 	 * {json} Request body
-	 * @apiParamExample {json} Response:
+	 * @apiParamExample {json} Request body:
 	 * {   
          "name": "Test courses2",
-         "description": "Summa ulalali."    
+         "description": "Test the courses listed below"    
        }
 	* @apiParamExample {json} Response:
 	*   {
