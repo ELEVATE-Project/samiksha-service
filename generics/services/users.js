@@ -137,23 +137,13 @@ const getOrgDetails = function (organisationIdentifier, userToken, tenantId) {
 
 const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrgs = false) {
   return new Promise(async (resolve, reject) => {
-    try {
-      let url, headers;
-      if (userToken) {
-        // External request
-        url = userServiceUrl + messageConstants.endpoints.TENANT_READ + '/' + tenantId;
-        headers = {
-          'content-type': 'application/json',
-          'X-auth-token': userToken,
-        };
-      } else {
-        // Internal request
-        url = userServiceUrl + messageConstants.endpoints.TENANT_READ_INTERNAL + '/' + tenantId;
-        headers = {
+    try { 
+       let url = userServiceUrl + messageConstants.endpoints.TENANT_READ_INTERNAL + '/' + tenantId;
+       let headers = {
           'content-type': 'application/json',
           internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
         };
-      }
+      
       const options = {
         headers,
       };
@@ -166,6 +156,7 @@ const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrg
           result.success = false;
         } else {
           let response = JSON.parse(data.body);
+          console.log(JSON.stringify(response),"this is res")
           if (response.responseCode === httpStatusCode['ok_userService'].message) {
             if (aggregateValidOrgs == true) {
               if (response.result.organizations && response.result.organizations.length) {
