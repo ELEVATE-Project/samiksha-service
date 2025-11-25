@@ -401,7 +401,7 @@ const createChildProjectTemplate = function (projectTemplateExternalIds,userDeta
             success: false,
           })
         );
-      }, messageConstants.common.SERVER_TIME_OUT);
+      }, 100000);   // limiting the timeout because lot of resource creation is happening internally, will be optimised later
     } catch (error) {
       return reject(error);
     }
