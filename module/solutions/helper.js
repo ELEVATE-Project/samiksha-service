@@ -2243,7 +2243,7 @@ module.exports = class SolutionsHelper {
   ) {
     return new Promise(async (resolve, reject) => {
       try {
-          let response = await solutionsUtils.importFromSolution(  
+          let duplicateSolutionDocument = await solutionsUtils.importFromSolution(  
             solutionId,
             programId,
             userId,
@@ -2253,7 +2253,7 @@ module.exports = class SolutionsHelper {
             requestingUserAuthToken,
             userDetails
             )
-          return resolve(response);       
+          return resolve(duplicateSolutionDocument);       
       } catch (error) {
         return reject(error);
       }
