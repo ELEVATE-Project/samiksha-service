@@ -489,6 +489,7 @@ module.exports = class criteriaHelper {
           questionExternalIdMap = duplicateQuestionsResponse.data.questionExternalIdMap;
         }
 
+        let projectTemplateDetails = []
         for (const criteria of criteriaDocuments) {
 
           for (let pointerToEvidence = 0; pointerToEvidence < criteria.evidences.length; pointerToEvidence++) {
@@ -566,7 +567,15 @@ module.exports = class criteriaHelper {
         
               const successful = childProjectTemplates?.result?.successfulTemplates || [];
               const failed = childProjectTemplates?.result?.failedTemplates || [];
-        
+              for(const templateDetails of successful){
+                projectTemplateDetails.push(
+                  {
+                    parentProjectTemplateId : templateDetails.parentProjectTemplateId,
+                    childProjectTemplateId : templateDetails._id,
+                    solutionId: templateDetails.solutionId
+                  }
+                )
+              }
               if (failed.length > 0) {
                 throw {
                   message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
@@ -644,6 +653,7 @@ module.exports = class criteriaHelper {
           data: {
             criteriaIdMap: criteriaIdMap,
             questionExternalIdMap: questionExternalIdMap,
+            projectTemplateDetails: projectTemplateDetails ? projectTemplateDetails : []
           },
         });
       } catch (error) {
