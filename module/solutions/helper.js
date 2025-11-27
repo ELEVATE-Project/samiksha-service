@@ -811,7 +811,6 @@ module.exports = class SolutionsHelper {
           // call user-service to fetch related orgs
           let validOrgs = await userService.fetchTenantDetails(
             userDetails.tenantAndOrgInfo.tenantId,
-            userDetails.userToken,
             true
           )
           if (!validOrgs.success) {
@@ -2332,7 +2331,7 @@ module.exports = class SolutionsHelper {
         }
         // Generate link for each domain
            // fetch tenant domain by calling  tenant details API
-           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
+           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId);
            const domains = tenantDetailsResponse?.data?.domains || [];
            // Error handling if API failed or no domains found
            if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {

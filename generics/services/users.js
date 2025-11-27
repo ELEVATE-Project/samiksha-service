@@ -135,7 +135,7 @@ const getOrgDetails = function (organisationIdentifier, userToken, tenantId) {
  * @returns {Promise} A promise that resolves with the organization details or rejects with an error.
  */
 
-const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrgs = false) {
+const fetchTenantDetails = function (tenantId, aggregateValidOrgs = false) {
   return new Promise(async (resolve, reject) => {
     try { 
        let url = userServiceUrl + messageConstants.endpoints.TENANT_READ_INTERNAL + '/' + tenantId;
@@ -156,7 +156,6 @@ const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrg
           result.success = false;
         } else {
           let response = JSON.parse(data.body);
-          console.log(JSON.stringify(response),"this is res")
           if (response.responseCode === httpStatusCode['ok_userService'].message) {
             if (aggregateValidOrgs == true) {
               if (response.result.organizations && response.result.organizations.length) {
