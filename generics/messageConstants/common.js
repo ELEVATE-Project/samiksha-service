@@ -126,4 +126,7 @@ module.exports = {
   ALL_POLICY: 'ALL',
   PRIVATE_PROGRAM: `PRIVATEPROGRAM`,
   UPDATE_EVENT_TYPE: 'update',
+  SESSION_VERIFICATION_METHOD: {
+		USER_SERVICE: 'user_service_authenticated',
+	},
 };
