@@ -477,7 +477,7 @@ module.exports = {
   YOUR_FORM_IS_SUBMITTED : 'Your form is submitted',
   FORM_EXPIRED : 'Sorry the form expired',
   ACCESS_TOKEN_EXPIRED_CODE: 'ACC_TOKEN_EXPIRED',
-	ACCESS_TOKEN_EXPIRED_MSG: 'Access Token Expired!! Please Login Again.',
+	ACCESS_TOKEN_EXPIRED: 'Access Token Expired!! Please Login Again.',
 	USER_SERVICE_DOWN_CODE: 'USER_SERVICE_DOWN',
-	USER_SERVICE_DOWN_MSG: 'User service is down',
+	USER_SERVICE_DOWN: 'User service is down',
 };

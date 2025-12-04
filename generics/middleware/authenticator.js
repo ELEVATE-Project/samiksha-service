@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const isBearerRequired = process.env.IS_AUTH_TOKEN_BEARER === 'true';
 const userService = require(ROOT_PATH + '/generics/services/users');
-const requests = require('../helpers/requests')
+const requests = require('../helpers/requests');
 
 
 // var shikshalokam = require("../helpers/shikshalokam");
@@ -418,22 +418,19 @@ module.exports = async function (req, res, next) {
     process.env.SESSION_VERIFICATION_METHOD === messageConstants.common.SESSION_VERIFICATION_METHOD.USER_SERVICE
   ) {
     try {
-      await validateSession(token)
-    } catch (error) {
-      console.log('Error validating user session!!')
-
-      if (error.type === 'UNAUTHORIZED') {
-        rspObj.errCode = messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_CODE
-        rspObj.errMsg = messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_MSG
-        rspObj.responseCode = httpStatusCode['unauthorized'].status
-        return res.status(httpStatusCode['unauthorized'].status).send(respUtil(rspObj))
+      const userSession = await validateSession(token)
+      if (!userSession.success) {
+        throw {
+          message: userSession.message,
+          status: userSession.status,
+        }
       }
-
-      // For all other errors
-      rspObj.errCode = messageConstants.apiResponses.USER_SERVICE_DOWN_CODE
-      rspObj.errMsg = messageConstants.apiResponses.USER_SERVICE_DOWN_MSG
-      rspObj.responseCode = httpStatusCode['bad_request'].status
-      return res.status(httpStatusCode['bad_request'].status).send(respUtil(rspObj))
+    } catch (error) {
+      console.error('Error validating user session:', error.status)
+      rspObj.errCode = error.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE
+      rspObj.errMsg = error.message || messageConstants.apiResponses.USER_SERVICE_DOWN
+      rspObj.responseCode = httpStatusCode['unauthorized'].status
+      return res.status(httpStatusCode['unauthorized'].status).send(respUtil(rspObj))
     }
   }
 
@@ -845,25 +842,25 @@ async function validateSession(token) {
 		// Case 1: Unauthorized token
 		if (isSessionActive?.data?.responseCode === 'UNAUTHORIZED') {
 			throw {
-				type: 'UNAUTHORIZED',
-				msg: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_MSG,
+				status: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_CODE,
+				message: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED,
 			}
 		}
 
 		// Case 2: User service down / session inactive
 		if (!isSessionActive?.success || !isSessionActive?.data?.result?.data?.user_session_active) {
 			throw {
-				type: messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
-				msg: messageConstants.apiResponses.USER_SERVICE_DOWN_MSG,
+				status: messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+				message: messageConstants.apiResponses.USER_SERVICE_DOWN,
 			}
 		}
 
 		return isSessionActive
 	} catch (err) {
-		// Always throw standardized error
-		throw {
-			type: err.type || 'SERVICE_DOWN',
-			msg: err.msg || messageConstants.apiResponses.USER_SERVICE_DOWN_MSG,
+		return {
+			success: false,
+			status: err.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+			message: err.message || messageConstants.apiResponses.USER_SERVICE_DOWN,
 		}
 	}
 }
