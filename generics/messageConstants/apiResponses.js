@@ -475,5 +475,9 @@ module.exports = {
   USER_EXTENSION_DELETED: 'User extension deleted successfully',
   NO_SOLUTION_FOUND_FOR_THE_LINK: 'This link appears to be invalid. Please use a valid link to continue.',
   YOUR_FORM_IS_SUBMITTED : 'Your form is submitted',
-  FORM_EXPIRED : 'Sorry the form expired'
+  FORM_EXPIRED : 'Sorry the form expired',
+  ACCESS_TOKEN_EXPIRED_CODE: 'ACC_TOKEN_EXPIRED',
+	ACCESS_TOKEN_EXPIRED: 'Access Token Expired!! Please Login Again.',
+	USER_SERVICE_DOWN_CODE: 'USER_SERVICE_DOWN',
+	USER_SERVICE_DOWN: 'User service is down',
 };
