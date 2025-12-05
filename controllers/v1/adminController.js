@@ -181,7 +181,7 @@ module.exports = class Admin {
          let deleteResource = await adminHelper.deletedResourceDetails(
             req.params._id,
             req.query.type,
-            req.query.isAPrivateProgram ? req.query.isAPrivateProgram : 'false',
+            req.query.isAPrivateProgram ? gen.utils.convertStringToBoolean(req.query.isAPrivateProgram) : false,
             req.userDetails.tenantAndOrgInfo.tenantId,
             req.userDetails.tenantAndOrgInfo.orgId,
             req.userDetails.userId
