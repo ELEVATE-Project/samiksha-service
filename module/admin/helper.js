@@ -193,9 +193,7 @@ module.exports = class adminHelper {
               tenantId,
               isAPrivateProgram: false,
             };
-          }
-          console.log(ProgramFilter,"line no 197");
-          
+          }          
           // Fetch program details to ensure it exists and has components
           const programDetails = await programsQueries.programDocuments(ProgramFilter, ['components']);
           if (!programDetails?.length) {
