@@ -149,6 +149,7 @@ module.exports = class adminHelper {
    * @name deletedResourceDetails
    * @param {String} resourceId - ID of the resource to delete.
    * @param {String} resourceType - Type of the resource ('program' or 'solution').
+   * @param {Object} isAPrivateProgram - If Program is Private `true` else `false`.
    * @param {String} tenantId - Tenant identifier for multitenancy.
    * @param {String} orgId - Organization ID performing the operation.
    * @param {String} [deletedBy='SYSTEM'] - User ID or system name that triggered the deletion.
@@ -156,7 +157,14 @@ module.exports = class adminHelper {
    * @returns {Promise<Object>} - Result object summarizing deletion impact.
    */
 
-  static deletedResourceDetails(resourceId, resourceType, tenantId, orgId, deletedBy = 'SYSTEM') {
+  static deletedResourceDetails(
+    resourceId,
+    resourceType,
+    isAPrivateProgram = false,
+    tenantId,
+    orgId,
+    deletedBy = 'SYSTEM'
+  ) {
     return new Promise(async (resolve, reject) => {
       try {
         // Track counters for deleted resource
@@ -172,12 +180,20 @@ module.exports = class adminHelper {
         let resourceIdsWithType = [];
         // Handle deletion of a PROGRAM
         if (resourceType === messageConstants.common.PROGRAM_CHECK) {
-          const ProgramFilter = {
-            _id: resourceId,
-            tenantId,
-            isAPrivateProgram: false,
-          };
-
+          let ProgramFilter;
+          if (isAPrivateProgram) {
+            ProgramFilter = {
+              _id: resourceId,
+              tenantId,
+              isAPrivateProgram: true,
+            };
+          } else {
+            ProgramFilter = {
+              _id: resourceId,
+              tenantId,
+              isAPrivateProgram: false,
+            };
+          }          
           // Fetch program details to ensure it exists and has components
           const programDetails = await programsQueries.programDocuments(ProgramFilter, ['components']);
           if (!programDetails?.length) {
@@ -513,5 +529,4 @@ module.exports = class adminHelper {
       }
     });
   }
-   
 };
