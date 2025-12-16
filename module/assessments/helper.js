@@ -156,6 +156,7 @@ module.exports = class AssessmentsHelper {
           ) {
             submissionsObjects[questionArrayElm[1].evidenceMethod].answers[questionArrayElm[0]].fileName.forEach(
               (file) => {
+                if(file.sourcePath && (file.sourcePath != ''))
                 attachments.push(file.sourcePath);
               },
             );
@@ -188,6 +189,7 @@ module.exports = class AssessmentsHelper {
                       singleValue[instanceQuestionId.toString()].fileName.length > 0
                     ) {
                       singleValue[instanceQuestionId.toString()].fileName.forEach((file) => {
+                        if(file.sourcePath && (file.sourcePath != ''))
                         attachments.push(file.sourcePath);
                       });
                     }
