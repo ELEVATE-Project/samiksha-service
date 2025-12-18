@@ -781,6 +781,7 @@ module.exports = class SurveysHelper {
             'programId',
             'programExternalId',
             'isAPrivateProgram',
+            'isExternalProgram'
           ]
         );
 
