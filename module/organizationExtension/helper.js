@@ -37,16 +37,58 @@ module.exports = class organisationExtensionHelper {
         };
       }
 
-      let updateObject = {
-        $set: {},
-      };
-      //get update object
-      Object.keys(_.omit(bodyData, ['tenantId', 'orgId'])).forEach((updationData) => {
-        updateObject['$set'][updationData] = bodyData[updationData];
-      });
-      updateObject['$set']['updatedBy'] = userDetails.userId;
+      // Only allow updating of specific fields: observationResourceVisibilityPolicy , externalObservationResourceVisibilityPolicy, surveyResourceVisibilityPolicy & externalSurveyResourceVisibilityPolicy
+      let filteredBodyData = Object.fromEntries(
+        Object.entries(bodyData).filter(
+          ([key, value]) =>
+            key === 'observationResourceVisibilityPolicy' ||
+            key === 'externalObservationResourceVisibilityPolicy' || 
+            key === 'surveyResourceVisibilityPolicy' ||
+            key === 'externalSurveyResourceVisibilityPolicy'
+        )
+      )
 
-      const orgExtension = await organizationExtensionQueries.update(orgExternsionfilter, updateObject, { new: true });
+      // Use observationResourceVisibilityPolicy from body if given
+      if (bodyData.observationResourceVisibilityPolicy) {
+        filteredBodyData['observationResourceVisibilityPolicy'] = bodyData.observationResourceVisibilityPolicy
+      }
+
+      // Use externalObservationResourceVisibilityPolicy from body if given
+      if (bodyData.externalObservationResourceVisibilityPolicy) {
+        filteredBodyData['externalObservationResourceVisibilityPolicy'] =
+          bodyData.externalObservationResourceVisibilityPolicy
+      }
+
+      // Use surveyResourceVisibilityPolicy from body if given
+      if (bodyData.surveyResourceVisibilityPolicy) {
+        filteredBodyData['surveyResourceVisibilityPolicy'] = bodyData.surveyResourceVisibilityPolicy
+      }
+
+      // Use externalSurveyResourceVisibilityPolicy from body if given
+      if (bodyData.externalSurveyResourceVisibilityPolicy) {
+        filteredBodyData['externalSurveyResourceVisibilityPolicy'] =
+          bodyData.externalSurveyResourceVisibilityPolicy
+      }
+
+      // Get all allowed values for org extension visibility
+      let orgExtenVisibilityValues = Object.values(messageConstants.common.ORG_EXTENSION_VISIBILITY)
+
+      // Validate each provided visibility policy
+      Object.entries(filteredBodyData).map(([key, value]) => {
+        if (key == 'observationResourceVisibilityPolicy' || key == 'externalObservationResourceVisibilityPolicy' || key == 'surveyResourceVisibilityPolicy' || key == 'externalSurveyResourceVisibilityPolicy') {
+          value = value.toUpperCase()
+          filteredBodyData[key] = value
+          // If provided value is not valid, reset to default
+          if (!orgExtenVisibilityValues.includes(value)) delete filteredBodyData[key]
+        }
+      })
+
+      filteredBodyData['updatedBy'] = userDetails.userId;
+
+      let updateOrgExtData = {
+        $set : filteredBodyData
+      }
+      const orgExtension = await organizationExtensionQueries.update(orgExternsionfilter, updateOrgExtData, { new: true });
 
       if (!orgExtension || !orgExtension._id) {
         return {
@@ -107,6 +149,44 @@ module.exports = class organisationExtensionHelper {
         name: eventBody.name,
         tenantId: eventBody.tenant_code,
       };
+
+      // Use observationResourceVisibilityPolicy from body if given
+      if (eventBody.observationResourceVisibilityPolicy) {
+        extensionData['observationResourceVisibilityPolicy'] = eventBody.observationResourceVisibilityPolicy
+      }
+
+      // Use externalObservationResourceVisibilityPolicy from body if given
+      if (eventBody.externalObservationResourceVisibilityPolicy) {
+        extensionData['externalObservationResourceVisibilityPolicy'] =
+          eventBody.externalObservationResourceVisibilityPolicy
+      }
+
+      // Use surveyResourceVisibilityPolicy from body if given
+      if (eventBody.surveyResourceVisibilityPolicy) {
+        extensionData['surveyResourceVisibilityPolicy'] = eventBody.surveyResourceVisibilityPolicy
+      }
+
+      // Use externalSurveyResourceVisibilityPolicy from body if given
+      if (eventBody.externalSurveyResourceVisibilityPolicy) {
+        extensionData['externalSurveyResourceVisibilityPolicy'] =
+          eventBody.externalSurveyResourceVisibilityPolicy
+      }
+
+      // Get all allowed values for org extension visibility
+      let orgExtenVisibilityValues = Object.values(messageConstants.common.ORG_EXTENSION_VISIBILITY)
+
+      // Validate each provided visibility policy
+      Object.entries(extensionData).map(([key, value]) => {
+        if (key == 'observationResourceVisibilityPolicy' || key == 'externalObservationResourceVisibilityPolicy' || key == 'surveyResourceVisibilityPolicy' || key == 'externalSurveyResourceVisibilityPolicy') {
+          value = value.toUpperCase()
+          extensionData[key] = value
+          // If provided value is not valid, reset to default
+          if (!orgExtenVisibilityValues.includes(value)) delete extensionData[key]
+        }
+      })
+
+
+
       let orgExtension = await organizationExtensionQueries.create(extensionData);
       return {
         success: true,
