@@ -5,6 +5,12 @@
  * Description : Common message.
  */
 
+const ORG_EXTENSION_VISIBILITY = {
+	ALL: 'ALL',
+	CURRENT: 'CURRENT',
+	ASSOCIATED: 'ASSOCIATED',
+}
+
 module.exports = {
   ASSESSMENT: 'assessment',
   OBSERVATION: 'observation',
@@ -121,12 +127,10 @@ module.exports = {
   ALL: 'all',
   PROGRAM_CHECK: 'program',
   SOLUTION_CHECK: 'solution',
-  CURRENT: 'CURRENT',
-  ASSOCIATED: 'ASSOCIATED',
-  ALL_POLICY: 'ALL',
   PRIVATE_PROGRAM: `PRIVATEPROGRAM`,
   UPDATE_EVENT_TYPE: 'update',
   SESSION_VERIFICATION_METHOD: {
 		USER_SERVICE: 'user_service_authenticated',
 	},
+  ORG_EXTENSION_VISIBILITY
 };
