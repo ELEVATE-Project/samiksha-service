@@ -404,7 +404,11 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
             }
           }
-          return resolve(duplicateSolutionDocument);
+          const response = {
+            duplicateSolutionDocument,
+            projectTemplateDetails : duplicateCriteriasResponse.data.projectTemplateDetails
+          }
+          return resolve(response)
         } else {
           throw {
             message: messageConstants.apiResponses.ERROR_CREATING_DUPLICATE,

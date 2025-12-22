@@ -781,6 +781,7 @@ module.exports = class SurveysHelper {
             'programId',
             'programExternalId',
             'isAPrivateProgram',
+            'isExternalProgram'
           ]
         );
 
@@ -808,7 +809,7 @@ module.exports = class SurveysHelper {
               );
             }
 
-            throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
+            throw new Error(messageConstants.apiResponses.FORM_EXPIRED);
           }
         }
         // Check if the survey exists
@@ -1331,7 +1332,7 @@ module.exports = class SurveysHelper {
             if (surveySubmissionDocument[0].status == messageConstants.common.SUBMISSION_STATUS_COMPLETED) {
               return resolve({
                 success: false,
-                message: messageConstants.apiResponses.MULTIPLE_SUBMISSIONS_NOT_ALLOWED,
+                message: messageConstants.apiResponses.YOUR_FORM_IS_SUBMITTED,
                 data: {
                   status: surveySubmissionDocument[0].status,
                 },
@@ -1339,7 +1340,7 @@ module.exports = class SurveysHelper {
             }
 
             if (new Date() > new Date(surveySubmissionDocument[0].surveyInformation.endDate)) {
-              throw new Error(messageConstants.apiResponses.LINK_IS_EXPIRED);
+              throw new Error(messageConstants.apiResponses.FORM_EXPIRED);
             }
           }
         }

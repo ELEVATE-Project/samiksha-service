@@ -427,6 +427,16 @@ let enviromentVariables = {
     optional: true,
     default: 'SamikshaService',
   },
+  SESSION_VERIFICATION_METHOD: {
+		message: 'Required Session Verification Method',
+		optional: true,
+		default: 'user_service_authenticated',
+	},
+	USER_SERVICE_INTERNAL_ACCESS_TOKEN_HEADER_KEY: {
+		message: 'Required User Service Internal Access Token Header Key',
+		optional: true,
+		default: 'internal_access_token',
+	},
 };
 
 let success = true;

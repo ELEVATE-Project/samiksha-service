@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const isBearerRequired = process.env.IS_AUTH_TOKEN_BEARER === 'true';
 const userService = require(ROOT_PATH + '/generics/services/users');
+const requests = require('../helpers/requests');
 
 
 // var shikshalokam = require("../helpers/shikshalokam");
@@ -412,6 +413,26 @@ module.exports = async function (req, res, next) {
     return res.status(responseCode['unauthorized'].status).send(respUtil(rspObj));
   }
 
+  if (
+    !performInternalAccessTokenCheck &&
+    process.env.SESSION_VERIFICATION_METHOD === messageConstants.common.SESSION_VERIFICATION_METHOD.USER_SERVICE
+  ) {
+    try {
+      const userSession = await validateSession(token)
+      if (!userSession.success) {
+        throw {
+          message: userSession.message,
+          status: userSession.status,
+        }
+      }
+    } catch (error) {
+      rspObj.errCode = error.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE
+      rspObj.errMsg = error.message || messageConstants.apiResponses.USER_SERVICE_DOWN
+      rspObj.responseCode = httpStatusCode['unauthorized'].status
+      return res.status(httpStatusCode['unauthorized'].status).send(respUtil(rspObj))
+    }
+  }
+
   // Path to config.json
   let configFilePath
   if (process.env.AUTH_CONFIG_FILE_PATH) {
@@ -799,3 +820,46 @@ module.exports = async function (req, res, next) {
 
   next();
 };
+
+/**
+ * Validates the user's session token by calling the user service.
+ * @param {string} token - The access token extracted from the request header.
+ */
+async function validateSession(token) {
+	try {
+		const userBaseUrl = process.env.USER_SERVICE_URL
+		const validateSessionEndpoint = `${userBaseUrl}${messageConstants.endpoints.VALIDATE_SESSIONS}`
+		const reqBody = { token }
+		const isSessionActive = await requests.post(
+			validateSessionEndpoint,
+			reqBody,
+			'',
+			true,
+			process.env.USER_SERVICE_INTERNAL_ACCESS_TOKEN_HEADER_KEY
+		)
+
+		// Case 1: Unauthorized token
+		if (isSessionActive?.data?.responseCode === 'UNAUTHORIZED') {
+			throw {
+				status: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_CODE,
+				message: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED,
+			}
+		}
+
+		// Case 2: User service down / session inactive
+		if (!isSessionActive?.success || !isSessionActive?.data?.result?.data?.user_session_active) {
+			throw {
+				status: messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+				message: messageConstants.apiResponses.USER_SERVICE_DOWN,
+			}
+		}
+
+		return isSessionActive
+	} catch (err) {
+		return {
+			success: false,
+			status: err.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+			message: err.message || messageConstants.apiResponses.USER_SERVICE_DOWN,
+		}
+	}
+}

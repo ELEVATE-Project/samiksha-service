@@ -1937,19 +1937,19 @@ module.exports = class SolutionsHelper {
          let visibilityQuery =[]
          // Generate a Query based on policies
          switch (orgPolicies) {
-          case messageConstants.common.CURRENT:
+          case messageConstants.common.ORG_EXTENSION_VISIBILITY.CURRENT:
             matchQuery['$match']['orgId'] = userDetails.tenantData.orgId
             break
-          case messageConstants.common.ALL_POLICY:
+          case messageConstants.common.ORG_EXTENSION_VISIBILITY.ALL:
             visibilityQuery = [
-              { visibility: messageConstants.common.ALL_POLICY },
-              { visibility:{$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility: messageConstants.common.ORG_EXTENSION_VISIBILITY.ALL },
+              { visibility:{$ne:messageConstants.common.ORG_EXTENSION_VISIBILITY.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
               { orgId: userDetails.tenantData.orgId }
             ];
             break
-          case messageConstants.common.ASSOCIATED:
+          case messageConstants.common.ORG_EXTENSION_VISIBILITY.ASSOCIATED:
             visibilityQuery = [
-              { visibility: {$ne:messageConstants.common.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
+              { visibility: {$ne:messageConstants.common.ORG_EXTENSION_VISIBILITY.CURRENT},visibleToOrganizations:{$in:[userDetails.tenantData.orgId ]}},
               { orgId: userDetails.tenantData.orgId },      
             ] 
             break

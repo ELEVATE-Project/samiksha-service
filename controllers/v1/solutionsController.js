@@ -1253,11 +1253,10 @@ module.exports = class Solutions extends Abstract {
    * @apiParam {String} solutionId Solution External ID.
    * @apiParamExample {json} Request-Body:
    * {
-   * "externalId": ""
-   * "name": "",
-   * "description": ""
-   * "programExternalId": ""
-   * }
+    "externalId": "Dev",
+    "name": "dev_testing",
+    "description": "dev testing"
+    }
    * @apiSampleRequest /samiksha/v1/solutions/importFromSolution?solutionId=Mantra-STL-2019-001
    * @apiUse successBody
    * @apiUse errorBody
@@ -1296,7 +1295,7 @@ module.exports = class Solutions extends Abstract {
             message: responseMessage,
           });
         }
-        let duplicateSolution = await solutionsHelper.importFromSolution(
+        let response = await solutionsHelper.importFromSolution(
           req.query.solutionId,
           req.body.programExternalId ? req.body.programExternalId : '',
           req?.userDetails?.userId ? req.userDetails.userId : req.body.userId,
@@ -1309,7 +1308,12 @@ module.exports = class Solutions extends Abstract {
 
         return resolve({
           message: messageConstants.apiResponses.DUPLICATE_SOLUTION,
-          result: _.pick(duplicateSolution, ['_id', 'externalId']),
+          result: {
+            _id: response.duplicateSolutionDocument._id,
+            externalId: response.duplicateSolutionDocument.externalId,
+            projectTemplateDetails: response.projectTemplateDetails
+          }
+          
         });
       } catch (error) {
         return reject({

@@ -40,4 +40,5 @@ module.exports = {
   CREATE_CHILD_PROJECT_TEMPLATE: '/v1/project/templates/createChildProjectTemplate',
   CREATE_PROGRAM : '/v1/programs/publishToLibrary',
   LIBRARY_PROGRAM_UPDATE: '/v1/programs/ProgramUpdateForLibrary',
+	VALIDATE_SESSIONS: '/v1/account/validateUserSession',
 };
