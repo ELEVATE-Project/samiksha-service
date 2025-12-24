@@ -329,7 +329,6 @@ module.exports = class ProgramsHelper {
           success: false,
           message: error.message, 
           data: {},
-          status: error.status || httpStatusCode.internal_server_error.status
         });
       }
     });
