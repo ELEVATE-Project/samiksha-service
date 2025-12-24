@@ -325,10 +325,11 @@ module.exports = class ProgramsHelper {
           },
         });
       } catch (error) {
-        return resolve({
+        return reject({
           success: false,
           message: error.message, 
           data: {},
+          status: error.status || httpStatusCode.internal_server_error.status
         });
       }
     });
