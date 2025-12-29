@@ -19,13 +19,11 @@ const programSchema = new Schema({
   },
   startDate:{
     type: Date, 
-    index: true,
-    require:true
+    index: true
   },
   endDate: {
     type : Date,
-    index : true,
-    require: true
+    index : true
   },
   resourceType: [String],
   language: [String],
