@@ -33,13 +33,11 @@ const solutionSchema = new Schema({
   entityProfileFieldsPerEntityTypes: Object,
 	startDate: {
 		type: Date,
-		index: true,
-		required: true,
+		index: true
 	},
 	endDate: {
 		type: Date,
-		index: true,
-		required: true,
+		index: true
 	},
   status: String,
   evidenceMethods: Object,
