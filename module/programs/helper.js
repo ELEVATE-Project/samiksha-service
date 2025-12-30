@@ -325,7 +325,7 @@ module.exports = class ProgramsHelper {
           },
         });
       } catch (error) {
-        return reject({
+        return resolve({
           success: false,
           message: error.message, 
           data: {},
