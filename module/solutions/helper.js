@@ -1183,7 +1183,7 @@ module.exports = class SolutionsHelper {
           data: solutionData,
         });
       } catch (error) {
-        return resolve({
+        return reject({
           success: false,
           message: error.message,
           data: {},
