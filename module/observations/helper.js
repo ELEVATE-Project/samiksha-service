@@ -1666,6 +1666,22 @@ module.exports = class ObservationsHelper {
           },
         };
 
+        // Check the keywords filter and add it to the match query if exists
+        const raw = filter?.keywords;
+        let keywordArray = [];
+
+        if (typeof raw === 'string') {
+          keywordArray = raw.split(',');
+        } else if (Array.isArray(raw)) {
+          keywordArray = raw;
+        }
+
+        keywordArray = keywordArray.map((k) => k.trim()).filter(Boolean);
+
+        if (keywordArray.length > 0) {
+          matchQuery.keywords = { $in: keywordArray };
+        }
+
         if (search && search !== '') {
           matchQuery['$match']['$or'] = [{ name: new RegExp(search, 'i') }, { description: new RegExp(search, 'i') }];
         }
@@ -1679,6 +1695,7 @@ module.exports = class ObservationsHelper {
             matchQuery['$match']['isAPrivateProgram'] = false;
           }
         }
+
         //Constructing the projection
         let projection1 = {
           $project: {
@@ -2278,11 +2295,11 @@ module.exports = class ObservationsHelper {
       if (entityDocument.registryDetails && Object.keys(entityDocument.registryDetails).length > 0) {
         entityDocument.metaInformation.registryDetails = entityDocument.registryDetails;
       }
-        /* We are not applying the status filter here because if the user has already consumed the solution and created at least one observation,
+      /* We are not applying the status filter here because if the user has already consumed the solution and created at least one observation,
          new submissions should be allowed. Additionally, the logic above ensures that we verify the existence of the observation. */
       let solutionDocument = await solutionsQueries.solutionDocuments(
         {
-          _id: observationDocument.solutionId
+          _id: observationDocument.solutionId,
         },
         [
           'externalId',

@@ -307,6 +307,7 @@ module.exports = class SolutionsHelper {
         if (solutionIds.length > 0 && !currentScopeOnly) {
           requestedData['filter']['skipSolutions'] = solutionIds;
         }
+        requestedData['filter']['keywords'] = filter['keywords'] ? filter['keywords'] : [];
 
         if (filter && filter !== '') {
           if (filter === messageConstants.common.CREATED_BY_ME) {
@@ -714,8 +715,26 @@ module.exports = class SolutionsHelper {
           matchQuery['programId'] = new ObjectId(programId);
         }
         matchQuery['startDate'] = { $lte: new Date() };
-        
-        matchQuery = {...matchQuery, ...additionalFilters};
+
+        // Check the keywords filter and add it to the match query if exists
+
+        const raw = bodyData?.filter?.keywords;
+        let keywordArray = [];
+
+        if (typeof raw === 'string') {
+          keywordArray = raw.split(',');
+        } else if (Array.isArray(raw)) {
+          keywordArray = raw;
+        }
+
+        keywordArray = keywordArray.map((k) => k.trim()).filter(Boolean);
+
+        if (keywordArray.length > 0) {
+          matchQuery.keywords = { $in: keywordArray };
+        }
+
+        matchQuery = { ...matchQuery, ...additionalFilters };
+
         //listing the solution based on type and query
         let targetedSolutions = await this.list(type, subType, matchQuery, pageNo, pageSize, searchText, [
           'name',
@@ -733,8 +752,9 @@ module.exports = class SolutionsHelper {
           'entityType',
           'certificateTemplateId',
           'status',
-          "linkUrl",
-					"linkTitle"
+          'linkUrl',
+          'linkTitle',
+          'keywords',
         ]);
         return resolve({
           success: true,
@@ -1183,7 +1203,7 @@ module.exports = class SolutionsHelper {
           data: solutionData,
         });
       } catch (error) {
-        return resolve({
+        return reject({
           success: false,
           message: error.message,
           data: {},
