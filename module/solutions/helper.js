@@ -307,7 +307,13 @@ module.exports = class SolutionsHelper {
         if (solutionIds.length > 0 && !currentScopeOnly) {
           requestedData['filter']['skipSolutions'] = solutionIds;
         }
-        requestedData['filter']['keywords'] = filter['keywords'] ? filter['keywords'] : [];
+        // Normalize keywords if filter is an object and has keywords
+        if (filter && typeof filter === 'object' && filter !== null && filter.keywords !== undefined) {
+          const normalizedKeywords = this.normalizeKeywords(filter.keywords);
+          if (normalizedKeywords.length > 0) {
+            requestedData['filter']['keywords'] = normalizedKeywords;
+          }
+        }
 
         if (filter && filter !== '') {
           if (filter === messageConstants.common.CREATED_BY_ME) {
@@ -484,6 +490,31 @@ module.exports = class SolutionsHelper {
     });
   }
   /**
+   * Normalize keywords from raw input (string or array) to a clean array.
+   * @method
+   * @name normalizeKeywords
+   * @param {String|Array} raw - Raw keywords input (string or array).
+   * @returns {Array} Normalized array of keywords, empty if input is invalid or empty.
+   */
+  static normalizeKeywords(raw) {
+    if (!raw) {
+      return [];
+    }
+
+    let keywordArray = [];
+
+    if (typeof raw === 'string') {
+      keywordArray = raw.split(',');
+    } else if (Array.isArray(raw)) {
+      keywordArray = raw;
+    } else {
+      return [];
+    }
+
+    return keywordArray.map((k) => k.trim()).filter(Boolean);
+  }
+
+  /**
    * Auto targeted query field.
    * @method
    * @name queryBasedOnRoleAndLocation
@@ -644,6 +675,16 @@ module.exports = class SolutionsHelper {
             delete data.filter.skipSolutions;
           }
 
+          // Normalize keywords before merging
+          if (data.filter.keywords !== undefined) {
+            const normalizedKeywords = this.normalizeKeywords(data.filter.keywords);
+            if (normalizedKeywords.length > 0) {
+              data.filter.keywords = normalizedKeywords;
+            } else {
+              delete data.filter.keywords;
+            }
+          }
+
           filterQuery = _.merge(filterQuery, data.filter);
         }
 
@@ -717,20 +758,14 @@ module.exports = class SolutionsHelper {
         matchQuery['startDate'] = { $lte: new Date() };
 
         // Check the keywords filter and add it to the match query if exists
-
         const raw = bodyData?.filter?.keywords;
-        let keywordArray = [];
+        const normalizedKeywords = this.normalizeKeywords(raw);
 
-        if (typeof raw === 'string') {
-          keywordArray = raw.split(',');
-        } else if (Array.isArray(raw)) {
-          keywordArray = raw;
-        }
-
-        keywordArray = keywordArray.map((k) => k.trim()).filter(Boolean);
-
-        if (keywordArray.length > 0) {
-          matchQuery.keywords = { $in: keywordArray };
+        if (normalizedKeywords.length > 0) {
+          matchQuery.keywords = { $in: normalizedKeywords };
+        } else if (matchQuery.keywords !== undefined) {
+          // Remove empty keywords filter if it was merged from queryBasedOnRoleAndLocation
+          delete matchQuery.keywords;
         }
 
         matchQuery = { ...matchQuery, ...additionalFilters };
