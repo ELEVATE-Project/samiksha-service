@@ -514,12 +514,17 @@ module.exports = class SolutionsHelper {
       return [];
     }
 
-    return [...new Set(
-      keywordArray
-        .filter((k) => typeof k === 'string')
-        .map((k) => k.trim())
-        .filter(Boolean)
-      )];
+    const seen = new Set();
+    return keywordArray
+    .filter((k) => k != null && (typeof k === 'string' || (typeof k === 'number' && !isNaN(k))))
+    .map((k) => (typeof k === 'string' ? k.trim() : String(k).trim()))
+    .filter((k) => {
+      if (!k || seen.has(k.toLowerCase())) {
+        return false;
+      }
+      seen.add(k.toLowerCase());
+      return true;
+    });
   }
 
   /**
