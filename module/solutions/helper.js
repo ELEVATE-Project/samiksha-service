@@ -689,16 +689,16 @@ module.exports = class SolutionsHelper {
           }
 
           // Normalize keywords before merging
-          if (data.filter.keywords !== undefined) {
-            const normalizedKeywords = this.normalizeKeywords(data.filter.keywords);
+          if (data?.filter?.keywords !== undefined) {
+            const normalizedKeywords = this.normalizeKeywords(data?.filter?.keywords);
             if (normalizedKeywords.length > 0) {
               data.filter.keywords = { $in: normalizedKeywords };
             } else {
-              delete data.filter.keywords;
+              delete data?.filter?.keywords;
             }
           }
 
-          filterQuery = _.merge(filterQuery, data.filter);
+          filterQuery = _.merge(filterQuery, data?.filter);
         }
 
         delete filterQuery['scope.entityType'];
