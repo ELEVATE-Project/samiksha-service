@@ -516,15 +516,15 @@ module.exports = class SolutionsHelper {
 
     const seen = new Set();
     return keywordArray
-    .filter((k) => k != null && (typeof k === 'string' || (typeof k === 'number' && !isNaN(k))))
-    .map((k) => (typeof k === 'string' ? k.trim() : String(k).trim()))
-    .filter((k) => {
-      if (!k || seen.has(k.toLowerCase())) {
-        return false;
-      }
-      seen.add(k.toLowerCase());
-      return true;
-    });
+      .filter((k) => k != null && (typeof k === "string" || (typeof k === "number" && !isNaN(k))))
+      .map((k) => (typeof k === "string" ? k.trim() : String(k).trim()))
+      .filter((k) => {
+        if (!k || seen.has(k)) {
+          return false;
+        }
+        seen.add(k); // keep exact value, no lowercasing
+        return true;
+      });
   }
 
   /**
