@@ -1666,7 +1666,7 @@ module.exports = class ObservationsHelper {
           },
         };
 
-        // Check the keywords filter and add it to the match query if exists
+        // Normalize keywords if provided (observations don't have keywords, but solutions do)
         const raw = filter?.keywords;
         let keywordArray = [];
 
@@ -1676,11 +1676,18 @@ module.exports = class ObservationsHelper {
           keywordArray = raw;
         }
 
-        keywordArray = keywordArray.map((k) => k.trim()).filter(Boolean);
-
-        if (keywordArray.length > 0) {
-          matchQuery['$match']['keywords'] = { $in: keywordArray };
-        }
+        // Normalization: only process string items, trim them, filter out empty strings, remove duplicates
+        const seen = new Set();
+        keywordArray = keywordArray
+          .filter((k) => k != null && (typeof k === 'string' || (typeof k === 'number' && !isNaN(k))))
+          .map((k) => (typeof k === 'string' ? k.trim() : String(k).trim()))
+          .filter((k) => {
+            if (!k || seen.has(k.toLowerCase())) {
+              return false;
+            }
+            seen.add(k.toLowerCase());
+            return true;
+          });
 
         if (search && search !== '') {
           matchQuery['$match']['$or'] = [{ name: new RegExp(search, 'i') }, { description: new RegExp(search, 'i') }];
@@ -1726,8 +1733,36 @@ module.exports = class ObservationsHelper {
         };
 
         let aggregateData = [];
+        aggregateData.push(matchQuery);
+
+        // Add $lookup to join with solutions collection if keywords filter is provided
+        if (keywordArray.length > 0) {
+          aggregateData.push({
+            $lookup: {
+              from: 'solutions',
+              localField: 'solutionId',
+              foreignField: '_id',
+              as: 'solution',
+            },
+          });
+
+          // Unwind solution array (should be single document per observation)
+          aggregateData.push({
+            $unwind: {
+              path: '$solution',
+              preserveNullAndEmptyArrays: false, // Remove observations without matching solutions
+            },
+          });
+
+          // Filter by solution keywords after lookup
+          aggregateData.push({
+            $match: {
+              'solution.keywords': { $in: keywordArray },
+            },
+          });
+        }
+
         aggregateData.push(
-          matchQuery,
           {
             $sort: { updatedAt: -1 },
           },
