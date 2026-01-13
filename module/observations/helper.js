@@ -1679,7 +1679,7 @@ module.exports = class ObservationsHelper {
         keywordArray = keywordArray.map((k) => k.trim()).filter(Boolean);
 
         if (keywordArray.length > 0) {
-          matchQuery.keywords = { $in: keywordArray };
+          matchQuery['$match']['keywords'] = { $in: keywordArray };
         }
 
         if (search && search !== '') {

@@ -507,11 +507,19 @@ module.exports = class SolutionsHelper {
       keywordArray = raw.split(',');
     } else if (Array.isArray(raw)) {
       keywordArray = raw;
+    } else if (typeof raw === 'object' && Array.isArray(raw.$in)) {
+      // allow callers to pass Mongo-style `{ $in: [...] }`
+      keywordArray = raw.$in;
     } else {
       return [];
     }
 
-    return keywordArray.map((k) => k.trim()).filter(Boolean);
+    return [...new Set(
+      keywordArray
+        .filter((k) => typeof k === 'string')
+        .map((k) => k.trim())
+        .filter(Boolean)
+      )];
   }
 
   /**
@@ -679,7 +687,7 @@ module.exports = class SolutionsHelper {
           if (data.filter.keywords !== undefined) {
             const normalizedKeywords = this.normalizeKeywords(data.filter.keywords);
             if (normalizedKeywords.length > 0) {
-              data.filter.keywords = normalizedKeywords;
+              data.filter.keywords = { $in: normalizedKeywords };
             } else {
               delete data.filter.keywords;
             }
