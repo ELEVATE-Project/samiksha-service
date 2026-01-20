@@ -104,7 +104,10 @@ exports.generateSubmissionReportWithoutDruid = async function (data) {
         if(questionDocuments[0].children && questionDocuments[0].children.length>0){
            let childQuestions = questionDocuments[0].children
            // Check in answers array for child questions has values or answers
-           let notAnsweredChildQuestions= childQuestions.filter(child=> !(answers[child.toString()].value))
+           let notAnsweredChildQuestions= childQuestions.filter(child=> {
+            const ans = answers[child.toString()];
+            return !ans || !ans.value;
+           })
            //if not push it to unansweredQuestionns
            notAnsweredArray.push(...notAnsweredChildQuestions)
         }

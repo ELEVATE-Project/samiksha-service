@@ -59,7 +59,11 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
    * @param {String} program.name - program name
    * @param {String} userId - Logged in user id.
    * @param {Object} solutionData - new solution creation data
-   * @param {Boolean} [isAPrivateProgram = false] - created program is private or not
+   * @param {Boolean} [isAPrivateProgram=false] - Whether the created program is private.
+   * @param {Array} [createdFor=[]] - List of entities for which the program/solution is created.
+   * @param {String} requestingUserAuthToken - Auth token of the requesting user.
+   * @param {Object} tenantData - Tenant-specific information.
+   * @param {Object} userDetails - Details of the logged-in user.
    * @returns {Object} Created solution and program
    */
 
@@ -71,7 +75,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
     isAPrivateProgram = false,
     createdFor = [],
     requestingUserAuthToken,
-    tenantData
+    tenantData,
+    userDetails
     // rootOrganisations = []
   ) {
     return new Promise(async (resolve, reject) => {
@@ -95,6 +100,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
         //   program._id = programData._id;
         // }
+
+        // need to handle survey and observation both in the same function we will have solutionData.type which will contains type of resource
         let duplicateSolution = await this.importFromSolution(
           templateId,
           program._id ? program._id.toString() : '',
@@ -102,7 +109,8 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
           solutionData,
           createdFor,
           tenantData,
-          requestingUserAuthToken
+          requestingUserAuthToken,
+          userDetails
           // rootOrganisations
         );
 
@@ -206,7 +214,7 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
             */
             programDocument = await programsHelper.list(
               programQuery,
-              ['externalId', 'name', 'description', 'isAPrivateProgram'],
+              ['externalId', 'name', 'description', 'isAPrivateProgram','components'],
               '',
               '',
               ''
@@ -222,8 +230,14 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
             });
           }
         }
-        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData);
-
+        let duplicateCriteriasResponse = await criteriaHelper.duplicate(newSolutionDocument.themes, tenantData,userDetails,programId,newSolutionDocument.isExternalProgram,newSolutionDocument.entityType);
+        if (!duplicateCriteriasResponse.success) {
+          throw {
+            message: duplicateCriteriasResponse.message ,
+            status: duplicateCriteriasResponse.status || httpStatusCode.bad_request.status
+          };
+        }
+        
         let criteriaIdMap = {};
         let questionExternalIdMap = {};
         if (
@@ -290,8 +304,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
           }
         }
         let startDate = new Date();
-        let endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
 
         if (
           newSolutionDocument['questionSequenceByEcm'] &&
@@ -325,8 +337,6 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
         newSolutionDocument.createdBy = userId;
         newSolutionDocument.entities = data.entities;
         newSolutionDocument.parentSolutionId = solutionDocument[0]._id;
-        newSolutionDocument.startDate = startDate;
-        newSolutionDocument.endDate = endDate;
         newSolutionDocument.createdAt = startDate;
         newSolutionDocument.updatedAt = startDate;
         newSolutionDocument.isAPrivateProgram = false;
@@ -371,18 +381,34 @@ const entitiesHelper = require(MODULES_BASE_PATH + '/entities/helper');
 
           if (programDocument) {
             if (!newSolutionDocument.isExternalProgram) {
+              let currentComponents = programDocument?.components || [];
               let programUpdate = await database.models.programs.updateOne(
                 { _id: programDocument._id },
-                { $addToSet: { components: duplicateSolutionDocument._id } }
+                { $addToSet: { components: {_id:duplicateSolutionDocument._id,order:currentComponents.length + 1} } }
               );
               if (programUpdate.modifiedCount === 0) {
                 throw {
-                  message: messageConstants.apiResponses.PROGRAM_UPDATED_FAILED,
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
                 };
               }
+            }else if(newSolutionDocument.isExternalProgram == true && newSolutionDocument.referenceFrom !== 'project'){
+              //call project service to update program components
+              let newprogramDocument = await projectService.programDetails(requestingUserAuthToken, programId, userDetails,tenantData);
+              let currentComponents = newprogramDocument?.result.components || [];
+              let programUpdateStatus = await projectService.programUpdate(requestingUserAuthToken, programDocument._id,{components:[{_id:duplicateSolutionDocument._id,order:currentComponents.length + 1}]},tenantData, userDetails);              
+              if( !programUpdateStatus || !programUpdateStatus.success) {
+                throw {
+                  message: messageConstants.apiResponses.PROGRAM_UPDATE_FAILED,
+                };
+              }
+
             }
           }
-          return resolve(duplicateSolutionDocument);
+          const response = {
+            duplicateSolutionDocument,
+            projectTemplateDetails : duplicateCriteriasResponse.data.projectTemplateDetails
+          }
+          return resolve(response)
         } else {
           throw {
             message: messageConstants.apiResponses.ERROR_CREATING_DUPLICATE,

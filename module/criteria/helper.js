@@ -2,6 +2,7 @@ let improvementProjectService = require(ROOT_PATH + '/generics/services/improvem
 let criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
 const questionsHelper = require(MODULES_BASE_PATH + '/questions/helper');
 const projectService = require(ROOT_PATH + '/generics/services/project')
+const criteriaQueries = require(DB_QUERY_BASE_PATH + '/criteria');
 
 module.exports = class criteriaHelper {
   static setCriteriaRubricExpressions(criteriaId, existingCriteria, criteriaRubricData, solutionLevelKeys,tenantData) {
@@ -209,6 +210,7 @@ module.exports = class criteriaHelper {
                   title: improvement.title,
                   goal: improvement.goal,
                   externalId: improvement.externalId,
+                  isReusable: improvement.isReusable
                 };
               }
             });
@@ -358,7 +360,7 @@ module.exports = class criteriaHelper {
               criteriaStructure['flag'] = '';
               criteriaStructure["tenantId"]=tenantFilter.tenantId
               criteriaStructure["orgId"]=tenantFilter.orgId[0]
-              criteriaDocuments = await database.models.criteria.create(criteriaStructure);
+              criteriaDocuments = await criteriaQueries.create(criteriaStructure);
             }
 
             csvData['Criteria Name'] = parsedCriteria.criteriaName;
@@ -437,10 +439,15 @@ module.exports = class criteriaHelper {
    * @method
    * @name duplicate
    * @param {Array} themes - themes
+   * @param {Object} tenantData - Object containing tenant details.
+   * @param {Object} userDetails - Information about the user performing duplication.
+   * @param {string} programId - External program ID associated with the duplication.
+   * @param {boolean} isExternalProgram - Flag to check if the program is external.
+   * @param {String} entityTypeForImps - entity type for improvement projects.
    * @returns {Object}  old and new Mapped criteria id Object .
    */
 
-  static duplicate(themes = [],tenantData) {
+  static duplicate(themes = [],tenantData,userDetails,programId,isExternalProgram,entityTypeForImps) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!themes.length) {
@@ -482,69 +489,159 @@ module.exports = class criteriaHelper {
           questionExternalIdMap = duplicateQuestionsResponse.data.questionExternalIdMap;
         }
 
-        await Promise.all(
-          criteriaDocuments.map(async (criteria) => {
-            for (let pointerToEvidence = 0; pointerToEvidence < criteria.evidences.length; pointerToEvidence++) {
-              for (
-                let pointerToSection = 0;
-                pointerToSection < criteria.evidences[pointerToEvidence].sections.length;
-                pointerToSection++
-              ) {
-                let newQuestions = [];
-                let sectionQuestions = criteria.evidences[pointerToEvidence].sections[pointerToSection].questions;
-                if (sectionQuestions.length > 0) {
-                  for (let pointerToQuestion = 0; pointerToQuestion < sectionQuestions.length; pointerToQuestion++) {
-                    let newQuestionId = questionIdMap[sectionQuestions[pointerToQuestion].toString()]
-                      ? questionIdMap[sectionQuestions[pointerToQuestion].toString()]
-                      : sectionQuestions[pointerToQuestion];
-                    newQuestions.push(newQuestionId);
-                  }
-                  criteria.evidences[pointerToEvidence].sections[pointerToSection].questions = newQuestions;
+        let projectTemplateDetails = []
+        for (const criteria of criteriaDocuments) {
+
+          for (let pointerToEvidence = 0; pointerToEvidence < criteria.evidences.length; pointerToEvidence++) {
+            for (
+              let pointerToSection = 0;
+              pointerToSection < criteria.evidences[pointerToEvidence].sections.length;
+              pointerToSection++
+            ) {
+              let newQuestions = [];
+              let sectionQuestions = criteria.evidences[pointerToEvidence].sections[pointerToSection].questions;
+              if (sectionQuestions.length > 0) {
+                for (let pointerToQuestion = 0; pointerToQuestion < sectionQuestions.length; pointerToQuestion++) {
+                  let newQuestionId = questionIdMap[sectionQuestions[pointerToQuestion].toString()]
+                    ? questionIdMap[sectionQuestions[pointerToQuestion].toString()]
+                    : sectionQuestions[pointerToQuestion];
+                  newQuestions.push(newQuestionId);
                 }
+                criteria.evidences[pointerToEvidence].sections[pointerToSection].questions = newQuestions;
               }
             }
-
-            criteria.externalId = criteria.externalId + '-' + gen.utils.epochTime();
-            criteria.parentCriteriaId = criteria._id;
-            let newCriteriaId = await database.models.criteria.create(_.omit(criteria, ['_id']));
-
-            if (newCriteriaId._id) {
-              criteriaIdMap[criteria._id.toString()] = newCriteriaId._id;
-              if (
-                criteria.rubric &&
-                criteria.rubric.expressionVariables &&
-                Object.keys(criteria.rubric.expressionVariables).length > 0
-              ) {
-                Object.keys(criteria.rubric.expressionVariables).forEach((expressionVariable) => {
-                  let oldId = criteria.rubric.expressionVariables[expressionVariable].split('.').shift();
-                  let newId = '';
-                  if (questionIdMap[oldId]) {
-                    newId = questionIdMap[oldId];
-                  } else if (criteriaIdMap[oldId]) {
-                    newId = criteriaIdMap[oldId];
-                  }
-                  if (newId != '') {
-                    criteria.rubric.expressionVariables[expressionVariable] =
-                      newId +
-                      '.' +
-                      criteria.rubric.expressionVariables[expressionVariable].split('.').slice(1).join('.');
+          }
+        
+          criteria.externalId = criteria.externalId + '-' + gen.utils.epochTime();
+          criteria.parentCriteriaId = criteria._id;
+        
+          if (criteria.rubric.levels) {
+            let projectTemplateExternalIds = [];
+        
+            Object.values(criteria.rubric.levels).forEach(level => {
+              if (Array.isArray(level["improvement-projects"])) {
+                level["improvement-projects"].forEach(project => {
+                  if (project.externalId) {
+                    projectTemplateExternalIds.push(project.externalId);
                   }
                 });
-
-                await database.models.criteria.updateOne(
-                  { _id: newCriteriaId._id ,
-                    tenantId: tenantData.tenantId
-                  },
-                  {
-                    $set: {
-                      rubric: criteria.rubric,
-                    },
-                  },
-                );
               }
+            });
+        
+            if (projectTemplateExternalIds.length > 0) {
+              let childProjectTemplates = await projectService.createChildProjectTemplate(
+                projectTemplateExternalIds,
+                userDetails,
+                programId,
+                isExternalProgram,
+                entityTypeForImps
+              );
+
+               // childProjectTemplates = {
+                                  //     "message": "Successfully created duplicate project templates",
+                                  //     "status": 200,
+                                  //     "result": {
+                                  //         "successfulTemplates": [
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747297137661",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c818",
+                                  //                 "externalId": "IDE-1747297137661-1760288927495",
+                                  //                 "isReusable": false
+                                  //             },
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747297530253",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c829",
+                                  //                 "externalId": "IDE-1747297530253-1760288927644",
+                                  //                 "isReusable": false
+                                  //             },
+                                  //             {
+                                  //                 "parentExternalId": "IDE-1747326100274",
+                                  //                 "_id": "68ebe09ff17e2f28c3b8c83a",
+                                  //                 "externalId": "IDE-1747326100274-1760288927770",
+                                  //                 "isReusable": false
+                                  //             }
+                                  //         ],
+                                  //         "failedTemplates": []
+                                  //     }
+                                  // }
+        
+              const successful = childProjectTemplates?.result?.successfulTemplates || [];
+              const failed = childProjectTemplates?.result?.failedTemplates || [];
+              for(const templateDetails of successful){
+                projectTemplateDetails.push(
+                  {
+                    parentProjectTemplateId : templateDetails.parentProjectTemplateId,
+                    childProjectTemplateId : templateDetails._id,
+                    solutionId: templateDetails.solutionId
+                  }
+                )
+              }
+              if (failed.length > 0) {
+                throw {
+                  message: messageConstants.apiResponses.PROJECT_TEMPLATE_NOT_CREATED,
+                  status: httpStatusCode.bad_request.status,
+                };
+              }
+        
+              const templateMap = {};
+              successful.forEach(item => {
+                templateMap[item.parentExternalId] = {
+                  _id: item._id,
+                  externalId: item.externalId,
+                  isReusable: item.isReusable,
+                };
+              });
+        
+              Object.values(criteria.rubric.levels).forEach(level => {
+                if (Array.isArray(level["improvement-projects"])) {
+                  level["improvement-projects"] = level["improvement-projects"].map(project => {
+                    if (templateMap[project.externalId]) {
+                      return {
+                        ...project,
+                        _id: templateMap[project.externalId]._id,
+                        externalId: templateMap[project.externalId].externalId,
+                        isReusable: templateMap[project.externalId].isReusable,
+                      };
+                    }
+                    return project;
+                  });
+                }
+              });
             }
-          }),
-        );
+          }
+        
+          let newCriteriaId = await criteriaQueries.create(_.omit(criteria, ['_id']));
+          if (newCriteriaId._id) {
+            criteriaIdMap[criteria._id.toString()] = newCriteriaId._id;
+        
+            if (
+              criteria.rubric &&
+              criteria.rubric.expressionVariables &&
+              Object.keys(criteria.rubric.expressionVariables).length > 0
+            ) {
+              Object.keys(criteria.rubric.expressionVariables).forEach((expressionVariable) => {
+                let oldId = criteria.rubric.expressionVariables[expressionVariable].split('.').shift();
+                let newId = '';
+                if (questionIdMap[oldId]) {
+                  newId = questionIdMap[oldId];
+                } else if (criteriaIdMap[oldId]) {
+                  newId = criteriaIdMap[oldId];
+                }
+                if (newId != '') {
+                  criteria.rubric.expressionVariables[expressionVariable] =
+                    newId +
+                    '.' +
+                    criteria.rubric.expressionVariables[expressionVariable].split('.').slice(1).join('.');
+                }
+              });
+        
+              await database.models.criteria.updateOne(
+                { _id: newCriteriaId._id, tenantId: tenantData.tenantId },
+                { $set: { rubric: criteria.rubric } }
+              );
+            }
+          }
+        }
 
         if (Object.keys(criteriaIdMap).length > 0) {
           await criteriaQuestionsHelper.createOrUpdate(Object.values(criteriaIdMap), true,tenantData);
@@ -556,6 +653,7 @@ module.exports = class criteriaHelper {
           data: {
             criteriaIdMap: criteriaIdMap,
             questionExternalIdMap: questionExternalIdMap,
+            projectTemplateDetails: projectTemplateDetails ? projectTemplateDetails : []
           },
         });
       } catch (error) {
@@ -563,6 +661,7 @@ module.exports = class criteriaHelper {
           success: false,
           message: error.message,
           data: false,
+          status: error.status ? error.status : httpStatusCode['internal_server_error'].status,
         });
       }
     });

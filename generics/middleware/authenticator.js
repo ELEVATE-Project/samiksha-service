@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const isBearerRequired = process.env.IS_AUTH_TOKEN_BEARER === 'true';
 const userService = require(ROOT_PATH + '/generics/services/users');
+const requests = require('../helpers/requests');
 
 
 // var shikshalokam = require("../helpers/shikshalokam");
@@ -44,7 +45,7 @@ var respUtil = function (resp) {
  * @returns {Promise<Object>} Returns a promise that resolves to validation result object.
  */
 var validateOrgsPassedInHeader = async function(orgsFromHeader,tenantId){
-  let tenantInfo = await userService.fetchDefaultOrgDetails(tenantId);
+  let tenantInfo = await userService.getOrgDetails(tenantId);
   let related_orgs = tenantInfo.data.related_orgs;
   let validOrgs = [];
   let result = {
@@ -223,7 +224,16 @@ module.exports = async function (req, res, next) {
     'solutions/removeEntitiesInScope',
     'solutions/addRolesInScope',
     'solutions/removeRolesInScope',
-    'userExtension/bulkUpload'
+    'userExtension/bulkUpload',
+    'solutions/fetchLinkInternal',
+    'admin/deleteResource',
+    'admin/deleteSolutionResource',
+    'library/categories/create',
+		'library/categories/update',
+    'organizationExtension/update',
+    'organizationExtension/create',
+    'organizationExtension/updateRelatedOrgs',
+    'programs/fetchProgramDetails'
   ];
 
   let performInternalAccessTokenCheck = false;
@@ -403,6 +413,26 @@ module.exports = async function (req, res, next) {
     return res.status(responseCode['unauthorized'].status).send(respUtil(rspObj));
   }
 
+  if (
+    !performInternalAccessTokenCheck &&
+    process.env.SESSION_VERIFICATION_METHOD === messageConstants.common.SESSION_VERIFICATION_METHOD.USER_SERVICE
+  ) {
+    try {
+      const userSession = await validateSession(token)
+      if (!userSession.success) {
+        throw {
+          message: userSession.message,
+          status: userSession.status,
+        }
+      }
+    } catch (error) {
+      rspObj.errCode = error.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE
+      rspObj.errMsg = error.message || messageConstants.apiResponses.USER_SERVICE_DOWN
+      rspObj.responseCode = httpStatusCode['unauthorized'].status
+      return res.status(httpStatusCode['unauthorized'].status).send(respUtil(rspObj))
+    }
+  }
+
   // Path to config.json
   let configFilePath
   if (process.env.AUTH_CONFIG_FILE_PATH) {
@@ -521,7 +551,7 @@ module.exports = async function (req, res, next) {
    */
   async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);
+    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
     let validOrgIds = null;
 
     if (
@@ -541,7 +571,7 @@ module.exports = async function (req, res, next) {
 
     // convert the types of items to string
     orgDetails.data.related_orgs = orgDetails.data.organizations.map((data)=>{
-      return data.code.toString();
+      return gen.utils.lowerCase(data.code.toString())
     });
     // aggregate valid orgids
 
@@ -665,16 +695,16 @@ module.exports = async function (req, res, next) {
         return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
       }
 
+      result = convertTenantAndOrgToLowercase(result);
       req.headers['tenantid'] = result.tenantId;
       req.headers['orgid'] = result.orgId;
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
-
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.TENANT_ADMIN)) {
-      req.headers['tenantid'] = decodedToken.data.tenant_id.toString();
+      req.headers['tenantid'] = gen.utils.lowerCase(decodedToken.data.tenant_id.toString());
 
       let orgId = req.body.orgId || req.headers['orgid'];
 
@@ -685,7 +715,9 @@ module.exports = async function (req, res, next) {
         return res.status(responseCode.unauthorized.status).send(respUtil(rspObj));
       }
 
-      req.headers['orgid'] = orgId;
+      req.headers['orgid'] = Array.isArray(orgId)
+        ? orgId.map((org) => gen.utils.lowerCase(org))
+        : gen.utils.lowerCase(orgId);
 
       let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
       if (!validateOrgsResult.success) {
@@ -693,8 +725,8 @@ module.exports = async function (req, res, next) {
       }
       req.headers['orgid'] = validateOrgsResult.validOrgIds;
     } else if (userRoles.includes(messageConstants.common.ORG_ADMIN)) {
-      req.headers['tenantid'] = userInformation.tenantId.toString();
-      req.headers['orgid'] = [userInformation.organizationId.toString()];
+      req.headers['tenantid'] = gen.utils.lowerCase(userInformation.tenantId.toString());
+      req.headers['orgid'] = [gen.utils.lowerCase(userInformation.organizationId.toString())];
     } else {
       rspObj.errCode = reqMsg.INVALID_ROLE.INVALID_CODE;
       rspObj.errMsg = reqMsg.INVALID_ROLE.INVALID_MESSAGE;
@@ -764,5 +796,70 @@ module.exports = async function (req, res, next) {
 		})
 	}
 
+  /**
+ *
+ * @function
+ * @name convertTenantAndOrgToLowercase
+ * @param {Object} result - The result object containing success flag, tenantId, and orgId.
+ * @param {Boolean} result.success - Indicates whether the operation was successful.
+ * @param {String} result.tenantId - Tenant ID to be converted to lowercase.
+ * @param {String} result.orgId - Organization ID to be converted to lowercase.
+ * @returns {Object} Returns the modified result object with tenantId and orgId in lowercase,
+ *                   or the original result object if conditions are not met.
+ */
+  function convertTenantAndOrgToLowercase(result) {
+  if (result?.success && result.tenantId && result.orgId) {
+    const tenantId = gen.utils.lowerCase(result.tenantId);
+    const orgId = Array.isArray(result.orgId)
+      ? result.orgId.map((org) => gen.utils.lowerCase(org))
+      : gen.utils.lowerCase(result.orgId);
+    return { ...result, tenantId, orgId };
+  }
+  return result;
+}
+
   next();
 };
+
+/**
+ * Validates the user's session token by calling the user service.
+ * @param {string} token - The access token extracted from the request header.
+ */
+async function validateSession(token) {
+	try {
+		const userBaseUrl = process.env.USER_SERVICE_URL
+		const validateSessionEndpoint = `${userBaseUrl}${messageConstants.endpoints.VALIDATE_SESSIONS}`
+		const reqBody = { token }
+		const isSessionActive = await requests.post(
+			validateSessionEndpoint,
+			reqBody,
+			'',
+			true,
+			process.env.USER_SERVICE_INTERNAL_ACCESS_TOKEN_HEADER_KEY
+		)
+
+		// Case 1: Unauthorized token
+		if (isSessionActive?.data?.responseCode === 'UNAUTHORIZED') {
+			throw {
+				status: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED_CODE,
+				message: messageConstants.apiResponses.ACCESS_TOKEN_EXPIRED,
+			}
+		}
+
+		// Case 2: User service down / session inactive
+		if (!isSessionActive?.success || !isSessionActive?.data?.result?.data?.user_session_active) {
+			throw {
+				status: messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+				message: messageConstants.apiResponses.USER_SERVICE_DOWN,
+			}
+		}
+
+		return isSessionActive
+	} catch (err) {
+		return {
+			success: false,
+			status: err.status || messageConstants.apiResponses.USER_SERVICE_DOWN_CODE,
+			message: err.message || messageConstants.apiResponses.USER_SERVICE_DOWN,
+		}
+	}
+}

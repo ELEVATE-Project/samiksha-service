@@ -1253,11 +1253,10 @@ module.exports = class Solutions extends Abstract {
    * @apiParam {String} solutionId Solution External ID.
    * @apiParamExample {json} Request-Body:
    * {
-   * "externalId": ""
-   * "name": "",
-   * "description": ""
-   * "programExternalId": ""
-   * }
+    "externalId": "Dev",
+    "name": "dev_testing",
+    "description": "dev testing"
+    }
    * @apiSampleRequest /samiksha/v1/solutions/importFromSolution?solutionId=Mantra-STL-2019-001
    * @apiUse successBody
    * @apiUse errorBody
@@ -1296,7 +1295,7 @@ module.exports = class Solutions extends Abstract {
             message: responseMessage,
           });
         }
-        let duplicateSolution = await solutionsHelper.importFromSolution(
+        let response = await solutionsHelper.importFromSolution(
           req.query.solutionId,
           req.body.programExternalId ? req.body.programExternalId : '',
           req?.userDetails?.userId ? req.userDetails.userId : req.body.userId,
@@ -1309,7 +1308,12 @@ module.exports = class Solutions extends Abstract {
 
         return resolve({
           message: messageConstants.apiResponses.DUPLICATE_SOLUTION,
-          result: _.pick(duplicateSolution, ['_id', 'externalId']),
+          result: {
+            _id: response.duplicateSolutionDocument._id,
+            externalId: response.duplicateSolutionDocument.externalId,
+            projectTemplateDetails: response.projectTemplateDetails
+          }
+          
         });
       } catch (error) {
         return reject({
@@ -1353,6 +1357,55 @@ module.exports = class Solutions extends Abstract {
           req.params._id,
           req.userDetails.userId,
           req.userDetails.userToken
+        );
+
+        return resolve(solutionData);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
+
+  /**
+  * @api {get} /samiksha/v1/solutions/fetchLinkInternal/:solutionId
+  * @apiVersion 1.0.0
+  * @apiName Get link by solution id
+  * @apiGroup Solutions
+  * @apiSampleRequest /samiksha/v1/solutions/5fa28620b6bd9b757dc4e932
+  * @apiHeader {String} X-authenticated-user-token Authenticity token  
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message": "Solution Link generated successfully",
+    "status": 200,
+     "result": [
+        "https://shikshagrah-qa.tekdinext.comundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://localhostundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://shikshagraha-qa.tekdinext.comundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d",
+        "https://new domain/registerundefinedsamiksha/create-survey/2a9aa39891348c49bf8a352dc05e444d"
+    ]
+    }
+  */
+  /**
+   * Get link by solution id.
+   * @method
+   * @name fetchLinkInternal
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution Id
+   * @returns {Array}
+   */
+
+  async fetchLinkInternal(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let solutionData = await solutionsHelper.fetchLink(
+          req.params._id
         );
 
         return resolve(solutionData);
@@ -1703,10 +1756,7 @@ module.exports = class Solutions extends Abstract {
         let solutionData = await solutionsHelper.verifyLink(
           req.params._id,
           req.body,
-          req.userDetails.userId,
-          req.userDetails.userToken,
-          true, // createProject condition,
-          req.userDetails.tenantData
+          req.userDetails
         );
 
         return resolve(solutionData);
