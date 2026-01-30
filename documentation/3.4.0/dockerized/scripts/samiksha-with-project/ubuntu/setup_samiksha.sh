@@ -53,16 +53,16 @@ npm install mongoose
 
 # Step 11: Download additional scripts to add data
 log "Downloading sample data scripts..."
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/samiksha-with-project/survey_sampleData.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/samiksha-with-project/entity_sampleData.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/samiksha-with-project/project_sampleData.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/samiksha-with-project/insert_sample_solutions.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/survey_sampleData.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/entity_sampleData.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/project_sampleData.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/insert_sample_solutions.js
 curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/samiksha-with-project/ubuntu/insert_sample_data.sh
 log "sample data scripts downloaded."
 
 
 log "Downloading config.json file..."
-curl -L https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/generics/configFile.json -o config.json
+curl -L https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/generics/configFile.json -o config.json
 log "config.json file is downloaded."
 
 # Step 13: Run docker-compose-up.sh script

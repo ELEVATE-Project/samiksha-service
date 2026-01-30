@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb')
 
 const url = 'mongodb://localhost:27017/' // MongoDB URL
+const projectDB = 'elevate-project'
 const entityDB = 'elevate-entity'
 const samikshaDB = "elevate-samiksha";
 const entityData = require('./entity_sampleData.js')
@@ -47,7 +48,7 @@ async function cleanData(collectionName, currentDB) {
  * @param {Array<Object>} dataFile The array of documents to insert.
  * @param {string} currentDB The name of the database.
  */
-async function insertData(collectionName, dataFile, currentDB = samikshaDB) {
+async function insertData(collectionName, dataFile, currentDB = projectDB) {
 	const client = new MongoClient(url)
 
 	try {
@@ -120,6 +121,15 @@ async function main({ dataToBeInserted }) {
 	const collectionsToInsert = [
 		{ name: 'entities', data: dataToBeInserted.entities, db: entityDB },
 		{ name: 'entityTypes', data: dataToBeInserted.entityType, db: entityDB },
+		{ name: 'programs', data: dataToBeInserted.programData, db: projectDB },
+		{ name: 'solutions', data: dataToBeInserted.solutionData, db: projectDB },
+		{ name: 'projectTemplates', data: dataToBeInserted.projectTemplatesData, db: projectDB },
+		{ name: 'projectTemplateTasks', data: dataToBeInserted.projectTemplateTasksData, db: projectDB },
+		{ name: 'certificateTemplates', data: dataToBeInserted.certificateTemplatesData, db: projectDB },
+		{ name: 'certificateBaseTemplates', data: dataToBeInserted.certificateBaseTemplatesData, db: projectDB },
+		{ name: 'projectCategories', data: dataToBeInserted.projectCategoriesData, db: projectDB },
+		{ name: 'configurations', data: dataToBeInserted.configurationData, db: projectDB },
+		{ name: 'organizationExtension', data: dataToBeInserted.organizationExtensionData, db: projectDB },
     	{ name: "solutions", data: dataToBeInserted.solutionData, db:samikshaDB},
     	{ name: "criteria",  data:dataToBeInserted.criteriaData, db : samikshaDB},
     	{ name: "criteriaQuestions", data: dataToBeInserted.criteriaQuestionsData, db : samikshaDB},
