@@ -50,7 +50,7 @@ done
 
 1. **Download and execute main setup script:** Execute the following command in your terminal from the samiksha directory.
     ```
-    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/project-with-survey/ubuntu/setup_project.sh && chmod +x setup_project.sh && sudo ./setup_project.sh
+    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/project-with-survey/ubuntu/setup_samiksha.sh && chmod +x setup_samiksha.sh && sudo ./setup_samiksha.sh
     ```
 
 > Note : The script will download all the essential files and launch the services in Docker. Once all services are successfully up and running, you can proceed to the next steps.
@@ -85,7 +85,7 @@ To enable the Citus extension for user services, follow these steps.
 1. Create a sub-directory named `user` and download `distributionColumns.sql` into it. (Skip this for linux)
 
     ```
-    mkdir user && curl -o ./user/distributionColumns.sql -JL https://github.com/ELEVATE-Project/project-service/raw/main/documentation/1.0.0/distribution-columns/user/distributionColumns.sql
+    mkdir user && curl -o ./user/distributionColumns.sql -JL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/distribution-columns/user/distributionColumns.sql
     ```
 
 2. Set up the citus_setup file by following the steps given below.
@@ -114,7 +114,7 @@ Add or update the following variables in the .env file, substituting the example
     CLOUD_STORAGE_PROVIDER=gcloud
     CLOUD_STORAGE_ACCOUNTNAME=your_account_name
     CLOUD_STORAGE_SECRET="-----BEGIN PRIVATE KEY-----\n..."
-    CLOUD_STORAGE_PROJECT=your_cloud_project_id
+    CLOUD_STORAGE_SAMIKSHA=your_cloud_samiksha_id
     CLOUD_STORAGE_BUCKETNAME=your_bucket_name
     CLOUD_STORAGE_BUCKET_TYPE=private
 
