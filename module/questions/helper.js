@@ -13,6 +13,8 @@ const fs = require('fs');
 const path = require('path');
 
 let dynamicRequiredFields = [];
+// Fallback required fields if config is unavailable
+const DEFAULT_DYNAMIC_REQUIRED_FIELDS = ['apiEndPoint', 'apiLabelKey', 'apiValueKey'];
 
 (function loadDynamicQuestionConfig() {
   let configFilePath;
@@ -41,7 +43,13 @@ let dynamicRequiredFields = [];
         '[DynamicQuestionConfig] Error reading config.json:',
         error
       );
+      dynamicRequiredFields = DEFAULT_DYNAMIC_REQUIRED_FIELDS;
     }
+  } else {
+    console.error(
+      '[DynamicQuestionConfig] config.json not found, using default required fields'
+    );
+    dynamicRequiredFields = DEFAULT_DYNAMIC_REQUIRED_FIELDS;
   }
 })();
 
@@ -193,14 +201,11 @@ module.exports = class QuestionsHelper {
                 );
               }
 
-              /**
-               * Validation (reuse existing column)
-               */
-              allValues.validation = {
-                required: this.convertStringToBoolean(
-                  gen.utils.lowerCase(parsedQuestion.validation)
-                )
-              };
+              // Preserve any existing validation properties, ensure required is set
+              allValues.validation = allValues.validation || {};
+              allValues.validation.required = this.convertStringToBoolean(
+                gen.utils.lowerCase(parsedQuestion.validation)
+              );
 
               /**
                * Attach metaInformation
