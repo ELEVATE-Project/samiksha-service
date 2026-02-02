@@ -9,7 +9,7 @@ set "project_env=%cd%\project_env"
 set "entity_management_env=%cd%\entity_management_env"
 
 rem Run docker-compose
-docker-compose -f docker-compose-project.yml up
+docker-compose -f docker-compose-samiksha.yml up
 
 rem Optionally, clear environment variables after use
 set "users_env="

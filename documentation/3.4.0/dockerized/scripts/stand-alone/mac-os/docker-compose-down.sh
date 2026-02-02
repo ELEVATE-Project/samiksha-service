@@ -13,4 +13,4 @@ export samiksha_env="$SCRIPT_DIR/samiksha_env"
 
 
 # Run docker-compose
-docker compose -f "$SCRIPT_DIR/docker-compose-project.yml" down
+docker compose -f "$SCRIPT_DIR/docker-compose-samiksha.yml" down
