@@ -90,7 +90,7 @@ log "distributionColumns.sql downloaded."
 # Step 7: Citus setup script
 # -----------------------------
 log "Downloading citus_setup.sh..."
-curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/citus_setup.sh
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/citus_setup.sh
 chmod +x citus_setup.sh
 log "citus_setup.sh downloaded."
 
@@ -98,9 +98,9 @@ log "citus_setup.sh downloaded."
 # Step 8: Sample data scripts
 # -----------------------------
 log "Downloading sample data scripts..."
-curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
-curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/survey_sampleData.js
-curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/survey_sampleData.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
 curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/insert_sample_data.sql
 log "Sample data scripts downloaded."
 
