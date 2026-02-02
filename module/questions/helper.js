@@ -257,12 +257,13 @@ module.exports = class QuestionsHelper {
               metaConfig.paginationEnabled = paginationEnabled;
 
               // Only include pagination object if apiPageParam is provided
+              const parsedLimit = Number(parsedQuestion.apiDefaultLimit);
               if (parsedQuestion.apiPageParam && String(parsedQuestion.apiPageParam).trim() !== '') {
                 metaConfig.pagination = {
                   pageParam: parsedQuestion.apiPageParam,
                   limitParam: parsedQuestion.apiLimitParam || 'limit',
-                  defaultLimit: parsedQuestion.apiDefaultLimit 
-                    ? Number(parsedQuestion.apiDefaultLimit) 
+                  defaultLimit: (parsedQuestion.apiDefaultLimit && !isNaN(parsedLimit) && parsedLimit > 0)
+                    ? parsedLimit
                     : 20
                 };
               }
