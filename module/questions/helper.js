@@ -8,6 +8,44 @@
 // Dependencies
 let criteriaQuestionsHelper = require(MODULES_BASE_PATH + '/criteriaQuestions/helper');
 
+// Dynamic Question Configuration - Load config once when module is loaded
+const fs = require('fs');
+const path = require('path');
+
+let dynamicRequiredFields = [];
+
+(function loadDynamicQuestionConfig() {
+  let configFilePath;
+
+  if (process.env.AUTH_CONFIG_FILE_PATH) {
+    configFilePath = path.resolve(
+      ROOT_PATH,
+      process.env.AUTH_CONFIG_FILE_PATH
+    );
+  }
+
+  if (configFilePath && fs.existsSync(configFilePath)) {
+    try {
+      const rawData = fs.readFileSync(configFilePath);
+      const configData = JSON.parse(rawData);
+
+      if (
+        configData.dynamicQuestionConfig &&
+        Array.isArray(configData.dynamicQuestionConfig.requiredFields)
+      ) {
+        dynamicRequiredFields =
+          configData.dynamicQuestionConfig.requiredFields;
+      }
+    } catch (error) {
+      console.error(
+        '[DynamicQuestionConfig] Error reading config.json:',
+        error
+      );
+    }
+  }
+})();
+
+
 /**
  * Questions
  * @class
@@ -126,6 +164,109 @@ module.exports = class QuestionsHelper {
                 ? parsedQuestion.validationMin
                 : (parsedQuestion.validationMin = '');
             }
+
+            /**
+             * Handle dynamic/API-driven questions
+             * metaInformation is populated ONLY when requireDynamicAnswers = true
+             */
+            const isDynamicQuestion = this.convertStringToBoolean(gen.utils.lowerCase(parsedQuestion.requireDynamicAnswers));
+            
+            // Explicitly set requireDynamicAnswers in allValues
+            allValues.requireDynamicAnswers = isDynamicQuestion;
+
+            if (isDynamicQuestion) {
+
+              /**
+               * Mandatory field validation (from config.json)
+               */
+              const requiredFields = dynamicRequiredFields;
+
+              const missingFields = requiredFields.filter(
+                field =>
+                  !parsedQuestion[field] ||
+                  String(parsedQuestion[field]).trim() === ''
+              );
+
+              if (missingFields.length) {
+                throw new Error(
+                  `Invalid dynamic question config. Missing: ${missingFields.join(', ')}`
+                );
+              }
+
+              /**
+               * Validation (reuse existing column)
+               */
+              allValues.validation = {
+                required: this.convertStringToBoolean(
+                  gen.utils.lowerCase(parsedQuestion.validation)
+                )
+              };
+
+              /**
+               * Attach metaInformation
+               */
+              const metaConfig = {
+                // Required fields (already validated above)
+                apiEndPoint: parsedQuestion.apiEndPoint,
+                mapping: {
+                  label: parsedQuestion.apiLabelKey,
+                  value: parsedQuestion.apiValueKey
+                },
+                // Optional string fields: store blank string if not provided
+                apiDomain: parsedQuestion.apiDomain || '',
+                apiMethod: parsedQuestion.apiMethod || 'GET'
+              };
+
+              // Optional: headers - only include if provided and valid JSON, otherwise use default empty object
+              if (parsedQuestion.apiHeaders && String(parsedQuestion.apiHeaders).trim() !== '') {
+                try {
+                  const parsedHeaders = JSON.parse(parsedQuestion.apiHeaders);
+                  if (parsedHeaders && typeof parsedHeaders === 'object') {
+                    metaConfig.headers = parsedHeaders;
+                  } else {
+                    metaConfig.headers = {};
+                  }
+                } catch (e) {
+                  // Invalid JSON, use default empty object
+                  metaConfig.headers = {};
+                }
+              } else {
+                metaConfig.headers = {};
+              }
+
+              // Optional: Search configuration
+              const searchEnabled = this.convertStringToBoolean(
+                gen.utils.lowerCase(parsedQuestion.searchEnabled)
+              );
+              metaConfig.searchEnabled = searchEnabled;
+
+              // Only include search object if apiSearchParam is provided
+              if (parsedQuestion.apiSearchParam && String(parsedQuestion.apiSearchParam).trim() !== '') {
+                metaConfig.search = { param: parsedQuestion.apiSearchParam };
+              }
+
+              // Optional: Pagination configuration
+              const paginationEnabled = this.convertStringToBoolean(
+                gen.utils.lowerCase(parsedQuestion.paginationEnabled)
+              );
+              metaConfig.paginationEnabled = paginationEnabled;
+
+              // Only include pagination object if apiPageParam is provided
+              if (parsedQuestion.apiPageParam && String(parsedQuestion.apiPageParam).trim() !== '') {
+                metaConfig.pagination = {
+                  pageParam: parsedQuestion.apiPageParam,
+                  limitParam: parsedQuestion.apiLimitParam || 'limit',
+                  defaultLimit: parsedQuestion.apiDefaultLimit 
+                    ? Number(parsedQuestion.apiDefaultLimit) 
+                    : 20
+                };
+              }
+
+              allValues.metaInformation = {
+                config: metaConfig
+              };
+            }
+
           }
 
           allValues['fileName'] = [];

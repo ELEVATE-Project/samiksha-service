@@ -13,5 +13,12 @@
 		"specificMaskedValues": {
 			"name": "User Deleted"
 		}
-	}
+	},
+	"dynamicQuestionConfig": {
+		"requiredFields": [
+			"apiEndPoint",
+			"apiLabelKey",
+			"apiValueKey"
+        	]
+    	}
 }
