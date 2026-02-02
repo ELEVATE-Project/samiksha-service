@@ -89,8 +89,8 @@ log "distributionColumns.sql downloaded."
 # -----------------------------
 log "Downloading citus_setup.sh..."
 curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/samiksha-with-project/mac-os/setup_samiksha.sh
-chmod +x citus_setup.sh
-log "citus_setup.sh downloaded."
+chmod +x setup_samiksha.sh
+log "setup_samiksha.sh downloaded."
 
 # -----------------------------
 # Step 8: Sample data scripts
