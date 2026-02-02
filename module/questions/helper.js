@@ -32,12 +32,17 @@ const DEFAULT_DYNAMIC_REQUIRED_FIELDS = ['apiEndPoint', 'apiLabelKey', 'apiValue
       const configData = JSON.parse(rawData);
 
       if (
-        configData.dynamicQuestionConfig &&
-        Array.isArray(configData.dynamicQuestionConfig.requiredFields)
+          configData.dynamicQuestionConfig &&
+          Array.isArray(configData.dynamicQuestionConfig.requiredFields) &&
+          configData.dynamicQuestionConfig.requiredFields.length > 0
       ) {
-        dynamicRequiredFields =
-          configData.dynamicQuestionConfig.requiredFields;
-      }
+        dynamicRequiredFields = configData.dynamicQuestionConfig.requiredFields;
+      } else {
+        console.warn(
+          '[DynamicQuestionConfig] requiredFields missing/empty, using default required fields'
+        );
+        dynamicRequiredFields = DEFAULT_DYNAMIC_REQUIRED_FIELDS;
+      }     
     } catch (error) {
       console.error(
         '[DynamicQuestionConfig] Error reading config.json:',
@@ -245,11 +250,13 @@ module.exports = class QuestionsHelper {
               );
               metaConfig.searchEnabled = searchEnabled;
 
-              // Only include search object if apiSearchParam is provided
-              if (parsedQuestion.apiSearchParam && String(parsedQuestion.apiSearchParam).trim() !== '') {
+              if (searchEnabled) {
+                if (!parsedQuestion.apiSearchParam || String(parsedQuestion.apiSearchParam).trim() === '') {
+                  throw new Error('Invalid dynamic question config. Missing: apiSearchParam');
+                }
                 metaConfig.search = { param: parsedQuestion.apiSearchParam };
               }
-
+              
               // Optional: Pagination configuration
               const paginationEnabled = this.convertStringToBoolean(
                 gen.utils.lowerCase(parsedQuestion.paginationEnabled)
@@ -258,7 +265,10 @@ module.exports = class QuestionsHelper {
 
               // Only include pagination object if apiPageParam is provided
               const parsedLimit = Number(parsedQuestion.apiDefaultLimit);
-              if (parsedQuestion.apiPageParam && String(parsedQuestion.apiPageParam).trim() !== '') {
+              if (paginationEnabled) {
+                if (!parsedQuestion.apiPageParam || String(parsedQuestion.apiPageParam).trim() === '') {
+                  throw new Error('Invalid dynamic question config. Missing: apiPageParam');
+                }
                 metaConfig.pagination = {
                   pageParam: parsedQuestion.apiPageParam,
                   limitParam: parsedQuestion.apiLimitParam || 'limit',
