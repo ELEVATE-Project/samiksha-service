@@ -50,7 +50,7 @@ done
 
 1. **Download and execute main setup script:** Execute the following command in your terminal from the samiksha directory.
     ```
-    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/dockerFiles/samiksha-with-project/docker-compose-samiksha.yml && chmod +x setup_samiksha.sh && sudo ./setup_samiksha.sh
+    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/samiksha-with-project/ubuntu/setup_samiksha.shl && chmod +x setup_samiksha.sh && sudo ./setup_samiksha.sh
     ```
 
 > Note : The script will download all the essential files and launch the services in Docker. Once all services are successfully up and running, you can proceed to the next steps.
