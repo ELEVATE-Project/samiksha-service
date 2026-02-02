@@ -43,7 +43,7 @@ log "Docker is installed and running."
 # Step 2: Download Docker Compose file
 # -----------------------------
 log "Downloading Docker Compose file..."
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/dockerFiles/stand-alone/docker-compose-project.yml
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/dockerFiles/stand-alone/docker-compose-samiksha.yml
 log "Docker Compose file downloaded."
 
 # -----------------------------
@@ -51,12 +51,13 @@ log "Docker Compose file downloaded."
 # -----------------------------
 log "Downloading environment files..."
 curl -L \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/interface_env \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/entity_management_env \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/project_env \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/notification_env \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/scheduler_env \
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/user_env
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/interface_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/entity_management_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/project_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/notification_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/scheduler_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/user_env \
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/samiksha_env
 log "Environment files downloaded."
 
 
@@ -64,8 +65,8 @@ log "Environment files downloaded."
 # Step 5: docker-compose scripts (mac-safe)
 # -----------------------------
 log "Downloading docker-compose scripts..."
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/docker-compose-up.sh
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/docker-compose-down.sh
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/docker-compose-down.sh
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/docker-compose-up.sh
 chmod +x docker-compose-down.sh
 chmod +x docker-compose-up.sh
 
@@ -82,14 +83,14 @@ log "docker-compose scripts patched safely."
 log "Downloading distributionColumns.sql..."
 mkdir -p user
 curl -o ./user/distributionColumns.sql -JL \
-https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/distribution-columns/user/distributionColumns.sql
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/distribution-columns/user/distributionColumns.sql
 log "distributionColumns.sql downloaded."
 
 # -----------------------------
 # Step 7: Citus setup script
 # -----------------------------
 log "Downloading citus_setup.sh..."
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/ubuntu/citus_setup.sh
+curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/citus_setup.sh
 chmod +x citus_setup.sh
 log "citus_setup.sh downloaded."
 
@@ -97,10 +98,10 @@ log "citus_setup.sh downloaded."
 # Step 8: Sample data scripts
 # -----------------------------
 log "Downloading sample data scripts..."
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/project_sampleData.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
-curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/insert_sample_data.sql
+curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
+curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/survey_sampleData.js
+curl -OJL https://github.com/ELEVATE-Project/samiksha-service/blob/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
+curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/mac-os/insert_sample_data.sql
 log "Sample data scripts downloaded."
 
 # -----------------------------
@@ -117,7 +118,7 @@ log "MongoDB Node driver installed."
 # Step 10: config.json
 # -----------------------------
 log "Downloading config.json..."
-curl -L https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/generics/configFile.json -o config.json
+curl -L https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/generics/configFile.json -o config.json
 log "config.json downloaded."
 
 # -----------------------------

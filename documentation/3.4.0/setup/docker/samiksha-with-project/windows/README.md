@@ -86,7 +86,7 @@ for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569 4301) do @(
 4.  **Download `Config` File**
 
    ```
-   curl -L https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/generics/configFile.json -o config.json
+   curl -L https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/generics/configFile.json -o config.json
    ```
 
 
