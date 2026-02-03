@@ -10,16 +10,16 @@ echo Downloading entity sample data files...
 echo ------------------------------------------
 
 curl -L -o entity_sampleData.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/project-with-survey/entity_sampleData.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/entity_sampleData.js
 
 curl -L -o project_sampleData.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/project-with-survey/project_sampleData.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/project_sampleData.js
 
 curl -L -o survey_sampleData.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/project-with-survey/survey_sampleData.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/survey_sampleData.js
 
 curl -L -o insert_sample_solutions.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/project-with-survey/insert_sample_solutions.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/samiksha-with-project/insert_sample_solutions.js
 
 echo.
 echo Files downloaded successfully.

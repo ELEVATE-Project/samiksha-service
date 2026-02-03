@@ -54,7 +54,7 @@ for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569) do @(
 1.  **Download Docker Compose File:** Retrieve the **[docker-compose-samiksha.yml](https://github.com/ELEVATE-Project/project-service/raw/main/documentation/1.0.0/dockerized/docker-compose-project.yml)** file from the Samiksha service repository and save it to the samiksha directory.
 
     ```
-    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/dockerFiles/stand-alone/docker-compose-project.yml
+    curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/dockerFiles/stand-alone/docker-compose-samiksha.yml
     ```
 
     > Note: All commands are run from the samiksha directory.
@@ -63,12 +63,12 @@ for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569) do @(
 
    ```
    curl -L ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/interface_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/entity_management_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/project_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/notification_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/scheduler_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/envs/user_env
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/interface_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/entity_management_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/project_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/notification_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/scheduler_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/user_env
    ```
 
 > **Note:** Modify the environment files as necessary for your deployment using any text editor, ensuring that the values are appropriate for your environment. The default values provided in the current files are functional and serve as a good starting point. Refer to the sample env files provided at the [Samiksha](https://github.com/ELEVATE-Project/project-service/blob/main/.env.sample), [User](https://github.com/ELEVATE-Project/user/blob/master/src/.env.sample), [Notification](https://github.com/ELEVATE-Project/notification/blob/master/src/.env.sample), [Scheduler](https://github.com/ELEVATE-Project/scheduler/blob/master/src/.env.sample), [Interface](https://github.com/ELEVATE-Project/interface-service/blob/main/src/.env.sample) and [Entity-management](https://github.com/ELEVATE-Project/entity-management/blob/main/src/.env.sample) repositories for reference.
@@ -78,10 +78,10 @@ for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569) do @(
 3.  **Download `docker-compose-up` & `docker-compose-down` Script Files**
 
    ```
-   curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/windows/docker-compose-up.bat
+   curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/docker-compose-down.up
    ```
    ```
-   curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/dockerized/scripts/stand-alone/windows/docker-compose-down.bat
+   curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/docker-compose-down.bat
    ```
 
 4.  **Download `Config` File**
@@ -120,13 +120,13 @@ To enable the Citus extension for user services, follow these steps.
 
 1. Create a sub-directory named `user` and download `distributionColumns.sql` into it.
     ```
-    mkdir user && curl -o ./user/distributionColumns.sql -JL https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/distribution-columns/user/distributionColumns.sql
+    mkdir user && curl -o ./user/distributionColumns.sql -JL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/distribution-columns/user/distributionColumns.sql
     ```
 2. Set up the citus_setup file by following the steps given below.
 
    1. Download the `citus_setup.bat` file.
       ```
-      curl -OJL https://github.com/ELEVATE-Project/project-service/raw/main/documentation/1.0.0/dockerized/scripts/windows/citus_setup.bat
+      curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/citus_setup.bat
       ```
    2. Enable Citus and set distribution columns for `user` database by running the `citus_setup.bat`with the following arguments.
       ```
@@ -211,13 +211,13 @@ In such cases, you can generate sample user accounts using the steps below. This
 
       ```
       mkdir sample-data\user 2>nul & ^
-      curl -L "https://raw.githubusercontent.com/MallanagoudaBiradar/project-service/refs/heads/windowsStandAlone/documentation/3.4.0/dockerized/scripts/stand-alone/windows/sampleData.sql" -o sample-data\user\sampleData.sql
+      curl -L "https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/sampleData.sqll" -o sample-data\user\sampleData.sql
       ```
 
 2. **Download The `insert_sample_data` Script File:**
 
    ```
-   curl -L -o insert_sample_data.bat https://raw.githubusercontent.com/MallanagoudaBiradar/project-service/refs/heads/windowsStandAlone/documentation/3.4.0/dockerized/scripts/stand-alone/windows/insert_sample_data.bat
+   curl -L -o insert_sample_data.bat https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/insert_sample_data.bat
    ```
 
 3. **Run The `insert_sample_data` Script File:**
@@ -245,13 +245,13 @@ This step will guide us in implementing a sample survet and observation solution
 
       ```
       curl -L ^
-      -O https://raw.githubusercontent.com/MallanagoudaBiradar/project-service/refs/heads/windowsStandAlone/documentation/3.4.0/dockerized/scripts/stand-alone/windows/insert_project_data.bat
+      -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/scripts/stand-alone/windows/insert_samiksha_data.bat
       ```
 
     2. Make the setup file executable by running the following command.
 
        ```
-       insert_project_data.bat
+       insert_samiksha_data.bat
        ```
     3. Insert Sample Data To Database.
 
