@@ -182,8 +182,8 @@ module.exports = class QuestionsHelper {
              * Handle dynamic/API-driven questions
              * metaInformation is populated ONLY when requireDynamicAnswers = true
              */
-            const isDynamicQuestion = this.convertStringToBoolean(gen.utils.lowerCase(parsedQuestion.requireDynamicAnswers));
-            
+            const isDynamicQuestion = this.convertStringToBoolean(gen.utils.lowerCase(parsedQuestion.requireDynamicAnswers || ""));
+             
             // Explicitly set requireDynamicAnswers in allValues
             allValues.requireDynamicAnswers = isDynamicQuestion;
 
