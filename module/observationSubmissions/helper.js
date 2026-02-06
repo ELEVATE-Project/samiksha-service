@@ -581,22 +581,7 @@ module.exports = class ObservationSubmissionsHelper {
           orgId: tenantData.orgId,
         };
 
-        // Add answer value filter to query if filterAnswerValue is provided
-        // Performs database-level filtering for better performance
-        if (filterAnswerValue != null && String(filterAnswerValue).trim() !== '') {
-          // Escape special regex characters to prevent regex injection
-          const escapedFilterValue = String(filterAnswerValue).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          
-          // Use MongoDB $expr with $regexMatch to search in stringified evidences structure
-          // Searches through all evidences.submissions.answers for the filter value
-          queryObject.$expr = {
-            $regexMatch: {
-              input: { $toString: '$evidences' },
-              regex: escapedFilterValue,
-              options: 'i', // Case-insensitive matching
-            },
-          };
-        }
+        // Note: filterAnswerValue filtering is done post-query in JavaScript
 
         let projection = [
           'status',
@@ -631,6 +616,55 @@ module.exports = class ObservationSubmissionsHelper {
         let result = await this.observationSubmissionsDocument(queryObject, projection, {
           createdAt: -1,
         });
+
+        // Filter by answer value if filterAnswerValue is provided
+        if (filterAnswerValue != null && String(filterAnswerValue).trim() !== '') {
+          const filterValue = String(filterAnswerValue).trim().toLowerCase();
+
+          // Helper function to recursively search for value in nested object/array
+          const deepSearchInAnswers = (obj, searchValue) => {
+            if (obj == null) return false;
+
+            // If object, recursively search all properties
+            if (typeof obj === 'object') {
+              if (Array.isArray(obj)) {
+                // If array, check each element
+                return obj.some(item => deepSearchInAnswers(item, searchValue));
+              } else {
+                // If object, check all values
+                return Object.values(obj).some(value => deepSearchInAnswers(value, searchValue));
+              }
+            }
+
+            // If primitive value, check if it contains search value (case-insensitive)
+            const stringValue = String(obj).toLowerCase();
+            return stringValue.includes(searchValue);
+          };
+
+          // Filter submissions where filterValue exists in evidences structure
+          result = result.filter(submission => {
+            if (!submission.evidences || typeof submission.evidences !== 'object') {
+              return false;
+            }
+
+            // Search through all evidences
+            return Object.values(submission.evidences).some(evidence => {
+              if (!evidence || !evidence.submissions || !Array.isArray(evidence.submissions)) {
+                return false;
+              }
+
+              // Search through all submissions in this evidence
+              return evidence.submissions.some(sub => {
+                if (!sub || !sub.answers || typeof sub.answers !== 'object') {
+                  return false;
+                }
+
+                // Search through all answers
+                return deepSearchInAnswers(sub.answers, filterValue);
+              });
+            });
+          });
+        }
 
         if (!result.length > 0) {
           return resolve({
@@ -670,6 +704,10 @@ module.exports = class ObservationSubmissionsHelper {
           });
 
           delete resultedData.observationInformation;
+          // Remove evidences field if it exists (it was only used for filtering)
+          if (resultedData.evidences !== undefined) {
+            delete resultedData.evidences;
+          }
           return _.omit(resultedData, ['completedDate']);
         });
 
