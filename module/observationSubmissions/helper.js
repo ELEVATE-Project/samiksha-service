@@ -565,13 +565,13 @@ module.exports = class ObservationSubmissionsHelper {
    * @method
    * @name list
    * @param {String} - entityId
-   * @param {String} - solutionId
    * @param {String} - observationId
    * @param {Object} - tenantData
+   * @param {String} [filterAnswerValue=null] - Optional filter value to search in submission answers
    * @returns {Object} - list of submissions
    */
 
-  static list(entityId, observationId,tenantData) {
+  static list(entityId, observationId, tenantData, filterAnswerValue = null) {
     return new Promise(async (resolve, reject) => {
       try {
         let queryObject = {
@@ -580,6 +580,23 @@ module.exports = class ObservationSubmissionsHelper {
           tenantId: tenantData.tenantId,
           orgId: tenantData.orgId,
         };
+
+        // Add answer value filter to query if filterAnswerValue is provided
+        // Performs database-level filtering for better performance
+        if (filterAnswerValue != null && String(filterAnswerValue).trim() !== '') {
+          // Escape special regex characters to prevent regex injection
+          const escapedFilterValue = String(filterAnswerValue).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          
+          // Use MongoDB $expr with $regexMatch to search in stringified evidences structure
+          // Searches through all evidences.submissions.answers for the filter value
+          queryObject.$expr = {
+            $regexMatch: {
+              input: { $toString: '$evidences' },
+              regex: escapedFilterValue,
+              options: 'i', // Case-insensitive matching
+            },
+          };
+        }
 
         let projection = [
           'status',
@@ -605,6 +622,11 @@ module.exports = class ObservationSubmissionsHelper {
           "evidencesStatus.canBeNotAllowed",
           "evidencesStatus.notApplicable"
         ];
+
+        // Include evidences field when filtering by answer value
+        if (filterAnswerValue != null && String(filterAnswerValue).trim() !== '') {
+          projection.push('evidences');
+        }
 
         let result = await this.observationSubmissionsDocument(queryObject, projection, {
           createdAt: -1,
