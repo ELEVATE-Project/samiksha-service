@@ -1652,7 +1652,7 @@ module.exports = class ObservationsHelper {
    * @returns {Object} List of user assigned observations.
    */
 
-  static userAssigned(userId, pageNo, pageSize, search, filter = '', tenantFilter) {
+  static userAssigned(userId, pageNo, pageSize, search, filter = '', tenantFilter, showReferenceFrom = false) {
     return new Promise(async (resolve, reject) => {
       try {
         //Constructing the match query for assigned solutions
@@ -1660,11 +1660,14 @@ module.exports = class ObservationsHelper {
           $match: {
             createdBy: userId,
             deleted: false,
-            referenceFrom: { $ne: messageConstants.common.PROJECT },
             tenantId: tenantFilter.tenantId,
             orgId: tenantFilter.orgId,
           },
         };
+        // Add referenceFrom filter only when showReferenceFrom is false (exclude PROJECT)
+        if (showReferenceFrom === false || showReferenceFrom === 'false') {
+          matchQuery.$match.referenceFrom = { $ne: messageConstants.common.PROJECT };
+        }
 
         // Normalize keywords if provided (observations don't have keywords, but solutions do)
         const raw = filter?.keywords;
@@ -1707,6 +1710,8 @@ module.exports = class ObservationsHelper {
         let projection1 = {
           $project: {
             name: 1,
+            referenceFrom: 1,
+            project: 1,
             description: 1,
             solutionId: 1,
             programId: 1,
