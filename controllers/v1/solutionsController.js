@@ -85,7 +85,8 @@ module.exports = class Solutions extends Abstract {
           req.query.filter,
           req.query.surveyReportPage ? req.query.surveyReportPage : '',
           req.query.currentScopeOnly ? req.query.currentScopeOnly : false,
-          req.userDetails.tenantData
+          req.userDetails.tenantData,
+          req.query.showReferenceFrom ? req.query.showReferenceFrom : false
         );
 
         observations['result'] = observations.data;
