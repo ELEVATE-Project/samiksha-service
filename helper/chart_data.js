@@ -176,7 +176,6 @@ function getKeysToBeDeletedFromAnswers(data) {
 exports.generateObservationReportForNonRubricWithoutDruid = async function (data,generateChart=false,criteriaWise=false,chartType) {
   const answerArr = extractAnswers(data);
   const { questionRecordsIdArr, cachedCriteriaIdArr } = extractIds(answerArr);
-
   const [criteriaInfoArr, questionRecordArr] = await Promise.all([
     fetchCriteriaInfo(cachedCriteriaIdArr),
     fetchQuestionRecords(questionRecordsIdArr)
@@ -438,6 +437,7 @@ async function createNewFormattedAnswer(questionInstance, questionRecordSingleEl
  * @param {string} submissionId - Submission ID.
  * @returns {Promise<Array>} Processed evidences.
  */
+
 async function processFileEvidences(fileNames, submissionId) {
   if (!fileNames || fileNames.length === 0) return [];
 
@@ -446,12 +446,11 @@ async function processFileEvidences(fileNames, submissionId) {
     const sourcePath = await filesCloudHelper.getDownloadableUrl([file.sourcePath]);
     let extension = path.extname(file.sourcePath).split('.').join('');
     sourcePath.result[0].extension = extension;
-    sourcePath.result[0].url = sourcePath.result[0].previewUrl;
-    evidences.push({ ...file, fileUrl: sourcePath.result[0], submissionId,extension:extension });
+    sourcePath.result[0].url = sourcePath.result[0].url;
+    evidences.push({ ...file,previewUrl: sourcePath.result[0].url, fileUrl: sourcePath.result[0], submissionId,extension:extension });
   }
   return evidences;
 }
-
 /**
  * Updates answer values.
  * @param {Array} existingAnswers - Existing answers.

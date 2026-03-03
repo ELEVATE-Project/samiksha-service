@@ -15,6 +15,7 @@
 
 - **[3359] Custom Entity-Type for Observation** – Fixed support for custom entity-types in observations when not associated with a parent entity.
 - **[3462] Solution Update API Enhancement** – Improved solution update API with additional support.
+- **[4530] Evidence Attached On In App Reports Is Expired OR Not Working As Expected.** – Refreshed preview urls are passed for every API call
 
 ---
 
