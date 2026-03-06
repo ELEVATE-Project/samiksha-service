@@ -8,18 +8,14 @@ const _ = require('lodash');
 const request = require('request');
 const url = process.env.MONGODB_URL;
 const dbName = process.env.DB;
-const dryRun = true;
-const BATCH_SIZE = 100; // increased from 5 for better throughput
+const dryRun = false;
+const BATCH_SIZE = 100;
+const input = JSON.parse(fs.readFileSync(path.join(__dirname, 'input.json'), 'utf8'))
+const { loginCredentails, tenantMappingConfig } = input
+const { oldTenantId, newTenantId, newOrgId,oldOrgId } = tenantMappingConfig
 
 // ─── CLI Args ─────────────────────────────────────────────────────────────────
 
-const parsedArgs = {};
-process.argv.slice(2).forEach((arg) => {
-  const [key, value] = arg.split('=');
-  parsedArgs[key.replace(/^--/, '')] = value;
-});
-
-const { oldTenantId, newTenantId, oldOrgId, newOrgId, author } = parsedArgs;
 
 console.log('MongoDB URL  :', url, dbName);
 console.log('Old Tenant ID:', oldTenantId);
@@ -37,12 +33,19 @@ const LOG_FILE = path.join(
 const migrationLog = {
   startedAt: new Date().toISOString(),
   dryRun,
-  params: { oldTenantId, newTenantId, oldOrgId, newOrgId, author },
+  params: { oldTenantId, newTenantId, oldOrgId, newOrgId },
   collections: {},
+  warnings: [],
   errors: [],
   completedAt: null,
 };
 
+function logWarning(collectionName, docId, field, message) {
+  const warning = { collection: collectionName, docId, field, message, timestamp: new Date().toISOString() };
+  migrationLog.warnings.push(warning);
+  console.warn(`  ⚠️  [${collectionName}] doc ${docId} — ${field}: ${message}`);
+  writeLog();
+}
 /**
  * Append a collection result to the log file (overwrites with full state each time).
  */
@@ -124,6 +127,51 @@ function entityDocuments(
   });
 }
 
+
+/**
+ *
+ * @function
+ * @name profile
+ * @param {String}   userId -userId
+ * @returns {Promise} returns a promise.
+ */
+function profile(userId = '', tenantId = '') {
+  return new Promise((resolve, reject) => {
+    try {
+      const url =
+        `${process.env.USER_SERVICE_URL}/v1/user/profileById` +
+        (userId ? `/${userId}?tenant_code=${tenantId}` : '');
+
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
+        },
+        timeout: 10000, 
+      };
+
+      request.get(url, options, (err, response) => {
+        if (err) return resolve({ success: false, error: err.message });
+
+        const body = JSON.parse(response.body);
+        if (body.responseCode === 'OK') {
+          return resolve({
+            success: true,
+            data: _.omit(body.result, [
+              'email', 'maskedEmail', 'maskedPhone', 'recoveryEmail',
+              'phone', 'prevUsedPhone', 'prevUsedEmail', 'recoveryPhone',
+              'encEmail', 'encPhone',
+            ]),
+          });
+        }
+
+        return resolve({ success: false, error: body.params?.status });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 // ─── Scope / Entity Finding
 
 /**
@@ -132,7 +180,7 @@ function entityDocuments(
  * @param {string}          tenantId        target tenant to look up
  * @param {boolean}         returnEntityTypeId    also return the resolved entityTypeId
  */
-async function updateEntities(input, tenantId, returnEntityTypeId = false) {
+async function updateEntities(input, tenantId, returnEntityTypeId = false,collectionName, docId) {
   try {
     const isArray = Array.isArray(input);
     // we are using same function for solution and program scope and observation enitites so we will handle both logic here
@@ -155,7 +203,24 @@ async function updateEntities(input, tenantId, returnEntityTypeId = false) {
         ...(tenantId && { tenantId }),
       };
 
-      const { data = [] } = await entityDocuments(filter, ['_id', 'metaInformation', 'entityTypeId']);
+      const result = await entityDocuments(filter, ['_id', 'metaInformation', 'entityTypeId']);
+
+      // log if the service call  failed
+      if (!result.success) {
+        logWarning(collectionName, docId, 'entities', `entityDocuments call failed: ${result.error}`);
+        return input; 
+      }
+
+      const { data = [] } = result;
+
+      //  log if some reference IDs had no match in the new tenant
+      const unmapped = [...referenceIds].filter(
+        (id) => !data.find((doc) => doc.metaInformation?.tenantMigrationReferenceId === id)
+      );
+      if (unmapped.length) {
+        logWarning(collectionName, docId, 'entities', `No mapping found for IDs: ${unmapped.join(', ')}`);
+      }
+
       newEntityTypeId = data[0]?.entityTypeId;
       valueMap = new Map(data.map((doc) => [doc.metaInformation?.tenantMigrationReferenceId, doc._id]));
     }
@@ -181,10 +246,73 @@ async function updateEntities(input, tenantId, returnEntityTypeId = false) {
     return resolvedScope;
   } catch (err) {
     console.error('✗ Failed to resolve scope:', err.message);
+    logWarning(collectionName, docId, 'entities', err.message);
     return input;
   }
 }
 
+
+function decodeJWT(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function login() {
+  return new Promise((resolve, reject) => {
+    try {
+      const normalizedCreatorType = (loginCredentails.createrType || '').toLowerCase().trim();
+      const loginUrl =
+        normalizedCreatorType === 'admin'
+          ? `${process.env.USER_SERVICE_URL}/v1/admin/login`
+          : `${process.env.USER_SERVICE_URL}/v1/account/login`;
+
+      const options = {
+        headers: {
+          'Content-Type': 'application/json',
+          origin: loginCredentails.origin,
+        },
+        json: {
+          identifier: loginCredentails.createrUserName,
+          password: loginCredentails.createrPassword,
+        },
+        timeout: 10000,
+      };
+
+      request.post(loginUrl, options, (err, response) => {
+        if (err) return reject(new Error(`Login request failed: ${err.message}`));
+
+        const body = response.body;
+        const token = body?.result?.access_token;
+        const userId = body?.result?.user?.id?.toString();
+
+        if (!token) return reject(new Error('Login failed: no access_token in response'));
+
+        // ✅ Decode and verify admin role
+        const decoded = decodeJWT(token);
+        if (!decoded) return reject(new Error('Login failed: could not decode token'));
+
+        const roles = decoded.data.organizations?.[0]?.roles  || [];
+        const roleList = Array.isArray(roles) ? roles : [roles];
+        const isAdmin = roleList.some((role) => 
+          (typeof role === 'string' ? role : role?.title  || '').toLowerCase() === 'admin'
+        );
+
+        if (!isAdmin) {
+          return reject(new Error(`Login failed: user ${userId} does not have admin role. Found roles: ${roleList.map(r => typeof r === 'string' ? r : r?.title || r?.name).join(', ') || 'none'}`));
+        }
+
+        console.log(`✓ Login successful. userId: ${userId}, role: admin`);
+        return resolve({ token, userId });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 // ─── Generic Simple Migrations ──────────────────────────────────────────────────
 
 /**
@@ -267,14 +395,15 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
 
-      // Build all ops for the batch concurrently
-      const bulkOps = await Promise.all(batch.map(buildOp));
-
       if (dryRun) {
-        console.log(`    [DRY RUN] Batch ${i + 1}/${batches.length}: would update ${bulkOps.length} docs`);
+        console.log(`    [DRY RUN] Batch ${i + 1}/${batches.length}: would update ${batch.length} docs`);
         batch.forEach((d) => allUpdatedIds.push(d._id.toString()));
         continue;
       }
+      // Build all ops for the batch concurrently
+      const bulkOps = await Promise.all(batch.map(buildOp));
+
+     
 
       const result = await collection.bulkWrite(bulkOps);
       totalModified += result.modifiedCount;
@@ -295,20 +424,19 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
 
 // ─── Individual Migrators ─────────────────────────────────────────────────────
 
-async function migrateSolutions() {
+async function migrateSolutions(author) {
   return migrateBatchedCollection(
     'solutions',
     { tenantId: oldTenantId, orgId: oldOrgId, scope: { $exists: true } },
     async (doc) => {
-      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId) : undefined;
+      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId,false, 'solutions', doc._id.toString()) : undefined;
       return {
         updateOne: {
           filter: { _id: doc._id },
           update: {
             $set: {
-              tenantId: newTenantId, // BUG FIX: was oldTenantId
-              orgId: newOrgId,       // BUG FIX: was oldOrgId
-              author,
+              tenantId: newTenantId, 
+              orgId: newOrgId,       
               updatedBy: author,
               ...(updatedScope && { scope: updatedScope }),
             },
@@ -319,21 +447,19 @@ async function migrateSolutions() {
   );
 }
 
-async function migrateProgram() {
+async function migrateProgram(author) {
   return migrateBatchedCollection(
     'programs',
     { tenantId: oldTenantId, orgId: oldOrgId, scope: { $exists: true } },
     async (doc) => {
-      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId) : undefined;
+      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId,false, 'programs', doc._id.toString()) : undefined;
       return {
         updateOne: {
           filter: { _id: doc._id },
           update: {
             $set: {
-              tenantId: newTenantId, // BUG FIX: was oldTenantId
-              orgId: newOrgId,       // BUG FIX: was oldOrgId
-              owner: author,
-              createdBy: author,
+              tenantId: newTenantId, 
+              orgId: newOrgId,      
               updatedBy: author,
               ...(updatedScope && { scope: updatedScope }),
             },
@@ -351,9 +477,18 @@ async function migrateObservation() {
     async (doc) => {
       let updatedEntity;
       if (doc.entities?.length > 0) {
-        updatedEntity = await updateEntities(doc.entities, newTenantId, true);
+        updatedEntity = await updateEntities(doc.entities, newTenantId, true, 'observations', doc._id.toString());
       }
+      let userProfileData = null;
 
+      if (doc.userProfile?.id) {
+        const result = await profile(doc.userProfile.id, newTenantId);
+        if (!result.success) {
+          logWarning('observations', doc._id, 'userProfile', result.error || 'profile call failed'); 
+        } else {
+          userProfileData = result;
+        }
+      }
       return {
         updateOne: {
           filter: { _id: doc._id },
@@ -362,8 +497,8 @@ async function migrateObservation() {
               tenantId: newTenantId,
               orgId: newOrgId,
               ...(updatedEntity?.entities && { entities: updatedEntity.entities }),
-              // BUG FIX: guard against undefined before accessing .entityTypeId
               ...(updatedEntity?.entityTypeId && { entityTypeId: updatedEntity.entityTypeId }),
+              ...(userProfileData && {userProfile: userProfileData.data }),
             },
           },
         },
@@ -388,8 +523,19 @@ async function migrateObservationSubmissions() {
       }
 
       const updatedScope = doc.programInformation?.scope
-        ? await updateEntities(doc.programInformation.scope, newTenantId)
+        ? await updateEntities(doc.programInformation.scope, newTenantId, false, 'observationSubmissions', doc._id.toString())
         : undefined;
+
+        let userProfileData = null;
+
+      if (doc.userProfile?.id) {
+        const result = await profile(doc.userProfile.id, newTenantId);
+        if (!result.success) {
+          logWarning('observationSubmissions', doc._id, 'userProfile', result.error || 'profile call failed'); 
+        } else {
+          userProfileData = result;
+        }
+      }
 
       return {
         updateOne: {
@@ -408,6 +554,7 @@ async function migrateObservationSubmissions() {
               'programInformation.tenantId': newTenantId,
               'programInformation.orgId': newOrgId,
               ...(updatedScope && { 'programInformation.scope': updatedScope }),
+              ...(userProfileData && {userProfile: userProfileData.data }),
             },
           },
         },
@@ -446,7 +593,6 @@ async function migrateCriteriaQuestions() {
         $set: {
           tenantId: newTenantId,
           orgId: newOrgId,
-          owner: author,
           'evidences.$[e].sections.$[s].questions.$[q].tenantId': newTenantId,
           'evidences.$[e].sections.$[s].questions.$[q].orgId': newOrgId,
         },
@@ -471,7 +617,7 @@ async function migrateCriteriaQuestions() {
 }
 
 // userExtension uses a positional operator on orgIds array — also needs its own handler
-async function migrateUserExtension() {
+async function migrateUserExtension(author) {
   const collectionName = 'userExtension';
   const collection = client.db(dbName).collection(collectionName);
 
@@ -493,12 +639,11 @@ async function migrateUserExtension() {
       return 0;
     }
 
-    // updateMany with positional operator works fine here
+    // updateMany
     const result = await collection.updateMany(query, {
       $set: {
         tenantId: newTenantId,
         'orgIds.$': newOrgId,
-        createdBy: author,
         updatedBy: author,
       },
     });
@@ -517,21 +662,12 @@ async function migrateUserExtension() {
 
 /**
  * Migrate surveys collection.
- *
- * TODO: Replace the `createdBy` placeholder below with a dynamic lookup
- *       once the user-service integration is ready. Each survey's creator
- *       should be fetched from the user service using the old createdBy id
- *       and remapped to the new tenant's user id.
  */
 async function migrateSurveys() {
   return migrateBatchedCollection(
     'surveys',
     { tenantId: oldTenantId, orgId: oldOrgId },
     async (doc) => {
-      // TODO: fetch the migrated userId from user service using doc.createdBy
-      // e.g. const newCreatedBy = await getMigratedUserId(doc.createdBy);
-      const newCreatedBy = doc.createdBy; // placeholder — keeps existing value until user logic is added
-
       return {
         updateOne: {
           filter: { _id: doc._id },
@@ -539,7 +675,6 @@ async function migrateSurveys() {
             $set: {
               tenantId: newTenantId,
               orgId: newOrgId,
-              createdBy: newCreatedBy,
             },
           },
         },
@@ -557,11 +692,17 @@ async function migrateSurveySubmissions() {
     'surveySubmissions',
     { tenantId: oldTenantId, orgId: oldOrgId },
     async (doc) => {
-      // TODO: fetch the migrated userId and userProfile from user service
-      // e.g. const { newUserId, newUserProfile } = await getMigratedUser(doc.createdBy);
-      const newCreatedBy  = doc.createdBy;   
-      const newUserProfile = doc.userProfile; 
+      // fetch the migrated userProfile from user service
+      let userProfileData = null;
 
+      if (doc.userProfile?.id) {
+        const result = await profile(doc.userProfile.id, newTenantId);
+        if (!result.success) {
+          logWarning('surveySubmissions', doc._id, 'userProfile', result.error || 'profile call failed'); 
+        } else {
+          userProfileData = result;
+        }
+      }
       return {
         updateOne: {
           filter: { _id: doc._id },
@@ -569,8 +710,7 @@ async function migrateSurveySubmissions() {
             $set: {
               tenantId: newTenantId,
               orgId: newOrgId,
-              createdBy: newCreatedBy,
-              userProfile: newUserProfile,
+              ...(userProfileData && {userProfile: userProfileData.data }),
               'surveyInformation.tenantId': newTenantId,
               'surveyInformation.orgId': newOrgId,
             },
@@ -581,7 +721,7 @@ async function migrateSurveySubmissions() {
   );
 }
 
-// ─── Main Orchestrator ────────────────────────────────────────────────────────
+// ─── Main Function ────────────────────────────────────────────────────────
 
 async function tenantMigration() {
   try {
@@ -596,26 +736,31 @@ async function tenantMigration() {
 
     await connectDatabase();
 
+    console.log('🔐 Logging in...');
+    const { token, userId: author } = await login(); 
+
     // ── Group 1: simple updateMany collections — run in parallel ──────────────
     console.log('── Phase 1: Simple collections (parallel) ──────────────────────\n');
     await Promise.allSettled([
-      migrateSimpleCollection('criteria',   { owner: author }),
-      migrateSimpleCollection('frameworks', { author }),
-      migrateSimpleCollection('questions',  {}),
+      migrateSimpleCollection('criteria',  ),
+      migrateSimpleCollection('frameworks', {updatedBy: author}),
+      migrateSimpleCollection('questions',  {updatedBy: author}),
       migrateCriteriaQuestions(),
-      migrateUserExtension(),
+      migrateUserExtension(author),
     ]);
 
     // ── Group 2: entity-resolution + user-resolved collections — run in parallel
     console.log('\n── Phase 2: Entity-resolution collections (parallel) ───────────\n');
     await Promise.allSettled([
-      migrateSolutions(),
-      migrateProgram(),
+      migrateSolutions(author),
+      migrateProgram(author),
       migrateObservation(),
       migrateObservationSubmissions(),
       migrateSurveys(),
       migrateSurveySubmissions(),
     ]);
+    
+
 
     migrationLog.completedAt = new Date().toISOString();
     writeLog();
@@ -637,6 +782,7 @@ async function tenantMigration() {
     }
 
     console.log('✓ Tenant migration completed successfully\n');
+
   } catch (error) {
     migrationLog.errors.push({ fatal: true, error: error.message });
     migrationLog.completedAt = new Date().toISOString();
