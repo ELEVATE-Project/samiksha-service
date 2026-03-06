@@ -7,29 +7,26 @@ It updates documents that belong to an **old tenant and organization** and migra
 
 The script supports:
 
-* Batch processing for large collections
+* Batch processing with configurable concurrency for large collections
 * Entity ID resolution through the **Entity Management Service**
-* Dry-run mode for safe testing
-* Detailed JSON logging for every migration run
-* Parallel execution for faster migration
+* Automatic retry with exponential back-off on transient HTTP failures
+* Dry-run mode for safe testing (enabled by default)
+* Detailed JSON logging with buffered writes for performance
+* Parallel execution with failure detection per phase
 
 ---
 
-# Prerequisites
+## Prerequisites
 
 Before running the script ensure the following are available.
 
 ### 1. Node.js
-
-Recommended version:
 
 ```
 Node.js >= 16
 ```
 
 ### 2. MongoDB Access
-
-You must have access to the database with the following environment variables.
 
 ```
 MONGODB_URL=<mongodb_connection_string>
@@ -40,295 +37,158 @@ DB=<database_name>
 
 Create a `.env` file in the project root.
 
-Example:
-
-```
+```env
 MONGODB_URL=mongodb://localhost:27017
 DB=elevate
 ENTITY_MANAGEMENT_SERVICE_URL=http://localhost:3000
+USER_SERVICE_URL=http://localhost:4000
 INTERNAL_ACCESS_TOKEN=<token>
 ```
 
+### 4. Input File
+
+Create an `input.json` file in the same directory as the script.
+
+```json
+{
+  "loginCredentails": {
+    "createrType": "admin",
+    "createrUserName": "admin@example.com",
+    "createrPassword": "password",
+    "origin": "http://localhost"
+  },
+  "tenantMappingConfig": {
+    "oldTenantId": "sl",
+    "newTenantId": "tn",
+    "oldOrgId": "tan90",
+    "newOrgId": "tn01"
+  }
+}
+```
+
 ---
 
-# CLI Parameters
+## CLI Usage
 
-To run the script:
-```
+Navigate to the script directory first:
+
+```bash
 cd migrations/tenantMigration
 ```
 
-The script requires the following arguments.
+### Dry Run (default — safe, no data modified)
 
-| Parameter       | Description               |
-| --------------- | ------------------------- |
-| `--oldTenantId` | Existing tenant ID        |
-| `--newTenantId` | Target tenant ID          |
-| `--oldOrgId`    | Existing organization ID  |
-| `--newOrgId`    | Target organization ID    |
-| `--author`      | User performing migration |
-
-Example:
-
+```bash
+node tenantMigration.js --dry-run
 ```
-node tenantMigration.js \
---oldTenantId=oldTenant \
---newTenantId=newTenant \
---oldOrgId=org1 \
---newOrgId=org2 \
---author=1
+
+or using an environment variable:
+
+```bash
+DRY_RUN=true node tenantMigration.js
 ```
+
+### Production Run
+
+```bash
+node tenantMigration.js
+```
+
+### Adjusting Concurrency
+
+Control how many entity service HTTP calls run in parallel per batch (default: 10):
+
+```bash
+CONCURRENCY=5 node tenantMigration.js
+```
+
+Lower this value if the entity service shows high error rates under load.
 
 ---
 
-# Dry Run Mode
+## Dry Run Mode
 
-By default the script runs in **dry run mode**.
+Dry run is **enabled by default** via the `--dry-run` flag or `DRY_RUN=true` env var.
+The script will never modify data unless invoked without either of those.
 
-```
-const dryRun = true;
-```
+When dry run is active:
 
-This means:
-
-* No database updates occur
-* The script logs which documents **would be updated**
-
-To perform the actual migration:
-
-```
-const dryRun = false;
-```
+* No database writes occur
+* The script logs which documents **would be updated** and how many per collection
+* A full JSON log file is still generated for review
 
 ---
 
-# Collections Migrated
 
-The script migrates the following collections.
 
-### Phase 1 – Simple Collections
+## Batch Processing & Concurrency
 
-These collections only require tenant and org updates.
+Large collections are processed in batches:
 
-* `criteria`
-* `frameworks`
-* `questions`
-* `criteriaQuestions`
-* `userExtension`
+```
+BATCH_SIZE = 100  (documents per batch)
+CONCURRENCY = 10  (max parallel HTTP calls per batch, tunable via env)
+```
+
+Within each batch, entity service and user service calls are throttled by the concurrency limiter so the downstream services are not overwhelmed.
 
 ---
 
-### Phase 2 – Entity Resolution Collections
+## Retry Logic
 
-These collections require additional entity mapping.
+All HTTP calls to the Entity Management Service and User Service are automatically retried on transient failures (network errors, 5xx responses).
 
-* `solutions`
-* `programs`
-* `observations`
-* `observationSubmissions`
-* `surveys`
-* `surveySubmissions`
+| Setting | Default |
+|---|---|
+| Max attempts | 3 |
+| Base delay | 300 ms |
+| Back-off | Exponential (300 → 600 → 1200 ms) |
 
----
-
-# Migration Behaviour
-
-## Tenant & Org Update
-
-Documents matching:
-
-```
-tenantId = oldTenantId
-orgId = oldOrgId
-```
-
-are updated to:
-
-```
-tenantId = newTenantId
-orgId = newOrgId
-```
+4xx errors and business-level failures are **not** retried — they are logged as warnings and the document is skipped.
 
 ---
 
-## Entity Resolution
+## Logging
 
-Some collections store entity references that must be migrated.
-
-The script:
-
-1. Reads entity IDs stored in documents
-2. Looks up the new entity via:
-
-```
-metaInformation.tenantMigrationReferenceId
-```
-
-3. Replaces old entity IDs with the new ones.
-
----
-
-## Special Case: userExtension
-
-The `userExtension` collection stores organization IDs as an array.
-
-Example:
-
-```
-orgIds: ["tan90", "tn01"]
-```
-
-During migration:
-
-```
-orgIds: ["tan90", "tn01"]
-```
-
-becomes
-
-```
-orgIds: ["newOrgId", "tn01"]
-```
-
-Only the matching org ID is replaced.
-
----
-
-# Batch Processing
-
-Large collections are processed in batches.
-
-```
-const BATCH_SIZE = 100
-```
-
-Benefits:
-
-* Prevents memory overload
-* Improves performance
-* Reduces database load
-
----
-
-# Logging
-
-Every migration generates a **JSON log file**.
-
-Example:
+Every migration run generates a timestamped **JSON log file** in the script directory.
 
 ```
 migration_log_2026-03-05T12-30-10-123Z.json
 ```
 
-Log structure:
-
-```
-{
-  startedAt,
-  dryRun,
-  params,
-  collections: {
-    collectionName: {
-      modifiedCount,
-      updatedIds,
-      error,
-      timestamp
-    }
-  },
-  errors,
-  completedAt
-}
-```
-
-This helps track:
-
-* Documents updated
-* Failed collections
-* Migration status
+Log writes are **buffered** and flushed once per batch (not once per document) to avoid excessive disk I/O on large datasets.
 
 ---
 
-# Migration Flow
 
-```
-Start Migration
-       │
-       │
-Connect MongoDB
-       │
-       │
-Phase 1 (Parallel)
-Simple Collections
-       │
-       │
-Phase 2 (Parallel)
-Entity Resolution Collections
-       │
-       │
-Write Logs
-       │
-       │
-Close Database Connection
-```
 
----
+## Safety Recommendations
 
-# Error Handling
-
-The script uses:
-
-```
-Promise.allSettled()
-```
-
-This ensures:
-
-* Migration continues even if one collection fails
-* Errors are logged instead of stopping execution
-
----
-
-# Safety Recommendations
-
-Before running migration:
+Before running a production migration:
 
 1. Take a **full database backup**
-2. Run with **dryRun = true**
-3. Review the generated **migration log**
-4. Set `dryRun = false` for the final migration
+2. Run with `--dry-run` and review the generated log
+3. Check `warnings` in the log for unmapped entities
+4. Set `CONCURRENCY` to a safe value for your entity service capacity
+5. Run without `--dry-run` for the actual migration
 
 ---
 
-# Example Execution
 
-Dry Run:
+─────────────────────────────────────────────────────────────────
+📋 Migration Summary
+─────────────────────────────────────────────────────────────────
+  ✓ criteria                     modified: 0
+  ✓ frameworks                   modified: 0
+  ✓ solutions                    modified: 0
+  ...
+  Total documents modified: 0
 
+📄 Full log written to: migration_log_2026-03-05T12-30-10-123Z.json
 ```
-node tenantMigration.js \
---oldTenantId=sl \
---newTenantId=tn \
---oldOrgId=tan90 \
---newOrgId=tn01 \
---author=1
-```
-
-Production Run:
-
-```
-const dryRun = false
-```
-
-Then execute the same command.
 
 ---
 
-# Notes
-
-* Surveys and Survey Submissions currently **retain existing user IDs**.
-* Future enhancement: integrate **user service lookup** to migrate user IDs.
-
----
-
-# Author
+## Author
 
 Tenant Migration Script for Elevate / Samiksha platform.

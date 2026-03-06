@@ -1,0 +1,81 @@
+{
+  "startedAt": "2026-03-06T12:37:37.700Z",
+  "dryRun": false,
+  "params": {
+    "oldTenantId": "shikshalokam",
+    "newTenantId": "tan90",
+    "oldOrgId": "tan90",
+    "newOrgId": "default_code"
+  },
+  "collections": {
+    "criteria": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.362Z"
+    },
+    "frameworks": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.363Z"
+    },
+    "userExtension": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.494Z"
+    },
+    "criteriaQuestions": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.634Z"
+    },
+    "questions": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.634Z"
+    },
+    "programs": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.859Z"
+    },
+    "observations": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.859Z"
+    },
+    "solutions": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.859Z"
+    },
+    "observationSubmissions": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:39.860Z"
+    },
+    "surveySubmissions": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:40.180Z"
+    },
+    "surveys": {
+      "modifiedCount": 0,
+      "updatedIds": [],
+      "error": null,
+      "timestamp": "2026-03-06T12:37:40.180Z"
+    }
+  },
+  "warnings": [],
+  "errors": [],
+  "completedAt": "2026-03-06T12:37:40.180Z"
+}

@@ -6,22 +6,63 @@ require('dotenv').config({ path: rootPath + '/.env' });
 const MongoClient = require('mongodb').MongoClient;
 const _ = require('lodash');
 const request = require('request');
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+
 const url = process.env.MONGODB_URL;
 const dbName = process.env.DB;
-const dryRun = false;
 const BATCH_SIZE = 100;
-const input = JSON.parse(fs.readFileSync(path.join(__dirname, 'input.json'), 'utf8'))
-const { loginCredentails, tenantMappingConfig } = input
-const { oldTenantId, newTenantId, newOrgId,oldOrgId } = tenantMappingConfig
 
-// ─── CLI Args ─────────────────────────────────────────────────────────────────
+// Usage: node tenantMigration.js --dry-run   OR   DRY_RUN=true node tenantMigration.js
+const dryRun =
+  process.argv.includes('--dry-run') ||
+  process.env.DRY_RUN === 'true';
 
+// Usage: CONCURRENCY=10 node tenantMigration.js  (default: 10)
+const CONCURRENCY = parseInt(process.env.CONCURRENCY || '10', 10);
+
+/**
+ * Minimal p-limit style concurrency limiter (no extra dependency needed).
+ * Returns a `limit(fn)` wrapper that ensures at most `max` fns run at once.
+ */
+function createLimiter(max) {
+  let active = 0;
+  const queue = [];
+
+  function run() {
+    if (active >= max || !queue.length) return;
+    active++;
+    const { fn, resolve, reject } = queue.shift();
+    fn()
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        active--;
+        run();
+      });
+  }
+
+  return function limit(fn) {
+    return new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      run();
+    });
+  };
+}
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+
+const input = JSON.parse(fs.readFileSync(path.join(__dirname, 'input.json'), 'utf8'));
+const { loginCredentails, tenantMappingConfig } = input;
+const { oldTenantId, newTenantId, newOrgId, oldOrgId } = tenantMappingConfig;
 
 console.log('MongoDB URL  :', url, dbName);
 console.log('Old Tenant ID:', oldTenantId);
 console.log('New Tenant ID:', newTenantId);
 console.log('Old Org ID   :', oldOrgId);
 console.log('New Org ID   :', newOrgId);
+console.log('Dry Run      :', dryRun);
+console.log('Concurrency  :', CONCURRENCY);
 
 // ─── Log File Setup ───────────────────────────────────────────────────────────
 
@@ -40,26 +81,38 @@ const migrationLog = {
   completedAt: null,
 };
 
+// Instead of hitting the disk on every warning/update, we accumulate changes
+// in memory and only write when explicitly flushed (end of batch / end of run).
+let _logError= false;
+
+function markLogError() {
+  _logError = true;
+}
+
+function sucessLog() {
+  if (!_logError) return;
+  fs.writeFileSync(LOG_FILE, JSON.stringify(migrationLog, null, 2), 'utf8');
+  _logError = false;
+}
+
+/** Previously called writeLog() on every event — now just marks dirty. */
+function writeLog() {
+  markLogError();
+}
+
 function logWarning(collectionName, docId, field, message) {
-  const warning = { collection: collectionName, docId, field, message, timestamp: new Date().toISOString() };
+  const warning = {
+    collection: collectionName,
+    docId,
+    field,
+    message,
+    timestamp: new Date().toISOString(),
+  };
   migrationLog.warnings.push(warning);
   console.warn(`  ⚠️  [${collectionName}] doc ${docId} — ${field}: ${message}`);
   writeLog();
 }
-/**
- * Append a collection result to the log file (overwrites with full state each time).
- */
-function writeLog() {
-  fs.writeFileSync(LOG_FILE, JSON.stringify(migrationLog, null, 2), 'utf8');
-}
 
-/**
- * Record a collection's migration result in the log.
- * @param {string} collectionName
- * @param {number} modifiedCount
- * @param {string[]} updatedIds   - array of stringified _id values
- * @param {string|null} error
- */
 function logCollection(collectionName, modifiedCount, updatedIds = [], error = null) {
   migrationLog.collections[collectionName] = {
     modifiedCount,
@@ -81,11 +134,34 @@ async function connectDatabase() {
   console.log('✓ Connected to MongoDB\n');
 }
 
+// ─── Retry wrapper for all HTTP calls ──────────────────────────────────
+/**
+ * Retry an async function up to `maxAttempts` times with exponential back-off.
+ * Only retries on transient failures (network errors, 5xx responses).
+ *
+ * @param {Function} fn           async function to retry
+ * @param {number}   maxAttempts  total attempts (default 3)
+ * @param {number}   baseDelayMs  initial delay in ms, doubles each retry (default 300)
+ */
+async function withRetry(fn, maxAttempts = 3, baseDelayMs = 300) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      const isLastAttempt = attempt === maxAttempts;
+      if (isLastAttempt) break;
+      const delay = baseDelayMs * Math.pow(2, attempt - 1);
+      console.warn(`    ↻ Attempt ${attempt} failed (${err.message}), retrying in ${delay}ms…`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
+
 // ─── Entity Service ───────────────────────────────────────────────────────────
 
-/**
- * Call the entity management service to find entities.
- */
 function entityDocuments(
   filterData = {},
   projection = [],
@@ -97,96 +173,114 @@ function entityDocuments(
   isSort = true,
   aggregateProjection = []
 ) {
-  return new Promise((resolve, reject) => {
-    try {
-      const endpoint =
-        `${process.env.ENTITY_MANAGEMENT_SERVICE_URL}/v1/entities/find` +
-        `?page=${page}&limit=${limit}&search=${search}` +
-        `&aggregateValue=${aggregateValue}&aggregateStaging=${isAggregateStaging}&aggregateSort=${isSort}`;
+  return withRetry(
+    () =>
+      new Promise((resolve, reject) => {
+        try {
+          const endpoint =
+            `${process.env.ENTITY_MANAGEMENT_SERVICE_URL}/v1/entities/find` +
+            `?page=${page}&limit=${limit}&search=${search}` +
+            `&aggregateValue=${aggregateValue}&aggregateStaging=${isAggregateStaging}&aggregateSort=${isSort}`;
 
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,
-        },
-        json: { query: filterData, projection, aggregateProjection },
-      };
+          const options = {
+            headers: {
+              'content-type': 'application/json',
+              'internal-access-token': process.env.INTERNAL_ACCESS_TOKEN,
+            },
+            json: { query: filterData, projection, aggregateProjection },
+          };
 
-      request.post(endpoint, options, (err, response) => {
-        if (err) return resolve({ success: false, data: [], error: err.message });
+          request.post(endpoint, options, (err, response) => {
+            if (err) return reject(new Error(err.message)); // throw so retry picks it up
 
-        const body = response.body;
-        if (body.status === 200) {
-          return resolve({ success: true, data: body.result || [] });
-        }
-        return resolve({ success: false, data: [], error: body.message });
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
+            const body = response.body;
+            // treat 5xx as retryable
+            if (response.statusCode >= 500) {
+              return reject(new Error(`Entity service ${response.statusCode}: ${body?.message}`));
+            }
 
-
-/**
- *
- * @function
- * @name profile
- * @param {String}   userId -userId
- * @returns {Promise} returns a promise.
- */
-function profile(userId = '', tenantId = '') {
-  return new Promise((resolve, reject) => {
-    try {
-      const url =
-        `${process.env.USER_SERVICE_URL}/v1/user/profileById` +
-        (userId ? `/${userId}?tenant_code=${tenantId}` : '');
-
-      const options = {
-        headers: {
-          'content-type': 'application/json',
-          internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
-        },
-        timeout: 10000, 
-      };
-
-      request.get(url, options, (err, response) => {
-        if (err) return resolve({ success: false, error: err.message });
-
-        const body = JSON.parse(response.body);
-        if (body.responseCode === 'OK') {
-          return resolve({
-            success: true,
-            data: _.omit(body.result, [
-              'email', 'maskedEmail', 'maskedPhone', 'recoveryEmail',
-              'phone', 'prevUsedPhone', 'prevUsedEmail', 'recoveryPhone',
-              'encEmail', 'encPhone',
-            ]),
+            if (body.status === 200) {
+              return resolve({ success: true, data: body.result || [] });
+            }
+            // 4xx or business-level error — don't retry
+            return resolve({ success: false, data: [], error: body.message });
           });
+        } catch (error) {
+          reject(error);
         }
-
-        return resolve({ success: false, error: body.params?.status });
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
+      })
+  );
 }
-// ─── Scope / Entity Finding
+
+function profile(userId = '', tenantId = '') {
+  return withRetry(
+    () =>
+      new Promise((resolve, reject) => {
+        try {
+          const serviceUrl =
+            `${process.env.USER_SERVICE_URL}/v1/user/profileById` +
+            (userId ? `/${userId}?tenant_code=${tenantId}` : '');
+
+          const options = {
+            headers: {
+              'content-type': 'application/json',
+              internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
+            },
+            timeout: 10000,
+          };
+
+          request.get(serviceUrl, options, (err, response) => {
+            if (err) return reject(new Error(err.message));
+
+            // treat 5xx as retryable
+            if (response.statusCode >= 500) {
+              return reject(new Error(`User service ${response.statusCode}`));
+            }
+
+            const body = JSON.parse(response.body);
+            if (body.responseCode === 'OK') {
+              return resolve({
+                success: true,
+                data: _.omit(body.result, [
+                  'email', 'maskedEmail', 'maskedPhone', 'recoveryEmail',
+                  'phone', 'prevUsedPhone', 'prevUsedEmail', 'recoveryPhone',
+                  'encEmail', 'encPhone',
+                ]),
+              });
+            }
+            return resolve({ success: false, error: body.params?.status });
+          });
+        } catch (error) {
+          reject(error);
+        }
+      })
+  );
+}
 
 /**
  * Resolve old entity IDs → new entity IDs inside a scope object or array.
- * @param {object|string[]} input           scope object or flat entity-id array
- * @param {string}          tenantId        target tenant to look up
- * @param {boolean}         returnEntityTypeId    also return the resolved entityTypeId
+ *
+ * @param {object|string[]} input
+ * @param {string}          tenantId
+ * @param {boolean}         returnEntityTypeId
+ * @param {string}          collectionName
+ * @param {string}          docId
+ * @param {string}          _oldOrgId   - explicit param instead of module global
+ * @param {string}          _newOrgId   - explicit param instead of module global
  */
-async function updateEntities(input, tenantId, returnEntityTypeId = false,collectionName, docId) {
+async function updateEntities(
+  input,
+  tenantId,
+  returnEntityTypeId = false,
+  collectionName,
+  docId,
+  _oldOrgId = oldOrgId,   // falls back to top-level constant; easy to override in tests
+  _newOrgId = newOrgId
+) {
   try {
     const isArray = Array.isArray(input);
-    // we are using same function for solution and program scope and observation enitites so we will handle both logic here
     const scope = isArray ? { entities: input } : _.omit(input, ['entityType']);
 
-    // collect all unique reference IDs from the scope (except orgs which we handle separately)
     const referenceIds = new Set();
     for (const key of Object.keys(scope)) {
       if (key === 'organizations') continue;
@@ -205,15 +299,13 @@ async function updateEntities(input, tenantId, returnEntityTypeId = false,collec
 
       const result = await entityDocuments(filter, ['_id', 'metaInformation', 'entityTypeId']);
 
-      // log if the service call  failed
       if (!result.success) {
         logWarning(collectionName, docId, 'entities', `entityDocuments call failed: ${result.error}`);
-        return input; 
+        return input;
       }
 
       const { data = [] } = result;
 
-      //  log if some reference IDs had no match in the new tenant
       const unmapped = [...referenceIds].filter(
         (id) => !data.find((doc) => doc.metaInformation?.tenantMigrationReferenceId === id)
       );
@@ -237,10 +329,10 @@ async function updateEntities(input, tenantId, returnEntityTypeId = false,collec
 
     if (resolvedScope.organizations?.length) {
       resolvedScope.organizations = resolvedScope.organizations.map((id) =>
-        id === oldOrgId.toLowerCase() ? newOrgId.toLowerCase() : id
+        id === _oldOrgId.toLowerCase() ? _newOrgId.toLowerCase() : id
       );
     }
-   // eneityTypeId is required for observations but not for solution/program scope, so we only add it if the caller explicitly asks for it (and we found a mapping)
+
     if (returnEntityTypeId) resolvedScope.entityTypeId = newEntityTypeId;
 
     return resolvedScope;
@@ -251,6 +343,7 @@ async function updateEntities(input, tenantId, returnEntityTypeId = false,collec
   }
 }
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 function decodeJWT(token) {
   try {
@@ -291,18 +384,27 @@ function login() {
 
         if (!token) return reject(new Error('Login failed: no access_token in response'));
 
-        // ✅ Decode and verify admin role
         const decoded = decodeJWT(token);
         if (!decoded) return reject(new Error('Login failed: could not decode token'));
 
-        const roles = decoded.data.organizations?.[0]?.roles  || [];
-        const roleList = Array.isArray(roles) ? roles : [roles];
-        const isAdmin = roleList.some((role) => 
-          (typeof role === 'string' ? role : role?.title  || '').toLowerCase() === 'admin'
+        // Check admin role across ALL orgs, not just [0]
+        const allRoles = (decoded.data.organizations || []).flatMap(
+          (org) => (Array.isArray(org.roles) ? org.roles : [org.roles])
+        );
+        const isAdmin = allRoles.some(
+          (role) => (typeof role === 'string' ? role : role?.title || '').toLowerCase() === 'admin'
         );
 
         if (!isAdmin) {
-          return reject(new Error(`Login failed: user ${userId} does not have admin role. Found roles: ${roleList.map(r => typeof r === 'string' ? r : r?.title || r?.name).join(', ') || 'none'}`));
+          const roleNames = allRoles
+            .map((r) => (typeof r === 'string' ? r : r?.title || r?.name))
+            .filter(Boolean)
+            .join(', ');
+          return reject(
+            new Error(
+              `Login failed: user ${userId} does not have admin role. Found roles: ${roleNames || 'none'}`
+            )
+          );
         }
 
         console.log(`✓ Login successful. userId: ${userId}, role: admin`);
@@ -313,25 +415,14 @@ function login() {
     }
   });
 }
-// ─── Generic Simple Migrations ──────────────────────────────────────────────────
 
-/**
- * Migrate any collection where every document just needs tenantId / orgId
- * (and optional extra fields) updated — no per-document async resolution needed.
- *
- * Uses updateMany for maximum efficiency instead of fetching + bulkWrite.
- *
- * @param {string} collectionName
- * @param {object} extraFields   additional $set fields (e.g. { createdBy: author })
- * @param {object} extraQuery    additional filter fields on top of the tenant/org match
- */
+// ─── Generic Simple Migrations ─────────────────────────────────────────────────
+
 async function migrateSimpleCollection(collectionName, extraFields = {}, extraQuery = {}) {
   const collection = client.db(dbName).collection(collectionName);
 
   try {
     const query = { tenantId: oldTenantId, orgId: oldOrgId, ...extraQuery };
-
-    // Fetch _ids for the log before we update
     const docsToUpdate = await collection.find(query, { projection: { _id: 1 } }).toArray();
 
     if (!docsToUpdate.length) {
@@ -354,26 +445,24 @@ async function migrateSimpleCollection(collectionName, extraFields = {}, extraQu
 
     console.log(`  ✓ ${collectionName}: ${result.modifiedCount} updated`);
     logCollection(collectionName, result.modifiedCount, updatedIds);
+    sucessLog(); // flush after each collection
     return result.modifiedCount;
   } catch (err) {
     console.error(`  ✗ ${collectionName} migration failed:`, err.message);
     logCollection(collectionName, 0, [], err.message);
+    sucessLog();
     throw err;
   }
 }
 
-// ─── Collections that need entity update ─────────────────────
+// ─── Batched Migrator ──────────────────────────────────────────────────────────
 
 /**
- * Shared batched migrator for collections that require async entity resolution
- * per document (solutions, programs, observations, observationSubmissions).
- *
- * @param {string}   collectionName
- * @param {object}   baseQuery      MongoDB filter
- * @param {Function} buildOp        async (doc) => bulkWrite updateOne operation
+ * buildOp is now called through the concurrency limiter.
  */
 async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
   const collection = client.db(dbName).collection(collectionName);
+  const limit = createLimiter(CONCURRENCY); 
 
   try {
     const documentsToMigrate = await collection.find(baseQuery).toArray();
@@ -386,7 +475,7 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
 
     const batches = _.chunk(documentsToMigrate, BATCH_SIZE);
     console.log(
-      `  Processing ${documentsToMigrate.length} ${collectionName} docs in ${batches.length} batches\n`
+      `  Processing ${documentsToMigrate.length} ${collectionName} docs in ${batches.length} batch(es)\n`
     );
 
     let totalModified = 0;
@@ -400,43 +489,47 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
         batch.forEach((d) => allUpdatedIds.push(d._id.toString()));
         continue;
       }
-      // Build all ops for the batch concurrently
-      const bulkOps = await Promise.all(batch.map(buildOp));
 
-     
+      const bulkOps = await Promise.all(batch.map((doc) => limit(() => buildOp(doc))));
 
       const result = await collection.bulkWrite(bulkOps);
       totalModified += result.modifiedCount;
       batch.forEach((d) => allUpdatedIds.push(d._id.toString()));
 
       console.log(`    Batch ${i + 1}/${batches.length}: ${result.modifiedCount} updated`);
+
+      sucessLog();
     }
 
     console.log(`  ✓ ${collectionName}: ${totalModified} total updated`);
     logCollection(collectionName, totalModified, allUpdatedIds);
+    sucessLog();
     return totalModified;
   } catch (error) {
     console.error(`  ✗ ${collectionName} migration failed:`, error.message);
     logCollection(collectionName, 0, [], error.message);
+    sucessLog();
     throw error;
   }
 }
 
-// ─── Individual Migrators ─────────────────────────────────────────────────────
+// ─── Individual Migrators ──────────────────────────────────────────────────────
 
 async function migrateSolutions(author) {
   return migrateBatchedCollection(
     'solutions',
     { tenantId: oldTenantId, orgId: oldOrgId, scope: { $exists: true } },
     async (doc) => {
-      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId,false, 'solutions', doc._id.toString()) : undefined;
+      const updatedScope = doc.scope
+        ? await updateEntities(doc.scope, newTenantId, false, 'solutions', doc._id.toString())
+        : undefined;
       return {
         updateOne: {
           filter: { _id: doc._id },
           update: {
             $set: {
-              tenantId: newTenantId, 
-              orgId: newOrgId,       
+              tenantId: newTenantId,
+              orgId: newOrgId,
               updatedBy: author,
               ...(updatedScope && { scope: updatedScope }),
             },
@@ -452,14 +545,16 @@ async function migrateProgram(author) {
     'programs',
     { tenantId: oldTenantId, orgId: oldOrgId, scope: { $exists: true } },
     async (doc) => {
-      const updatedScope = doc.scope ? await updateEntities(doc.scope, newTenantId,false, 'programs', doc._id.toString()) : undefined;
+      const updatedScope = doc.scope
+        ? await updateEntities(doc.scope, newTenantId, false, 'programs', doc._id.toString())
+        : undefined;
       return {
         updateOne: {
           filter: { _id: doc._id },
           update: {
             $set: {
-              tenantId: newTenantId, 
-              orgId: newOrgId,      
+              tenantId: newTenantId,
+              orgId: newOrgId,
               updatedBy: author,
               ...(updatedScope && { scope: updatedScope }),
             },
@@ -479,16 +574,17 @@ async function migrateObservation() {
       if (doc.entities?.length > 0) {
         updatedEntity = await updateEntities(doc.entities, newTenantId, true, 'observations', doc._id.toString());
       }
-      let userProfileData = null;
 
+      let userProfileData = null;
       if (doc.userProfile?.id) {
         const result = await profile(doc.userProfile.id, newTenantId);
         if (!result.success) {
-          logWarning('observations', doc._id, 'userProfile', result.error || 'profile call failed'); 
+          logWarning('observations', doc._id, 'userProfile', result.error || 'profile call failed');
         } else {
           userProfileData = result;
         }
       }
+
       return {
         updateOne: {
           filter: { _id: doc._id },
@@ -498,7 +594,7 @@ async function migrateObservation() {
               orgId: newOrgId,
               ...(updatedEntity?.entities && { entities: updatedEntity.entities }),
               ...(updatedEntity?.entityTypeId && { entityTypeId: updatedEntity.entityTypeId }),
-              ...(userProfileData && {userProfile: userProfileData.data }),
+              ...(userProfileData && { userProfile: userProfileData.data }),
             },
           },
         },
@@ -523,15 +619,20 @@ async function migrateObservationSubmissions() {
       }
 
       const updatedScope = doc.programInformation?.scope
-        ? await updateEntities(doc.programInformation.scope, newTenantId, false, 'observationSubmissions', doc._id.toString())
+        ? await updateEntities(
+            doc.programInformation.scope,
+            newTenantId,
+            false,
+            'observationSubmissions',
+            doc._id.toString()
+          )
         : undefined;
 
-        let userProfileData = null;
-
+      let userProfileData = null;
       if (doc.userProfile?.id) {
         const result = await profile(doc.userProfile.id, newTenantId);
         if (!result.success) {
-          logWarning('observationSubmissions', doc._id, 'userProfile', result.error || 'profile call failed'); 
+          logWarning('observationSubmissions', doc._id, 'userProfile', result.error || 'profile call failed');
         } else {
           userProfileData = result;
         }
@@ -554,7 +655,7 @@ async function migrateObservationSubmissions() {
               'programInformation.tenantId': newTenantId,
               'programInformation.orgId': newOrgId,
               ...(updatedScope && { 'programInformation.scope': updatedScope }),
-              ...(userProfileData && {userProfile: userProfileData.data }),
+              ...(userProfileData && { userProfile: userProfileData.data }),
             },
           },
         },
@@ -563,7 +664,6 @@ async function migrateObservationSubmissions() {
   );
 }
 
-// criteriaQuestions needs arrayFilters so it gets its own simple wrapper
 async function migrateCriteriaQuestions() {
   const collectionName = 'criteriaQuestions';
   const collection = client.db(dbName).collection(collectionName);
@@ -586,7 +686,6 @@ async function migrateCriteriaQuestions() {
       return 0;
     }
 
-    // updateMany supports arrayFilters too
     const result = await collection.updateMany(
       query,
       {
@@ -608,15 +707,16 @@ async function migrateCriteriaQuestions() {
 
     console.log(`  ✓ ${collectionName}: ${result.modifiedCount} updated`);
     logCollection(collectionName, result.modifiedCount, updatedIds);
+    sucessLog();
     return result.modifiedCount;
   } catch (err) {
     console.error(`  ✗ ${collectionName} migration failed:`, err.message);
     logCollection(collectionName, 0, [], err.message);
+    sucessLog();
     throw err;
   }
 }
 
-// userExtension uses a positional operator on orgIds array — also needs its own handler
 async function migrateUserExtension(author) {
   const collectionName = 'userExtension';
   const collection = client.db(dbName).collection(collectionName);
@@ -639,7 +739,6 @@ async function migrateUserExtension(author) {
       return 0;
     }
 
-    // updateMany
     const result = await collection.updateMany(query, {
       $set: {
         tenantId: newTenantId,
@@ -650,55 +749,39 @@ async function migrateUserExtension(author) {
 
     console.log(`  ✓ ${collectionName}: ${result.modifiedCount} updated`);
     logCollection(collectionName, result.modifiedCount, updatedIds);
+    sucessLog();
     return result.modifiedCount;
   } catch (err) {
     console.error(`  ✗ ${collectionName} migration failed:`, err.message);
     logCollection(collectionName, 0, [], err.message);
+    sucessLog();
     throw err;
   }
 }
 
-// ─── Surveys & Survey Submissions (dynamic user resolution — WIP) ─────────────
-
-/**
- * Migrate surveys collection.
- */
 async function migrateSurveys() {
   return migrateBatchedCollection(
     'surveys',
     { tenantId: oldTenantId, orgId: oldOrgId },
-    async (doc) => {
-      return {
-        updateOne: {
-          filter: { _id: doc._id },
-          update: {
-            $set: {
-              tenantId: newTenantId,
-              orgId: newOrgId,
-            },
-          },
-        },
-      };
-    }
+    async (doc) => ({
+      updateOne: {
+        filter: { _id: doc._id },
+        update: { $set: { tenantId: newTenantId, orgId: newOrgId } },
+      },
+    })
   );
 }
 
-/**
- * Migrate surveySubmissions collection.
- *
- */
 async function migrateSurveySubmissions() {
   return migrateBatchedCollection(
     'surveySubmissions',
     { tenantId: oldTenantId, orgId: oldOrgId },
     async (doc) => {
-      // fetch the migrated userProfile from user service
       let userProfileData = null;
-
       if (doc.userProfile?.id) {
         const result = await profile(doc.userProfile.id, newTenantId);
         if (!result.success) {
-          logWarning('surveySubmissions', doc._id, 'userProfile', result.error || 'profile call failed'); 
+          logWarning('surveySubmissions', doc._id, 'userProfile', result.error || 'profile call failed');
         } else {
           userProfileData = result;
         }
@@ -710,7 +793,7 @@ async function migrateSurveySubmissions() {
             $set: {
               tenantId: newTenantId,
               orgId: newOrgId,
-              ...(userProfileData && {userProfile: userProfileData.data }),
+              ...(userProfileData && { userProfile: userProfileData.data }),
               'surveyInformation.tenantId': newTenantId,
               'surveyInformation.orgId': newOrgId,
             },
@@ -721,37 +804,74 @@ async function migrateSurveySubmissions() {
   );
 }
 
-// ─── Main Function ────────────────────────────────────────────────────────
+/**
+ * Inspect Promise.allSettled results and throw if any critical collection failed.
+ *
+ * @param {PromiseSettledResult[]} results
+ * @param {string[]}               names     - collection names in the same order
+ * @param {string[]}               critical  - names that should abort the migration on failure
+ */
+function checkSettledResults(results, names, critical = []) {
+  const failures = results
+    .map((r, i) => ({ name: names[i], ...r }))
+    .filter((r) => r.status === 'rejected');
+
+  if (!failures.length) return;
+
+  failures.forEach((f) => {
+    console.error(`  ✗ ${f.name} failed: ${f.reason?.message || f.reason}`);
+  });
+
+  const criticalFailures = failures.filter((f) => critical.includes(f.name));
+  if (criticalFailures.length) {
+    throw new Error(
+      `Critical collection(s) failed: ${criticalFailures.map((f) => f.name).join(', ')} — aborting migration.`
+    );
+  }
+
+  console.warn(`  ⚠️  Non-critical failures above — migration continues, check the log file.`);
+}
+
+// ─── Main ──────────────────────────────────────────────────────────────────────
 
 async function tenantMigration() {
   try {
-    console.log('🚀 Starting Tenant Migration...\n');
+    console.log('🚀 Starting Tenant Migration…\n');
     if (dryRun) console.log('⚠️  DRY RUN MODE — No data will be modified\n');
 
     if (!url || !dbName)
       throw new Error('MONGODB_URL and DB environment variables are required');
 
     if (!oldTenantId || !newTenantId || !oldOrgId || !newOrgId)
-      throw new Error('Missing required parameters: --oldTenantId, --newTenantId, --oldOrgId, --newOrgId');
+      throw new Error('Missing required parameters in tenantMappingConfig');
 
     await connectDatabase();
 
-    console.log('🔐 Logging in...');
-    const { token, userId: author } = await login(); 
+    console.log('🔐 Logging in…');
+    const { token, userId: author } = await login();
 
-    // ── Group 1: simple updateMany collections — run in parallel ──────────────
-    console.log('── Phase 1: Simple collections (parallel) ──────────────────────\n');
-    await Promise.allSettled([
-      migrateSimpleCollection('criteria',  ),
-      migrateSimpleCollection('frameworks', {updatedBy: author}),
-      migrateSimpleCollection('questions',  {updatedBy: author}),
+    // ── Phase 1 ───────────────────────────────────────────────────────────────
+    console.log('\n── Phase 1: Simple collections (parallel) ──────────────────────\n');
+
+    const phase1Names = ['criteria', 'frameworks', 'questions', 'criteriaQuestions', 'userExtension'];
+    const phase1Results = await Promise.allSettled([
+      migrateSimpleCollection('criteria'),
+      migrateSimpleCollection('frameworks', { updatedBy: author }),
+      migrateSimpleCollection('questions', { updatedBy: author }),
       migrateCriteriaQuestions(),
       migrateUserExtension(author),
     ]);
 
-    // ── Group 2: entity-resolution + user-resolved collections — run in parallel
+    checkSettledResults(phase1Results, phase1Names, phase1Names);
+
+    // ── Phase 2 ───────────────────────────────────────────────────────────────
     console.log('\n── Phase 2: Entity-resolution collections (parallel) ───────────\n');
-    await Promise.allSettled([
+
+    const phase2Names = [
+      'solutions', 'programs', 'observations',
+      'observationSubmissions', 'surveys', 'surveySubmissions',
+    ];
+    const phase2Results = await Promise.allSettled([
       migrateSolutions(author),
       migrateProgram(author),
       migrateObservation(),
@@ -759,11 +879,11 @@ async function tenantMigration() {
       migrateSurveys(),
       migrateSurveySubmissions(),
     ]);
-    
 
+    checkSettledResults(phase2Results, phase2Names, phase2Names);
 
     migrationLog.completedAt = new Date().toISOString();
-    writeLog();
+    sucessLog(); // final flush
 
     console.log('\n─────────────────────────────────────────────────────────────────');
     console.log('📋 Migration Summary');
@@ -775,18 +895,18 @@ async function tenantMigration() {
       grandTotal += info.modifiedCount;
     }
     console.log('─────────────────────────────────────────────────────────────────');
+    console.log(`  Total documents modified: ${grandTotal}`);
     console.log(`\n📄 Full log written to: ${LOG_FILE}\n`);
 
     if (migrationLog.errors.length) {
-      console.warn(`⚠️  ${migrationLog.errors.length} collection(s) encountered errors — check the log file.`);
+      console.warn(`⚠️  ${migrationLog.errors.length} collection(s) had errors — check the log file.`);
     }
 
-    console.log('✓ Tenant migration completed successfully\n');
-
+    console.log('✓ Tenant migration completed\n');
   } catch (error) {
     migrationLog.errors.push({ fatal: true, error: error.message });
     migrationLog.completedAt = new Date().toISOString();
-    writeLog();
+    sucessLog();
     console.error('\n✗ Migration failed:', error.message);
     process.exit(1);
   } finally {
