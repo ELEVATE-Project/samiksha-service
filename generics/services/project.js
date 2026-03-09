@@ -41,6 +41,10 @@ const templateLists = function (externalId,userDetails) {
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
       }
       request.post(url, options, projectServiceCallback);
       let result = {
@@ -111,6 +115,10 @@ const programDetails = function (userToken, programId, userDetails, payload = {}
         _.assign(options.headers, {
           'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
       }
@@ -374,6 +382,10 @@ const createChildProjectTemplate = function (projectTemplateExternalIds,userDeta
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
       }
       
       // Make POST request to Project Service
@@ -444,6 +456,10 @@ const createProgram = function (bodyData, userDetails) {
         _.assign(options.headers, {
           'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
       }
