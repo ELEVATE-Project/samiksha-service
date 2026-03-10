@@ -518,7 +518,7 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
 async function migrateSolutions(author) {
   return migrateBatchedCollection(
     'solutions',
-    { tenantId: oldTenantId, orgId: oldOrgId, scope: { $exists: true } },
+    { tenantId: oldTenantId, orgId: oldOrgId},
     async (doc) => {
       const updatedScope = doc.scope
         ? await updateEntities(doc.scope, newTenantId, false, 'solutions', doc._id.toString())
@@ -608,58 +608,104 @@ async function migrateObservationSubmissions() {
     'observationSubmissions',
     { tenantId: oldTenantId, orgId: oldOrgId },
     async (doc) => {
-      let entityData;
-      if (doc.entityId) {
-        const filter = {
-          'metaInformation.tenantMigrationReferenceId': { $in: [doc.entityId] },
-          tenantId: newTenantId,
-        };
-        const result = await entityDocuments(filter, ['_id', 'metaInformation', 'entityTypeId', 'registryDetails']);
-        entityData = result?.data?.[0];
-      }
+      try {
 
-      const updatedScope = doc.programInformation?.scope
-        ? await updateEntities(
-            doc.programInformation.scope,
-            newTenantId,
-            false,
-            'observationSubmissions',
-            doc._id.toString()
-          )
-        : undefined;
+        let entityData;
+        if (doc.entityId) {
+          const filter = {
+            'metaInformation.tenantMigrationReferenceId': { $in: [doc.entityId] },
+            tenantId: newTenantId,
+          };
 
-      let userProfileData = null;
-      if (doc.userProfile?.id) {
-        const result = await profile(doc.userProfile.id, newTenantId);
-        if (!result.success) {
-          logWarning('observationSubmissions', doc._id, 'userProfile', result.error || 'profile call failed');
-        } else {
-          userProfileData = result;
+          const result = await entityDocuments(
+            filter,
+            ['_id', 'metaInformation', 'entityTypeId', 'registryDetails']
+          );
+
+          entityData = result?.data?.[0];
         }
-      }
+        const programInfoWasNullish = !doc.programInformation;
+        if (programInfoWasNullish) {
+          doc.programInformation = {};
+        }
+       
 
-      return {
-        updateOne: {
-          filter: { _id: doc._id },
-          update: {
-            $set: {
+        const updatedScope = doc?.programInformation?.scope
+          ? await updateEntities(
+              doc.programInformation.scope,
+              newTenantId,
+              false,
+              'observationSubmissions',
+              doc._id.toString()
+            )
+          : undefined;
+
+        let userProfileData = null;
+        if (doc.userProfile?.id) {
+          const result = await profile(doc.userProfile.id, newTenantId);
+
+          if (!result.success) {
+            logWarning(
+              'observationSubmissions',
+              doc._id,
+              'userProfile',
+              result.error || 'profile call failed'
+            );
+          } else {
+            userProfileData = result;
+          }
+        }
+
+        const programInfoUpdate = programInfoWasNullish
+        ? {
+            programInformation: {
               tenantId: newTenantId,
               orgId: newOrgId,
-              ...(entityData && { entityId: entityData._id.toString() }),
-              ...(entityData && { entityExternalId: entityData.metaInformation.externalId }),
-              ...(entityData && {
-                entityInformation: { ...entityData.metaInformation, ...entityData.registryDetails },
-              }),
-              'observationInformation.tenantId': newTenantId,
-              'observationInformation.orgId': newOrgId,
-              'programInformation.tenantId': newTenantId,
-              'programInformation.orgId': newOrgId,
-              ...(updatedScope && { 'programInformation.scope': updatedScope }),
-              ...(userProfileData && { userProfile: userProfileData.data }),
+              ...(updatedScope && { scope: updatedScope }),
+            },
+          }
+        : {
+            'programInformation.tenantId': newTenantId,
+            'programInformation.orgId': newOrgId,
+            ...(updatedScope && { 'programInformation.scope': updatedScope }),
+          };
+
+        return {
+          updateOne: {
+            filter: { _id: doc._id },
+            update: {
+              $set: {
+                tenantId: newTenantId,
+                orgId: newOrgId,
+                ...(entityData && { entityId: entityData._id.toString() }),
+                ...(entityData && { entityExternalId: entityData.metaInformation.externalId }),
+                ...(entityData && {
+                  entityInformation: {
+                    ...entityData.metaInformation,
+                    ...entityData.registryDetails,
+                  },
+                }),
+                'observationInformation.tenantId': newTenantId,
+                'observationInformation.orgId': newOrgId,
+                ...programInfoUpdate,
+                ...(userProfileData && { userProfile: userProfileData.data }),
+              },
             },
           },
-        },
-      };
+        };
+
+      } catch (error) {
+
+        console.error(
+          `❌ Error processing observationSubmission docId: ${doc._id}`,
+          error.message
+        );
+
+        // optional detailed log
+        console.log("Problematic document:", JSON.stringify(doc, null, 2));
+
+        throw error; // rethrow so migration fails visibly
+      }
     }
   );
 }
