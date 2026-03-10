@@ -66,8 +66,15 @@ console.log('Concurrency  :', CONCURRENCY);
 
 // ─── Log File Setup ───────────────────────────────────────────────────────────
 
+const outputDir = path.join(__dirname, "output");
+
+// create folder if not exists
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
 const LOG_FILE = path.join(
-  __dirname,
+  outputDir,
   `migration_log_${new Date().toISOString().replace(/[:.]/g, '-')}.json`
 );
 

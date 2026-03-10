@@ -1,53 +1,58 @@
 # Tenant Migration Script
 
-## Overview
+## What Does This Script Do?
 
-This script performs **tenant and organization migration** across multiple MongoDB collections.
-It updates documents that belong to an **old tenant and organization** and migrates them to a **new tenant and organization**.
+This script **moves data from one tenant/organization to another** inside a MongoDB database.
 
-The script supports:
-
-* Batch processing with configurable concurrency for large collections
-* Entity ID resolution through the **Entity Management Service**
-* Automatic retry with exponential back-off on transient HTTP failures
-* Dry-run mode for safe testing (enabled by default)
-* Detailed JSON logging with buffered writes for performance
-* Parallel execution with failure detection per phase
+Think of it like a "find and replace" — but for your database. Every record that belongs to the **old tenant and old organization** gets updated to belong to the **new tenant and new organization**.
 
 ---
 
-## Prerequisites
+## Before You Begin — Checklist
 
-Before running the script ensure the following are available.
+Go through this list top to bottom before running anything.
 
-### 1. Node.js
+### ✅ 1. Make sure Node.js is installed
 
-```
-Node.js >= 16
-```
+Node.js is the runtime that executes the script. You need version 16 or higher.
 
-### 2. MongoDB Access
+To check if it is installed, open your terminal and run:
 
-```
-MONGODB_URL=<mongodb_connection_string>
-DB=<database_name>
+```bash
+node --version
 ```
 
-### 3. Environment Variables (.env)
+If you see something like `v18.0.0`, you are good. If you get an error, download and install Node.js from [https://nodejs.org](https://nodejs.org).
 
-Create a `.env` file in the project root.
+---
+
+### ✅ 2. Back up your database
+
+> ⚠️ **This is not optional.** Before running any migration — even in dry-run mode — take a full backup of the database. If something goes wrong, this is your safety net.
+
+---
+
+### ✅ 3. Create your `.env` file
+
+The script needs to know where your database and services are running. You provide this information through a file named `.env`.
+
+Create a file called `.env` in the same folder as the script and paste the following into it, filling in your actual values:
 
 ```env
 MONGODB_URL=mongodb://localhost:27017
 DB=elevate
 ENTITY_MANAGEMENT_SERVICE_URL=http://localhost:3000
 USER_SERVICE_URL=http://localhost:4000
-INTERNAL_ACCESS_TOKEN=<token>
+INTERNAL_ACCESS_TOKEN=your_token_here
 ```
 
-### 4. Input File
+---
 
-Create an `input.json` file in the same directory as the script.
+### ✅ 4. Create your `input.json` file
+
+This file tells the script *which* tenant and organization to migrate from and to.
+
+Create a file called `input.json` in the same folder as the script:
 
 ```json
 {
@@ -66,121 +71,71 @@ Create an `input.json` file in the same directory as the script.
 }
 ```
 
+| Field | What it means |
+|---|---|
+| `createrUserName` / `createrPassword` | Admin login credentials used to authenticate |
+| `oldTenantId` | The ID of the tenant you are migrating **away from** |
+| `newTenantId` | The ID of the tenant you are migrating **to** |
+| `oldOrgId` | The ID of the organization you are migrating **away from** |
+| `newOrgId` | The ID of the organization you are migrating **to** |
+
 ---
 
-## CLI Usage
+## How to Run the Script
 
-Navigate to the script directory first:
+### Step 1 — Navigate to the script folder
 
 ```bash
 cd migrations/tenantMigration
 ```
 
-### Dry Run (default — safe, no data modified)
+### Step 2 — Do a dry run first (safe, no data is changed)
 
 ```bash
 node tenantMigration.js --dry-run
 ```
 
-or using an environment variable:
+This will:
+- Scan your database
+- Log exactly which documents *would* be updated and how many
+- Write a detailed log file for your review
+- **Not change anything in the database**
 
-```bash
-DRY_RUN=true node tenantMigration.js
-```
+Review the log file (described below) before proceeding.
 
-### Production Run
+### Step 3 — Run the actual migration (only after reviewing the dry run)
 
 ```bash
 node tenantMigration.js
 ```
 
-### Adjusting Concurrency
-
-Control how many entity service HTTP calls run in parallel per batch (default: 10):
-
-```bash
-CONCURRENCY=5 node tenantMigration.js
-```
-
-Lower this value if the entity service shows high error rates under load.
+This will perform the real migration and update documents in the database.
 
 ---
 
-## Dry Run Mode
+## Understanding the Log File
 
-Dry run is **enabled by default** via the `--dry-run` flag or `DRY_RUN=true` env var.
-The script will never modify data unless invoked without either of those.
-
-When dry run is active:
-
-* No database writes occur
-* The script logs which documents **would be updated** and how many per collection
-* A full JSON log file is still generated for review
-
----
-
-
-
-## Batch Processing & Concurrency
-
-Large collections are processed in batches:
-
-```
-BATCH_SIZE = 100  (documents per batch)
-CONCURRENCY = 10  (max parallel HTTP calls per batch, tunable via env)
-```
-
-Within each batch, entity service and user service calls are throttled by the concurrency limiter so the downstream services are not overwhelmed.
-
----
-
-## Retry Logic
-
-All HTTP calls to the Entity Management Service and User Service are automatically retried on transient failures (network errors, 5xx responses).
-
-| Setting | Default |
-|---|---|
-| Max attempts | 3 |
-| Base delay | 300 ms |
-| Back-off | Exponential (300 → 600 → 1200 ms) |
-
-4xx errors and business-level failures are **not** retried — they are logged as warnings and the document is skipped.
-
----
-
-## Logging
-
-Every migration run generates a timestamped **JSON log file** in the script directory.
+Every time you run the script — dry run or real — it creates a timestamped log file in the output directory:
 
 ```
 migration_log_2026-03-05T12-30-10-123Z.json
 ```
 
-Log writes are **buffered** and flushed once per batch (not once per document) to avoid excessive disk I/O on large datasets.
+Open this file to see:
+- Which collections were scanned
+- How many documents were (or would be) updated
+- Any **warnings** — these are documents the script could not map and therefore skipped
 
----
+> Pay close attention to warnings. A high number of skipped documents may indicate a configuration problem.
 
+At the end of a run, the terminal will also show a summary like this:
 
-
-## Safety Recommendations
-
-Before running a production migration:
-
-1. Take a **full database backup**
-2. Run with `--dry-run` and review the generated log
-3. Check `warnings` in the log for unmapped entities
-4. Set `CONCURRENCY` to a safe value for your entity service capacity
-5. Run without `--dry-run` for the actual migration
-
----
-
-
-─────────────────────────────────────────────────────────────────
+```
 📋 Migration Summary
-─────────────────────────────────────────────────────────────────
-  ✓ criteria                     modified: 0
-  ✓ frameworks                   modified: 0
-  ✓ solutions                    modified: 0
+──────────────────────────────────
+  ✓ criteria        modified: 0
+  ✓ frameworks      modified: 0
+  ✓ solutions       modified: 0
   ...
   Total documents modified: 0
 
@@ -189,6 +144,60 @@ Before running a production migration:
 
 ---
 
-## Author
+## Optional — Adjusting Performance Settings
 
-Tenant Migration Script for Elevate / Samiksha platform.
+These are optional and only matter if you have a very large database or if downstream services are struggling under load.
+
+### Concurrency (default: 10)
+
+Controls how many network calls the script makes at the same time. Lower this number if you see a high error rate.
+
+```bash
+CONCURRENCY=5 node tenantMigration.js
+```
+
+### How batching works
+
+The script processes documents in batches of 100 at a time. Within each batch, it makes up to 10 network calls in parallel (configurable via `CONCURRENCY`). This prevents the script from overwhelming your services.
+
+---
+
+## Retry Behaviour
+
+If a network call to the Entity Management Service or User Service temporarily fails, the script automatically retries it:
+
+| | |
+|---|---|
+| Maximum attempts | 3 |
+| Wait before retry 1 | 300 ms |
+| Wait before retry 2 | 600 ms |
+| Wait before retry 3 | 1200 ms |
+
+If a call fails permanently (e.g. a record is not found), the script logs a warning and skips that document — it does not crash.
+
+---
+
+## Recommended Migration Workflow
+
+Follow these steps in order for a safe production migration:
+
+1. **Back up the database** — do not skip this
+2. **Fill in** `.env` and `input.json` with the correct values
+3. **Run a dry run** and review the generated log file
+4. **Check for warnings** — investigate any documents that were skipped
+5. **Run the real migration** once you are satisfied with the dry run results
+
+---
+
+## Troubleshooting
+
+| Problem | What to check |
+|---|---|
+| Script fails to connect to the database | Verify `MONGODB_URL` and `DB` in your `.env` file |
+| High number of skipped documents | Check the warnings in the log file; entity IDs may not be resolving |
+| Services returning errors under load | Lower `CONCURRENCY` to reduce parallel calls |
+| Unexpected data after migration | Restore from your database backup and re-investigate |
+---
+
+
+Tenant Migration Script for the Elevate / Samiksha platform.
