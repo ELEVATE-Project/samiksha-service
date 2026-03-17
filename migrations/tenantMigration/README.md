@@ -200,4 +200,33 @@ Follow these steps in order for a safe production migration:
 ---
 
 
+### ✅ 5. Create your `input2.json` file
+
+This file tells the script *which* survey and observationSubmissions will push to kafka.
+
+Create a file called `input2.json` in the same folder as the script:
+
+```json
+{
+    "surveySubmissionIds":[
+        "6892fd6c624a2e47107b0944",
+        "6892fd6c624a2e47107b0925"
+
+    ],
+    "observationSubmissionIds":[
+       "6887974e41776da359cab741",
+         "6887974e41776da359cab772"
+    ]
+}
+```
+
+| Field | What it means |
+|---|---|
+| `surveySubmissionIds` | The ID of the survey submission after the migration  **we will get this after running the tenantMigration.js** |
+| `observationSubmissionIds` | The ID of the observation submission after the migration  **we will get this after running the tenantMigration.js** |
+
+```bash
+node pushSubmissionToKafka.js --domain=http://localhost:4301
+```
+
 Tenant Migration Script for the Elevate / Samiksha platform.
