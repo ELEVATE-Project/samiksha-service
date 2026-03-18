@@ -511,7 +511,29 @@ async function migrateBatchedCollection(collectionName, baseQuery, buildOp) {
         continue;
       }
 
-      const bulkOps = await Promise.all(batch.map((doc) => limit(() => buildOp(doc))));
+      // const bulkOps = await Promise.all(batch.map((doc) => limit(() => buildOp(doc))));
+
+      const bulkOps = [];
+
+for (const doc of batch) {
+  try {
+    const op = await buildOp(doc);
+    bulkOps.push(op);
+  } catch (err) {
+    logWarning(collectionName, doc._id, 'buildOp', err.message);
+
+    // safe fallback
+    bulkOps.push({
+      updateOne: {
+        filter: { _id: doc._id },
+        update: { $set: {} },
+      },
+    });
+  }
+
+  // 🔥 VERY IMPORTANT: small delay to avoid hammering API
+  await new Promise((r) => setTimeout(r, 50)); // 50ms gap
+}
 
       const result = await collection.bulkWrite(bulkOps);
       totalModified += result.modifiedCount;
