@@ -19,7 +19,7 @@ const dryRun =
   process.env.DRY_RUN === 'true';
 
 // Usage: CONCURRENCY=10 node tenantMigration.js  (default: 10)
-const CONCURRENCY = parseInt(process.env.CONCURRENCY || '10', 10);
+const CONCURRENCY = parseInt(process.env.CONCURRENCY || '1', 1);
 
 /**
  * Minimal p-limit style concurrency limiter (no extra dependency needed).
@@ -150,7 +150,7 @@ async function connectDatabase() {
  * @param {number}   maxAttempts  total attempts (default 3)
  * @param {number}   baseDelayMs  initial delay in ms, doubles each retry (default 300)
  */
-async function withRetry(fn, maxAttempts = 3, baseDelayMs = 300) {
+async function withRetry(fn, maxAttempts = 1, baseDelayMs = 100) {
   let lastError;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -233,13 +233,13 @@ function profile(userId = '', tenantId = '') {
               'content-type': 'application/json',
               internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
             },
-            timeout: 10000,
+            timeout: 5000,
           };
 
           request.get(serviceUrl, options, (err, response) => {
             if (err) return reject(new Error(err.message));
 
-            // treat 5xx as retryable
+            //  as retryable
             if (response.statusCode >= 500) {
               return reject(new Error(`User service ${response.statusCode}`));
             }
