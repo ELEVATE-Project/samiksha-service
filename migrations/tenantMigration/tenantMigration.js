@@ -220,48 +220,62 @@ function entityDocuments(
 }
 
 function profile(userId = '', tenantId = '') {
-  return withRetry(
-    () =>
-      new Promise((resolve, reject) => {
-        try {
-          const serviceUrl =
-            `${process.env.USER_SERVICE_URL}/v1/user/profileById` +
-            (userId ? `/${userId}?tenant_code=${tenantId}` : '');
+  return new Promise((resolve, reject) => {
+    try {
+      const serviceUrl =
+        `${process.env.USER_SERVICE_URL}/v1/user/profileById` +
+        (userId ? `/${userId}?tenant_code=${tenantId}` : '');
 
-          const options = {
-            headers: {
-              'content-type': 'application/json',
-              internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
-            },
-            timeout: 5000,
-          };
+      const options = {
+        headers: {
+          'content-type': 'application/json',
+          internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
+        },
+        timeout: 5000,
+      };
 
-          request.get(serviceUrl, options, (err, response) => {
-            if (err) return reject(new Error(err.message));
+      request.get(serviceUrl, options, (err, response) => {
+        if (err) return reject(new Error(err.message));
 
-            //  as retryable
-            if (response.statusCode >= 500) {
-              return reject(new Error(`User service ${response.statusCode}`));
-            }
-
-            const body = JSON.parse(response.body);
-            if (body.responseCode === 'OK') {
-              return resolve({
-                success: true,
-                data: _.omit(body.result, [
-                  'email', 'maskedEmail', 'maskedPhone', 'recoveryEmail',
-                  'phone', 'prevUsedPhone', 'prevUsedEmail', 'recoveryPhone',
-                  'encEmail', 'encPhone',
-                ]),
-              });
-            }
-            return resolve({ success: false, error: body.params?.status });
-          });
-        } catch (error) {
-          reject(error);
+        // Handle server errors (no retry now, just fail fast)
+        if (response.statusCode >= 500) {
+          return reject(new Error(`User service ${response.statusCode}`));
         }
-      })
-  );
+
+        let body;
+        try {
+          body = JSON.parse(response.body);
+        } catch (e) {
+          return reject(new Error('Invalid JSON response from user service'));
+        }
+
+        if (body.responseCode === 'OK') {
+          return resolve({
+            success: true,
+            data: _.omit(body.result, [
+              'email',
+              'maskedEmail',
+              'maskedPhone',
+              'recoveryEmail',
+              'phone',
+              'prevUsedPhone',
+              'prevUsedEmail',
+              'recoveryPhone',
+              'encEmail',
+              'encPhone',
+            ]),
+          });
+        }
+
+        return resolve({
+          success: false,
+          error: body.params?.status,
+        });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 /**
