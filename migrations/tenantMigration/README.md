@@ -1,7 +1,7 @@
 # Tenant Migration Script
 
 ## What Does This Script Do?
-
+## NOTE: Cross-solution migrations are not supported. Ensure source and target belong to the same solution.
 This script **moves data from one tenant/organization to another** inside a MongoDB database.
 
 Think of it like a "find and replace" — but for your database. Every record that belongs to the **old tenant and old organization** gets updated to belong to the **new tenant and new organization**.
