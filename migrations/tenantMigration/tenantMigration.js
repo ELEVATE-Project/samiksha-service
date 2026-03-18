@@ -598,11 +598,16 @@ async function migrateObservation() {
 
       let userProfileData = null;
       if (doc.userProfile?.id) {
-        const result = await profile(doc.userProfile.id, newTenantId);
-        if (!result.success) {
-          logWarning('observations', doc._id, 'userProfile', result.error || 'profile call failed');
-        } else {
-          userProfileData = result;
+        try {
+          const result = await profile(doc.userProfile.id, newTenantId);
+      
+          if (!result.success) {
+            logWarning('observations', doc._id, 'userProfile', result.error || 'profile failed');
+          } else {
+            userProfileData = result;
+          }
+        } catch (err) {
+          logWarning('observations', doc._id, 'userProfile', err.message);
         }
       }
 
@@ -663,17 +668,16 @@ async function migrateObservationSubmissions() {
 
         let userProfileData = null;
         if (doc.userProfile?.id) {
-          const result = await profile(doc.userProfile.id, newTenantId);
-
-          if (!result.success) {
-            logWarning(
-              'observationSubmissions',
-              doc._id,
-              'userProfile',
-              result.error || 'profile call failed'
-            );
-          } else {
-            userProfileData = result;
+          try {
+            const result = await profile(doc.userProfile.id, newTenantId);
+        
+            if (!result.success) {
+              logWarning('observations', doc._id, 'userProfile', result.error || 'profile failed');
+            } else {
+              userProfileData = result;
+            }
+          } catch (err) {
+            logWarning('observations', doc._id, 'userProfile', err.message);
           }
         }
 
@@ -846,11 +850,16 @@ async function migrateSurveySubmissions() {
     async (doc) => {
       let userProfileData = null;
       if (doc.userProfile?.id) {
-        const result = await profile(doc.userProfile.id, newTenantId);
-        if (!result.success) {
-          logWarning('surveySubmissions', doc._id, 'userProfile', result.error || 'profile call failed');
-        } else {
-          userProfileData = result;
+        try {
+          const result = await profile(doc.userProfile.id, newTenantId);
+      
+          if (!result.success) {
+            logWarning('observations', doc._id, 'userProfile', result.error || 'profile failed');
+          } else {
+            userProfileData = result;
+          }
+        } catch (err) {
+          logWarning('observations', doc._id, 'userProfile', err.message);
         }
       }
       return {
