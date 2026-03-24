@@ -546,12 +546,11 @@ module.exports = async function (req, res, next) {
    *
    * @param {String} tenantId - ID of the tenant
    * @param {String} orgId - Comma separated string of org IDs or 'ALL'
-   * @param {String} token - User token
    * @returns {Object} - Success with validOrgIds array or failure with error object
    */
-  async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
+  async function validateIfOrgsBelongsToTenant(tenantId, orgId) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
+    let orgDetails = await userService.fetchTenantDetails(tenantId);    
     let validOrgIds = null;
 
     if (
@@ -607,7 +606,7 @@ module.exports = async function (req, res, next) {
           throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
         }
   
-        let validateOrgsResult = await validateIfOrgsBelongsToTenant(tenantId, orgIdFromHeader,token);
+        let validateOrgsResult = await validateIfOrgsBelongsToTenant(tenantId, orgIdFromHeader);
   
         if (!validateOrgsResult.success) {
           throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
@@ -698,7 +697,7 @@ module.exports = async function (req, res, next) {
       result = convertTenantAndOrgToLowercase(result);
       req.headers['tenantid'] = result.tenantId;
       req.headers['orgid'] = result.orgId;
-      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
+      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid']);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
@@ -719,7 +718,7 @@ module.exports = async function (req, res, next) {
         ? orgId.map((org) => gen.utils.lowerCase(org))
         : gen.utils.lowerCase(orgId);
 
-      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
+      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid']);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
