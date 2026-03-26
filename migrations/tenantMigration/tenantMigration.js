@@ -56,6 +56,10 @@ const input = JSON.parse(fs.readFileSync(path.join(__dirname, 'input.json'), 'ut
 const { loginCredentails, tenantMappingConfig } = input;
 const { oldTenantId, newTenantId, newOrgId, oldOrgId } = tenantMappingConfig;
 
+// normalize tenant and orgId
+newTenantId = newTenantId?.toLowerCase();
+newOrgId = newOrgId?.toLowerCase();
+
 console.log('MongoDB URL  :', url, dbName);
 console.log('Old Tenant ID:', oldTenantId);
 console.log('New Tenant ID:', newTenantId);
@@ -703,6 +707,15 @@ async function migrateObservationSubmissions() {
           }
         }
 
+        let updatedCriteria = undefined;
+        if (Array.isArray(doc.criteria)) {
+          updatedCriteria = doc.criteria.map((c) => ({
+            ...c,
+            tenantId: newTenantId,
+            orgId: newOrgId,
+          }));
+        }
+
         const programInfoUpdate = programInfoWasNullish
         ? {
             programInformation: {
@@ -736,6 +749,7 @@ async function migrateObservationSubmissions() {
                 'observationInformation.orgId': newOrgId,
                 ...programInfoUpdate,
                 ...(userProfileData && { userProfile: userProfileData.data }),
+                ...(updatedCriteria && { criteria: updatedCriteria }),
               },
             },
           },
@@ -884,6 +898,16 @@ async function migrateSurveySubmissions() {
           logWarning('observations', doc._id, 'userProfile', err.message);
         }
       }
+
+      let updatedCriteria = undefined;
+      if (Array.isArray(doc.criteria)) {
+        updatedCriteria = doc.criteria.map((c) => ({
+          ...c,
+          tenantId: newTenantId,
+          orgId: newOrgId,
+        }));
+      }
+
       return {
         updateOne: {
           filter: { _id: doc._id },
@@ -894,6 +918,7 @@ async function migrateSurveySubmissions() {
               ...(userProfileData && { userProfile: userProfileData.data }),
               'surveyInformation.tenantId': newTenantId,
               'surveyInformation.orgId': newOrgId,
+              ...(updatedCriteria && { criteria: updatedCriteria }),
             },
           },
         },
