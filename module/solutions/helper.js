@@ -2263,8 +2263,6 @@ module.exports = class SolutionsHelper {
    * @method
    * @name fetchLink
    * @param {String} solutionId - solution Id.
-   * @param {String} appName - app Name.
-   * @param {Object} tenantData - tenant data.
    * @param {String} userDetails - user related info.
    * @returns {Object} - Details of the solution.
    */
