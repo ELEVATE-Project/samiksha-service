@@ -1347,6 +1347,7 @@ module.exports = class Solutions extends Abstract {
    * @name fetchLink
    * @param {Object} req - requested data.
    * @param {String} req.params._id - solution Id
+   * @param {String} req.userDetails - user related info.
    * @returns {Array}
    */
 
@@ -1355,8 +1356,7 @@ module.exports = class Solutions extends Abstract {
       try {
         let solutionData = await solutionsHelper.fetchLink(
           req.params._id,
-          req.userDetails.userId,
-          req.userDetails.userToken
+          req.userDetails
         );
 
         return resolve(solutionData);

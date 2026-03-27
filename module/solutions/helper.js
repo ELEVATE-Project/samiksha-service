@@ -2264,24 +2264,36 @@ module.exports = class SolutionsHelper {
    * @name fetchLink
    * @param {String} solutionId - solution Id.
    * @param {String} appName - app Name.
-   * @param {String} userId - user Id.
    * @param {Object} tenantData - tenant data.
-   * @param {String} userToken - user token.
+   * @param {String} userDetails - user related info.
    * @returns {Object} - Details of the solution.
    */
 
-  static fetchLink(solutionId, userId="", userToken="") {
+  static fetchLink(solutionId, userDetails="") {
     return new Promise(async (resolve, reject) => {
       try {
+        // Extract user org + tenant
+				const userOrgId = userDetails?.tenantAndOrgInfo?.orgId?.[0]
+				const tenantId = userDetails?.tenantAndOrgInfo?.tenantId
+
+				// Build solution match query
+				let solutionMatchQuery = {
+					_id: solutionId,
+					isReusable: false,
+					isAPrivateProgram: false,
+					tenantId: tenantId,
+
+					$or: [
+						{ orgId: userOrgId },
+						{
+							'scope.organizations': {
+								$in: ['ALL', userOrgId],
+							},
+						},
+					],
+				}
         let solutionData = await solutionsQueries.solutionDocuments(
-          {
-            _id: solutionId,
-            isReusable: false,
-            isAPrivateProgram: false,
-            // Only Super Admin can generate links for all tenant and org
-            // tenantId: tenantData.tenantId,
-            // orgIds:{ $in: ['ALL', tenantData.orgId] }
-          },
+          solutionMatchQuery,
           ['link', 'type', 'author', 'tenantId', 'orgId']
         );
 
@@ -2309,8 +2321,8 @@ module.exports = class SolutionsHelper {
           // Prepare update object
           let updateData = { link: solutionLink };
 
-           if (userId && userToken) {
-              updateData.updatedBy = userId
+           if (userDetails.userId && userDetails.userToken) {
+              updateData.updatedBy = userDetails.userId
             }
           // update link to the solution documents
           let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
