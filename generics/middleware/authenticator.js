@@ -235,9 +235,11 @@ module.exports = async function (req, res, next) {
     'organizationExtension/updateRelatedOrgs',
     'programs/fetchProgramDetails'
   ];
+  let publicApisWithLimitedAccess = ['/solutions/fetchLink']
 
   let performInternalAccessTokenCheck = false;
   let adminHeader = false;
+  let unautherizedApiAccessDetected = false
   if (process.env.ADMIN_ACCESS_TOKEN) {
     adminHeader = req.headers[process.env.ADMIN_TOKEN_HEADER_NAME];
   }
@@ -262,6 +264,15 @@ module.exports = async function (req, res, next) {
 			return
 		}
   }
+
+  await Promise.all(
+		publicApisWithLimitedAccess.map(async function (path) {
+			if (req.path.includes(path)) {
+				performInternalAccessTokenCheck = true
+				unautherizedApiAccessDetected = true
+			}
+		})
+	)
 
   // Check if a Bearer token is required for authentication
   if (isBearerRequired) {
