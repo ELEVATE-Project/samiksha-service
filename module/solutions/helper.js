@@ -2284,20 +2284,20 @@ module.exports = class SolutionsHelper {
           userDetails.tenantAndOrgInfo.orgId.length > 0
         ) {
           const tenantId = userDetails.tenantAndOrgInfo.tenantId
-          const userOrgIds = userDetails.tenantAndOrgInfo.orgId
+          const userOrgId = userDetails.tenantAndOrgInfo.orgId[0]
   
           solutionMatchQuery.tenantId = tenantId
   
           // Add org / scope access control
           solutionMatchQuery.$or = [
-            { orgId: { $in: userOrgIds } },
+            { orgId: userOrgId },
             {
               'scope.organizations': {
-                $in: ['ALL', ...userOrgIds],
+                $in: ['ALL', userOrgId],
               },
             },
           ]
-        }       
+        }               
         let solutionData = await solutionsQueries.solutionDocuments(
           solutionMatchQuery,
           ['link', 'type', 'author', 'tenantId', 'orgId']
