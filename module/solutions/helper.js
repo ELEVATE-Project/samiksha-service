@@ -2276,25 +2276,28 @@ module.exports = class SolutionsHelper {
           isAPrivateProgram: false,
         }
         // Apply extra filters ONLY if userDetails is present
-        if (userDetails) {
+        if (
+          userDetails &&
+          userDetails.tenantAndOrgInfo &&
+          userDetails.tenantAndOrgInfo.tenantId &&
+          Array.isArray(userDetails.tenantAndOrgInfo.orgId) &&
+          userDetails.tenantAndOrgInfo.orgId.length > 0
+        ) {
+          const tenantId = userDetails.tenantAndOrgInfo.tenantId
+          const userOrgIds = userDetails.tenantAndOrgInfo.orgId
   
-          // Extract user org + tenant
-          const userOrgId = userDetails?.tenantAndOrgInfo?.orgId?.[0]
-          const tenantId = userDetails?.tenantAndOrgInfo?.tenantId
-  
-          // Add tenant filter
           solutionMatchQuery.tenantId = tenantId
   
           // Add org / scope access control
           solutionMatchQuery.$or = [
-            { orgId: userOrgId },
+            { orgId: { $in: userOrgIds } },
             {
               'scope.organizations': {
-                $in: ['ALL', userOrgId],
+                $in: ['ALL', ...userOrgIds],
               },
             },
           ]
-        }        
+        }       
         let solutionData = await solutionsQueries.solutionDocuments(
           solutionMatchQuery,
           ['link', 'type', 'author', 'tenantId', 'orgId']
