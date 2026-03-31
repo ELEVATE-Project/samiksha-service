@@ -182,7 +182,7 @@ const programUpdate = function (userToken, programId, reqBody, tenantData, userD
         json: reqBody,
       };
       //add super admin details if role is not has orgadmin
-      if (userDetails?.roles && !userDetails.roles.includes(messageConstants.common.ORG_ADMIN)) {
+      if (userDetails?.roles && !userDetails.roles.includes(messageConstants.common.ORG_ADMIN) && !userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)) {
         _.assign(options.headers, {
           'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
           tenantId: tenantData.tenantId,
