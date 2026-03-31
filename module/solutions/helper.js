@@ -811,7 +811,6 @@ module.exports = class SolutionsHelper {
           // call user-service to fetch related orgs
           let validOrgs = await userService.fetchTenantDetails(
             userDetails.tenantAndOrgInfo.tenantId,
-            userDetails.userToken,
             true
           )
           if (!validOrgs.success) {
@@ -2264,25 +2263,43 @@ module.exports = class SolutionsHelper {
    * @method
    * @name fetchLink
    * @param {String} solutionId - solution Id.
-   * @param {String} appName - app Name.
-   * @param {String} userId - user Id.
-   * @param {Object} tenantData - tenant data.
-   * @param {String} userToken - user token.
+   * @param {String} userDetails - user related info.
    * @returns {Object} - Details of the solution.
    */
 
-  static fetchLink(solutionId, userId="", userToken="") {
+  static fetchLink(solutionId, userDetails="") {
     return new Promise(async (resolve, reject) => {
       try {
+        let solutionMatchQuery = {
+          _id: solutionId,
+          isReusable: false,
+          isAPrivateProgram: false,
+        }
+        // Apply extra filters ONLY if userDetails is present
+        if (
+          userDetails &&
+          userDetails.tenantAndOrgInfo &&
+          userDetails.tenantAndOrgInfo.tenantId &&
+          Array.isArray(userDetails.tenantAndOrgInfo.orgId) &&
+          userDetails.tenantAndOrgInfo.orgId.length > 0
+        ) {
+          const tenantId = userDetails.tenantAndOrgInfo.tenantId
+          const userOrgId = userDetails.tenantAndOrgInfo.orgId[0]
+  
+          solutionMatchQuery.tenantId = tenantId
+  
+          // Add org / scope access control
+          solutionMatchQuery.$or = [
+            { orgId: userOrgId },
+            {
+              'scope.organizations': {
+                $in: ['ALL', userOrgId],
+              },
+            },
+          ]
+        }               
         let solutionData = await solutionsQueries.solutionDocuments(
-          {
-            _id: solutionId,
-            isReusable: false,
-            isAPrivateProgram: false,
-            // Only Super Admin can generate links for all tenant and org
-            // tenantId: tenantData.tenantId,
-            // orgIds:{ $in: ['ALL', tenantData.orgId] }
-          },
+          solutionMatchQuery,
           ['link', 'type', 'author', 'tenantId', 'orgId']
         );
 
@@ -2310,8 +2327,8 @@ module.exports = class SolutionsHelper {
           // Prepare update object
           let updateData = { link: solutionLink };
 
-           if (userId && userToken) {
-              updateData.updatedBy = userId
+           if (userDetails.userId && userDetails.userToken) {
+              updateData.updatedBy = userDetails.userId
             }
           // update link to the solution documents
           let solutionUpdatedData = await solutionsQueries.updateSolutionDocument(
@@ -2332,7 +2349,7 @@ module.exports = class SolutionsHelper {
         }
         // Generate link for each domain
            // fetch tenant domain by calling  tenant details API
-           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId, userToken);
+           let tenantDetailsResponse = await userService.fetchTenantDetails(solution.tenantId);
            const domains = tenantDetailsResponse?.data?.domains || [];
            // Error handling if API failed or no domains found
            if (!tenantDetailsResponse.success || !Array.isArray(domains) || domains.length === 0) {
