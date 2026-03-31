@@ -188,7 +188,11 @@ const programUpdate = function (userToken, programId, reqBody, tenantData, userD
           tenantId: tenantData.tenantId,
           orgId: tenantData.orgId.join(','),
         });
-      }
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN )){
+        _.assign(options.headers, {
+          orgId: tenantData.orgId.join(','),
+        });
+      }      
       request.post(url, options, projectServiceCallback);
       let result = {
         success: true,
