@@ -528,7 +528,6 @@ module.exports = class criteriaHelper {
               }
             });
         
-            console.log(projectTemplateExternalIds,"line no 531");
             
             if (projectTemplateExternalIds.length > 0) {
               let childProjectTemplates = await projectService.createChildProjectTemplate(
@@ -539,7 +538,6 @@ module.exports = class criteriaHelper {
                 entityTypeForImps
               );
 
-              console.log(childProjectTemplates,"line no 542");
               
                // childProjectTemplates = {
                                   //     "message": "Successfully created duplicate project templates",
