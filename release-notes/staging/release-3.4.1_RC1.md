@@ -2,7 +2,7 @@
 
 ## ✨ Features
 
--   **Tenant Admin Flow** – Enabled Tenant Admin to create resources in Project Service
+-   **Tenant Admin Flow (2816)** – Enabled Tenant Admin to create resources in Samiksha Service
 
 ## 🐞 Bug Fixes
 
