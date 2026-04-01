@@ -1,4 +1,4 @@
-# 🚀 Project-Service Release 3.4.1_RC1
+# 🚀 Samiksha-Service Release 3.4.1_RC1
 
 ## ✨ Features
 
