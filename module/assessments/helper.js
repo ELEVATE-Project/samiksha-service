@@ -52,7 +52,7 @@ module.exports = class AssessmentsHelper {
     questionGroup,
     submissionDocEvidences,
     questionSequenceByEcm = false,
-    entityMetaInformation,
+    entityMetaInformation
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -128,7 +128,6 @@ module.exports = class AssessmentsHelper {
         });
 
         let attachments = [];
-
         Object.entries(questionArray).forEach((questionArrayElm) => {
           questionArrayElm[1]['payload'] = {
             criteriaId: questionArrayElm[1]['criteriaId'],
@@ -156,9 +155,8 @@ module.exports = class AssessmentsHelper {
           ) {
             submissionsObjects[questionArrayElm[1].evidenceMethod].answers[questionArrayElm[0]].fileName.forEach(
               (file) => {
-                if(file.sourcePath && (file.sourcePath != ''))
-                attachments.push(file.sourcePath);
-              },
+                if (file.sourcePath && file.sourcePath != '') attachments.push(file.sourcePath);
+              }
             );
           }
 
@@ -189,11 +187,10 @@ module.exports = class AssessmentsHelper {
                       singleValue[instanceQuestionId.toString()].fileName.length > 0
                     ) {
                       singleValue[instanceQuestionId.toString()].fileName.forEach((file) => {
-                        if(file.sourcePath && (file.sourcePath != ''))
-                        attachments.push(file.sourcePath);
+                        if (file.sourcePath && file.sourcePath != '') attachments.push(file.sourcePath);
                       });
                     }
-                  },
+                  }
                 );
               }
             });
@@ -236,7 +233,6 @@ module.exports = class AssessmentsHelper {
                   });
 
                   sortedQuestionArray = _.concat(sortedQuestionArray, Object.values(sectionQuestionByEcm));
-
                   section.questions = sortedQuestionArray;
                 }
               });
@@ -247,7 +243,7 @@ module.exports = class AssessmentsHelper {
         let attachmentsUrl = [];
         if (attachments.length > 0) {
           attachmentsUrl = await filesHelper.getDownloadableUrl(attachments);
-          
+
           if (!attachmentsUrl.result.length > 0) {
             throw {
               status: httpStatusCode['bad_request'].status,
@@ -265,12 +261,12 @@ module.exports = class AssessmentsHelper {
               submissionsObjects[questionArrayElm[1].evidenceMethod].answers[questionArrayElm[0]].fileName.forEach(
                 (file) => {
                   let attachmentIndex = attachmentsUrl.result.findIndex(
-                    (attachment) => attachment.filePath === file.sourcePath,
+                    (attachment) => attachment.filePath === file.sourcePath
                   );
                   if (attachmentIndex > -1) {
                     file['url'] = attachmentsUrl.result[attachmentIndex].url;
                   }
-                },
+                }
               );
             }
 
@@ -291,7 +287,7 @@ module.exports = class AssessmentsHelper {
                       ) {
                         singleValue[instanceQuestionId].fileName.forEach((file) => {
                           let attachmentIndex = attachmentsUrl.result.findIndex(
-                            (attachment) => attachment.filePath === file.sourcePath,
+                            (attachment) => attachment.filePath === file.sourcePath
                           );
                           if (attachmentIndex > -1) {
                             file['url'] = attachmentsUrl.result[attachmentIndex].url;
@@ -299,7 +295,7 @@ module.exports = class AssessmentsHelper {
                         });
                       }
                     });
-                  },
+                  }
                 );
               }
             }
@@ -337,7 +333,7 @@ module.exports = class AssessmentsHelper {
     questionGroup,
     submissionDocEvidences,
     questionSequenceByEcm = false,
-    entityMetaInformation,
+    entityMetaInformation
   ) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -346,7 +342,7 @@ module.exports = class AssessmentsHelper {
           questionGroup,
           submissionDocEvidences,
           questionSequenceByEcm,
-          entityMetaInformation,
+          entityMetaInformation
         );
 
         let defaultQuestion = {};
@@ -363,6 +359,11 @@ module.exports = class AssessmentsHelper {
                   pointerToEachSectionQuestion++
                 ) {
                   let eachQuestion = eachSection.questions[pointerToEachSectionQuestion];
+
+                  // Store question sectionHeader as it will be used as the page question header, and clear it
+                  // as it is showing on top of each question label while rendering
+                  let pageQuestionHeader = eachQuestion.sectionHeader;
+                  eachQuestion.sectionHeader = '';
 
                   if (eachQuestion.page && eachQuestion.page !== '') {
                     let pageName = eachQuestion.page.toLowerCase();
@@ -391,11 +392,31 @@ module.exports = class AssessmentsHelper {
                       pageQuestionsObj[pageName] = _.merge(pageQuestionsObj[pageName], defaultQuestion);
 
                       pageQuestionsObj[pageName]['responseType'] = 'pageQuestions';
+
+                      // Only set question if pageQuestionHeader (stored sectionHeader) has a valid (non-blank, non-null) value
+                      // to avoid overwriting with empty values and preserve the default question value from defaultQuestion merge above
+                      if (pageQuestionHeader != null && pageQuestionHeader !== '' && String(pageQuestionHeader).trim() !== '') {
+                        pageQuestionsObj[pageName]['question'] = String(pageQuestionHeader).trim();
+                      }
+
                       pageQuestionsObj[pageName]['page'] = pageName;
                       pageQuestionsObj[pageName]['pageQuestions'] = [];
                     }
 
                     pageQuestionsObj[pageName].pageQuestions.push(eachQuestion);
+                   
+                    // Check if instanceQuestions exists and is a non-empty array
+                    if (eachQuestion.instanceQuestions && 
+                      Array.isArray(eachQuestion.instanceQuestions) && 
+                      eachQuestion.instanceQuestions.length > 0) {
+
+                      // Clear sectionHeader for each instanceQuestion
+                      eachQuestion.instanceQuestions.forEach((instanceQuestion) => {
+                        if (instanceQuestion && typeof instanceQuestion === 'object') {
+                            instanceQuestion.sectionHeader = '';
+                          }
+                        });
+                    }
 
                     delete eachSection.questions[pointerToEachSectionQuestion];
                   }
@@ -515,7 +536,7 @@ module.exports = class AssessmentsHelper {
             _id: solutionId,
             isReusable: true,
           },
-          [messageConstants.common['ASSESSMENT_META_FORM_KEY'], 'subType'],
+          [messageConstants.common['ASSESSMENT_META_FORM_KEY'], 'subType']
         );
 
         if (!solutionsData[0]) {
