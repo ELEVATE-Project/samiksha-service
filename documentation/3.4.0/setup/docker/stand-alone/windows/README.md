@@ -65,7 +65,7 @@ for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569) do @(
    curl -L ^
     -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/interface_env ^
     -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/entity_management_env ^
-    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/project_env ^
+    -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/samiksha_env ^
     -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/notification_env ^
     -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/scheduler_env ^
     -O https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/dockerized/envs/user_env
