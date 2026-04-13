@@ -2,7 +2,7 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 echo ==========================================
-echo Project Standalone Setup - Windows
+echo Samiksha Setup - Windows
 echo ==========================================
 
 echo.

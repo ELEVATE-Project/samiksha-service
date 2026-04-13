@@ -2,7 +2,7 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 echo ==========================================
-echo Project Standalone Setup - Windows
+echo Survey Standalone Setup - Windows
 echo ==========================================
 
 echo.
@@ -12,8 +12,8 @@ echo ------------------------------------------
 curl -L -o entity_sampleData.js ^
 https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
 
-curl -L -o project_sampleData.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/project_sampleData.js
+curl -L -o survey_sampleData.js ^
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/survey_sampleData.js
 
 curl -L -o insert_sample_solutions.js ^
 https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
