@@ -31,22 +31,6 @@ services:
       retries: 9
     networks:
       - samiksha_net
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - '5672:5672' # Standard AMQP port
-      - '15672:15672' # Management plugin UI port
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: ['CMD', 'rabbitmqctl', 'status']
-      interval: 5s
-      timeout: 10s
-      retries: 5
-    networks:
-      - samiksha_net
   redis:
     image: 'redis:7.0.0'
     restart: 'always'
