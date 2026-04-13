@@ -31,22 +31,6 @@ services:
       retries: 9
     networks:
       - samiksha_net
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - '5672:5672' # Standard AMQP port
-      - '15672:15672' # Management plugin UI port
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: ['CMD', 'rabbitmqctl', 'status']
-      interval: 5s
-      timeout: 10s
-      retries: 5
-    networks:
-      - samiksha_net
   redis:
     image: 'redis:7.0.0'
     restart: 'always'
@@ -60,7 +44,7 @@ services:
     networks:
       - samiksha_net
   samiksha:
-    image: shikshalokamqa/elevate-samiksha-service:3.3.8.1
+    image: shikshalokamqa/elevate-samiksha-service:3.4.0_RC1
     ports:
       - '4301:4301'
     command: ['nodemon', 'dev']
@@ -73,7 +57,7 @@ services:
     networks:
       - samiksha_net
   entity_management:
-    image: shikshalokamqa/elevate-entity-management:3.3.13.1
+    image: shikshalokamqa/elevate-entity-management:3.4
     ports:
       - '5001:5001'
     env_file:
@@ -85,7 +69,7 @@ services:
     networks:
       - samiksha_net
   user:
-    image: shikshalokamqa/elevate-user:3.3.24
+    image: shikshalokamqa/elevate-user:3.4.0
     ports:
       - '3001:3001'
     command: >
@@ -125,15 +109,13 @@ services:
     depends_on:
       citus:
         condition: service_started
-      rabbitmq:
-        condition: service_started
     networks:
       - samiksha_net
     env_file:
       - ./notification_env
 
   scheduler:
-    image: shikshalokamqa/elevate-scheduler:2.6.1
+    image: shikshalokamqa/elevate-scheduler:3.4.0
     ports:
       - '4000:4000'
     command: ['nodemon', 'app.js']
