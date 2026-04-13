@@ -109,8 +109,6 @@ services:
     depends_on:
       citus:
         condition: service_started
-      rabbitmq:
-        condition: service_started
     networks:
       - samiksha_net
     env_file:
