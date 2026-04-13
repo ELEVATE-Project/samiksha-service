@@ -10,13 +10,13 @@ echo Downloading entity sample data files...
 echo ------------------------------------------
 
 curl -L -o entity_sampleData.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/entity_sampleData.js
 
 curl -L -o survey_sampleData.js ^
 https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/survey_sampleData.js
 
 curl -L -o insert_sample_solutions.js ^
-https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/dockerSamikshaSetupGuide/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
+https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/dockerized/stand-alone/insert_sample_solutions.js
 
 echo.
 echo Files downloaded successfully.
