@@ -2,6 +2,11 @@
 const request = require('request');
 const userServiceUrl = process.env.USER_SERVICE_URL;
 
+const NodeCache = require('node-cache')
+const tenantCache = new NodeCache()
+
+const CACHE_TTL_SECONDS = Number(process.env.TENANT_CACHE_TTL)
+
 /**
  *
  * @function
@@ -301,10 +306,43 @@ const getUserProfileByIdentifier = function (tenantId, userId = null, username) 
   });
 };
 
+
+
+async function getTenantDetails(tenantId) {
+  const cacheKey = `tenant_${tenantId}`
+  const cached = tenantCache.get(cacheKey)
+  if (cached) {
+      return cached
+  }
+  return await refreshAndCache(cacheKey, tenantId)
+}
+
+
+async function refreshAndCache(cacheKey, tenantId) {
+  const tenantDetails = await fetchPublicTenantDetails(tenantId)
+  if (!tenantDetails.data || !tenantDetails.data.meta || !tenantDetails.success) {
+      return { success: false, message: CONSTANTS.apiResponses.FAILED_TO_FETCH_TENANT_DETAILS }
+  }
+  tenantCache.set(cacheKey, tenantDetails, CACHE_TTL_SECONDS)
+  return tenantDetails
+}
+
+
+function clearTenantCache(tenantId) {
+  const cacheKey = `tenant_${tenantId}`
+  const deleted = tenantCache.del(cacheKey)
+  return {
+      success: true,
+      message: deleted ? `Cache cleared for tenant ${tenantId}` : `No cache found for tenant ${tenantId}`
+  }
+}
 module.exports = {
   profile: profile,
   getOrgDetails,
   fetchTenantDetails,
   fetchPublicTenantDetails,
   getUserProfileByIdentifier,
+  getTenantDetails,
+  clearTenantCache
+
 };
