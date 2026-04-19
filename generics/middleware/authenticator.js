@@ -236,9 +236,11 @@ module.exports = async function (req, res, next) {
     'programs/fetchProgramDetails',
     "admin/clearTenantCache"
   ];
+  let publicApisWithLimitedAccess = ['/solutions/fetchLink']
 
   let performInternalAccessTokenCheck = false;
   let adminHeader = false;
+  let unautherizedApiAccessDetected = false
   if (process.env.ADMIN_ACCESS_TOKEN) {
     adminHeader = req.headers[process.env.ADMIN_TOKEN_HEADER_NAME];
   }
@@ -263,6 +265,15 @@ module.exports = async function (req, res, next) {
 			return
 		}
   }
+
+  await Promise.all(
+		publicApisWithLimitedAccess.map(async function (path) {
+			if (req.path.includes(path)) {
+				performInternalAccessTokenCheck = true
+				unautherizedApiAccessDetected = true
+			}
+		})
+	)
 
   // Check if a Bearer token is required for authentication
   if (isBearerRequired) {
@@ -547,12 +558,11 @@ module.exports = async function (req, res, next) {
    *
    * @param {String} tenantId - ID of the tenant
    * @param {String} orgId - Comma separated string of org IDs or 'ALL'
-   * @param {String} token - User token
    * @returns {Object} - Success with validOrgIds array or failure with error object
    */
-  async function validateIfOrgsBelongsToTenant(tenantId, orgId,token) {
+  async function validateIfOrgsBelongsToTenant(tenantId, orgId) {
     let orgIdArr = Array.isArray(orgId) ? orgId : typeof orgId === 'string' ? orgId.split(',') : [];
-    let orgDetails = await userService.fetchTenantDetails(tenantId,token);    
+    let orgDetails = await userService.fetchTenantDetails(tenantId);    
     let validOrgIds = null;
 
     if (
@@ -608,7 +618,7 @@ module.exports = async function (req, res, next) {
           throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
         }
   
-        let validateOrgsResult = await validateIfOrgsBelongsToTenant(tenantId, orgIdFromHeader,token);
+        let validateOrgsResult = await validateIfOrgsBelongsToTenant(tenantId, orgIdFromHeader);
   
         if (!validateOrgsResult.success) {
           throw reqMsg.ORG_ID_FETCH_ERROR.MISSING_CODE;
@@ -699,7 +709,7 @@ module.exports = async function (req, res, next) {
       result = convertTenantAndOrgToLowercase(result);
       req.headers['tenantid'] = result.tenantId;
       req.headers['orgid'] = result.orgId;
-      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
+      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid']);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
@@ -720,7 +730,7 @@ module.exports = async function (req, res, next) {
         ? orgId.map((org) => gen.utils.lowerCase(org))
         : gen.utils.lowerCase(orgId);
 
-      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid'],token);
+      let validateOrgsResult = await validateIfOrgsBelongsToTenant(req.headers['tenantid'], req.headers['orgid']);
       if (!validateOrgsResult.success) {
         return res.status(responseCode['unauthorized'].status).send(respUtil(validateOrgsResult.errorObj));
       }
