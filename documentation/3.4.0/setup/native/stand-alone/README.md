@@ -76,9 +76,9 @@ Before setting up the following ELEVATE-Samiksha application, dependencies given
 
 ## Installation
 
-1.  **Create ELEVATE-Project Directory:** Create a directory named **ELEVATE-Project**.
+1.  **Create ELEVATE-Samiksha Directory:** Create a directory named **ELEVATE-Samiksha**.
 
-    > Example Command: `mkdir ELEVATE-Project && cd ELEVATE-Project/`
+  > Example Command: `mkdir ELEVATE-Samiksha && cd ELEVATE-Samiksha/`
 
 2.  **Git Clone Services And Portal Repositories**
 
