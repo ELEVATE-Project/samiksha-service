@@ -23,7 +23,7 @@ const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
 const observationSubmissionsQueries = require(DB_QUERY_BASE_PATH + '/observationSubmissions');
-const tenantCache = require(ROOT_PATH + '/generics/helpers/cache');
+const cacheHelper = require(ROOT_PATH + '/generics/helpers/cache');
 
 module.exports = class adminHelper {
   /**
@@ -537,12 +537,12 @@ module.exports = class adminHelper {
    * @name clearTenantCache
    * @param {String} tenantId - tenant id
    * @returns {Object} returns a object.
-   */
+   */clearTenantCache
    static async clearTenantCache(tenantId) {
      
     try{
 
-      let removeTenantCache = await tenantCache.clearTenantCache(tenantId);
+      let removeTenantCache = await cacheHelper.clearCache(`tenant_${tenantId}`);
       if(removeTenantCache.success){
         return {
           message: removeTenantCache.message,

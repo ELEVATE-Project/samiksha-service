@@ -1,10 +1,16 @@
 // helpers/Cache.helper.js
+/**
+ * name : cache.js
+ * author : PraveenDass
+ * created-date : 20-Apr-2026
+ * Description : cache related functions.
+ */
+
 const NodeCache = require('node-cache');
 
 const tenantCache = new NodeCache();
 const CACHE_TTL_SECONDS = Number(process.env.TENANT_CACHE_TTL);
 
-const cacheKey = (tenantId) => `tenant_${tenantId}`;
 
  /**
    * getCached data based on the passed tenantId 
@@ -17,7 +23,7 @@ const cacheKey = (tenantId) => `tenant_${tenantId}`;
 
 
 function getCached(tenantId) {
-  return tenantCache.get(cacheKey(tenantId)) || null;
+  return tenantCache.get(tenantId) || null;
 }
 
  /**
@@ -29,26 +35,26 @@ function getCached(tenantId) {
    */
 
 function setCached(tenantId, data) {
-  tenantCache.set(cacheKey(tenantId), data, CACHE_TTL_SECONDS);
+  tenantCache.set(tenantId, data, CACHE_TTL_SECONDS);
 }
 
 
  /**
    * clearTenantCache based on the passed tenantId 
    * @method
-   * @name clearTenantCache
-   * @param {string} tenantId - tenantId details
+   * @name clearCache
+   * @param {string} cacheIdentifier - tenantId details
    * @returns {JSON} successObject.
    */
 
-function clearTenantCache(tenantId) {
-  const deleted = tenantCache.del(cacheKey(tenantId));
+function clearCache(cacheIdentifier) {
+  const deleted = tenantCache.del(cacheIdentifier);
   return {
     success: true,
     message: deleted
-      ? `Cache cleared for tenant ${tenantId}`
-      : `No cache found for tenant ${tenantId}`,
+      ? `Cache cleared for  ${cacheIdentifier}`
+      : `No cache found for  ${cacheIdentifier}`,
   };
 }
 
-module.exports = { getCached, setCached, clearTenantCache };
+module.exports = { getCached, setCached, clearCache };

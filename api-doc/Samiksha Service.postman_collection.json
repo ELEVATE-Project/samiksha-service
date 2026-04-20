@@ -5639,6 +5639,104 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "clearTenantCache",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-auth-token",
+										"value": "{{token}}",
+										"type": "text"
+									},
+									{
+										"key": "appname",
+										"value": "mentored",
+										"type": "text"
+									},
+									{
+										"key": "internal-access-token",
+										"value": "{{internal-access-token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/survey/v1/admin/clearTenantCache/{{tenantSlug}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"survey",
+										"v1",
+										"admin",
+										"clearTenantCache",
+										"{{tenantSlug}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "x-auth-token",
+												"value": "{{token}}",
+												"type": "text"
+											},
+											{
+												"key": "appname",
+												"value": "mentored",
+												"type": "text"
+											},
+											{
+												"key": "internal-access-token",
+												"value": "{{internal-access-token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/survey/v1/admin/clearTenantCache/shikshagrahanew",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"survey",
+												"v1",
+												"admin",
+												"clearTenantCache",
+												"shikshagrahanew"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"body": "{\n    \"message\": \"Cache cleared for  tenant_shikshagrahanew\",\n    \"status\": 200\n}"
+								}
+							]
 						}
 					]
 				},

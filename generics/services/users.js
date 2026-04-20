@@ -205,7 +205,7 @@ const fetchPublicTenantDetails = function (tenantId) {
   return new Promise(async (resolve, reject) => {
     try {
 
-      const cached = tenantCache.getCached(tenantId);
+      const cached = tenantCache.getCached(`tenant_${tenantId}`);
       if (cached) return resolve(cached);
       
       let url = userServiceUrl + messageConstants.endpoints.PUBLIC_BRANDING;
@@ -226,7 +226,7 @@ const fetchPublicTenantDetails = function (tenantId) {
           let response = JSON.parse(data.body);
           if (response.responseCode === httpStatusCode['ok_userService'].message) {
             result['data'] = response.result;
-            tenantCache.setCached(tenantId, result);
+            tenantCache.setCached(`tenant_${tenantId}`, result);
           } else {
             result.success = false;
           }
