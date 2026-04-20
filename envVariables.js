@@ -437,6 +437,11 @@ let enviromentVariables = {
 		optional: true,
 		default: 'internal_access_token',
 	},
+  TENANT_CACHE_TTL: {
+    message: 'Required tenant cache expire time',
+    optional: false,
+    default: 86400,
+  },
 };
 
 let success = true;

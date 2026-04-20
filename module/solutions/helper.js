@@ -234,188 +234,169 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
+ 
+ 
   static targetedSolutions(
-    requestedData,
-    solutionType,
-    userId,
-    pageSize,
-    pageNo,
-    search,
-    filter,
-    surveyReportPage = '',
-    currentScopeOnly = false,
-    tenantFilter
+    requestedData, solutionType, userId, pageSize, pageNo,
+    search, filter, surveyReportPage = '', currentScopeOnly = false, tenantFilter
   ) {
     return new Promise(async (resolve, reject) => {
       try {
         currentScopeOnly = gen.utils.convertStringToBoolean(currentScopeOnly);
-        //fetch the assigned solutions for the user
-        let assignedSolutions = await this.assignedUserSolutions(
-          solutionType,
-          userId,
-          search,
-          filter,
-          surveyReportPage,
-          tenantFilter
+  
+        // ╔═══════════════════════════════════════════╗
+        // ║ PHASE 1 — Serial (must complete first)    ║
+        // ║ programDocuments + forUserRole both need  ║
+        // ║ solutionIds from assignedSolutions output ║
+        // ╚═══════════════════════════════════════════╝
+        const assignedSolutions = await this.assignedUserSolutions(
+          solutionType, userId, search, filter, surveyReportPage, tenantFilter
         );
-
-        let totalCount = 0;
+  
         let mergedData = [];
         let solutionIds = [];
-        if (assignedSolutions.success && assignedSolutions.data) {
-          totalCount =
-            assignedSolutions.data.data && assignedSolutions.data.data.length > 0
-              ? assignedSolutions.data.data.length
-              : totalCount;
+        let programIds = [];
+  
+        if (assignedSolutions.success && assignedSolutions.data?.data?.length > 0) {
           mergedData = assignedSolutions.data.data;
-
-          if (mergedData.length > 0) {
-            let programIds = [];
-
-            mergedData.forEach((mergeSolutionData) => {
-              if (mergeSolutionData.solutionId) {
-                solutionIds.push(mergeSolutionData.solutionId);
-              }
-
-              if (mergeSolutionData.programId) {
-                programIds.push(mergeSolutionData.programId);
-              }
-            });
-
-            let programsData = await programsQueries.programDocuments(
-              {
-                _id: { $in: programIds },
-                tenantId: tenantFilter.tenantId,
-              },
-              ['name']
-            );
-
-            if (programsData.length > 0) {
-              let programs = programsData.reduce((ac, program) => ({ ...ac, [program._id.toString()]: program }), {});
-
-              mergedData = mergedData.map((data) => {
-                if (data.programId && programs[data.programId.toString()]) {
-                  data.programName = programs[data.programId.toString()].name;
-                }
-                return data;
-              });
-            }
+  
+          // Single pass — collect both ID arrays together
+          for (const mergedSolutionData of mergedData) {
+            if (mergedSolutionData.solutionId) solutionIds.push(mergedSolutionData.solutionId);
+            if (mergedSolutionData.programId)  programIds.push(mergedSolutionData.programId);
           }
         }
-
+  
+        // Build filter synchronously — forUserRoleAndLocation needs this
         requestedData['filter'] = {};
         if (solutionIds.length > 0 && !currentScopeOnly) {
           requestedData['filter']['skipSolutions'] = solutionIds;
         }
-
-        if (filter && filter !== '') {
-          if (filter === messageConstants.common.CREATED_BY_ME) {
-            requestedData['filter']['isAPrivateProgram'] = {
-              $ne: false,
-            };
-          } else if (filter === messageConstants.common.ASSIGN_TO_ME) {
-            requestedData['filter']['isAPrivateProgram'] = false;
-          }
+        if (filter === messageConstants.common.CREATED_BY_ME) {
+          requestedData['filter']['isAPrivateProgram'] = { $ne: false };
+        } else if (filter === messageConstants.common.ASSIGN_TO_ME) {
+          requestedData['filter']['isAPrivateProgram'] = false;
         }
-
-        let targetedSolutions = {
-          success: false,
-        };
-
-        let getTargetedSolution = true;
-
-        if (filter === messageConstants.common.DISCOVERED_BY_ME) {
-          getTargetedSolution = false;
-        } else if (gen.utils.convertStringToBoolean(surveyReportPage) === true) {
-          getTargetedSolution = false;
-        }
-        // solutions based on role and location
-        if (getTargetedSolution) {
-          targetedSolutions = await this.forUserRoleAndLocation(requestedData, solutionType, '', '', '', '', search);
-        }
-
-        if (targetedSolutions.success) {
-          // When targetedSolutions is empty and currentScopeOnly is set to true send empty response
-          if (!(targetedSolutions.data.data.length > 0) && currentScopeOnly) {
-            return resolve({
-              success: true,
-              message: messageConstants.apiResponses.TARGETED_SOLUTIONS_FETCHED,
-              data: {
-                data: targetedSolutions.data.data,
-                count: targetedSolutions.data.data.length,
-              },
-              result: {
-                data: targetedSolutions.data.data,
-                count: targetedSolutions.data.data.length,
-              },
-            });
-          }
-          // When targetedSolutions is not empty alter the response based on the value of currentScopeOnly
-          if (targetedSolutions.data.data && targetedSolutions.data.data.length > 0) {
-            let filteredTargetedSolutions = [];
-            targetedSolutions.data.data.forEach((targetedSolution) => {
-              targetedSolution.solutionId = targetedSolution._id;
-              targetedSolution._id = '';
-
-              if (solutionType !== messageConstants.common.COURSE) {
-                targetedSolution['creator'] = targetedSolution.creator ? targetedSolution.creator : '';
-              }
-
-              if (solutionType === messageConstants.common.SURVEY) {
-                targetedSolution.isCreator = false;
-              }
-
-              filteredTargetedSolutions.push(targetedSolution);
-              delete targetedSolution.type;
-              delete targetedSolution.externalId;
-            });
-
-            if (currentScopeOnly) {
-              filteredTargetedSolutions.forEach((solution) => {
-                // Find the corresponding project in mergedData where solutionId matches _id
-                const matchingRecord = _.find(mergedData, (record) => {
-                  return String(record.solutionId) === String(solution.solutionId);
-                });
-
-                if (matchingRecord) {
-                  // Add all keys from the matching project to the solution object
-                  Object.assign(solution, matchingRecord);
-                }
-              });
-
-              mergedData = filteredTargetedSolutions;
-              totalCount = mergedData.length;
-            } else {
-              filteredTargetedSolutions.forEach((solution) => {
-                // Check if the solution _id exists in mergedData solutionId
-                const existsInMergedData = _.some(mergedData, (record) => {
-                  return String(record.solutionId) === String(solution.solutionId);
-                });
-
-                if (!existsInMergedData) {
-                  mergedData.push(solution);
-                }
-              });
-
-              totalCount = mergedData.length;
+  
+        const getTargetedSolution =
+          filter !== messageConstants.common.DISCOVERED_BY_ME &&
+          gen.utils.convertStringToBoolean(surveyReportPage) !== true;
+  
+        // ╔══════════════════════════════════════════════════════╗
+        // ║ PHASE 2 — Parallel                                   ║
+        // ║ Both depend on Phase 1 but NOT on each other         ║
+        // ║                                                      ║
+        // ║  assignedSolutions ──► programDocuments    ─┐        ║
+        // ║                    └──► forUserRoleAndLoc  ─┤        ║
+        // ║                              Promise.all() ─┘        ║
+        // ║                                                      ║
+        // ║ Wall time = max(programDocs, forUserRole)            ║
+        // ║ NOT sum of both                                      ║
+        // ╚══════════════════════════════════════════════════════╝
+        const [programsData, targetedSolutionsResult] = await Promise.all([
+  
+          // Enriches mergedData with program names
+          programIds.length > 0
+            ? programsQueries.programDocuments(
+                { _id: { $in: programIds }, tenantId: tenantFilter.tenantId },
+                ['name']
+              )
+            : Promise.resolve([]),
+  
+          // Fetches role/location targeted solutions
+          getTargetedSolution
+            ? this.forUserRoleAndLocation(
+                requestedData, solutionType, '', '', '', '', search
+              )
+            : Promise.resolve({ success: false }),
+  
+        ]);
+  
+        // ╔══════════════════════════════════════════════════════╗
+        // ║ PHASE 3 — Merge (pure sync, microseconds)            ║
+        // ╚══════════════════════════════════════════════════════╝
+  
+        // Enrich with program names — Map O(1) lookup
+        if (programsData.length > 0) {
+          const programsMap = new Map(
+            programsData.map((program) => [program._id.toString(), program])
+          );
+          for (const data of mergedData) {
+            if (data.programId) {
+              data.programName = programsMap.get(data.programId.toString())?.name;
             }
           }
         }
-
-        if (mergedData.length > 0) {
-          let startIndex = pageSize * (pageNo - 1);
-          let endIndex = startIndex + pageSize;
-          mergedData = mergedData.slice(startIndex, endIndex);
+  
+        if (targetedSolutionsResult.success) {
+          const hasTargetedData = targetedSolutionsResult.data?.data?.length > 0;
+  
+          // Early exit: targeted empty + currentScopeOnly
+          if (!hasTargetedData && currentScopeOnly) {
+            return resolve({
+              success: true,
+              message: messageConstants.apiResponses.TARGETED_SOLUTIONS_FETCHED,
+              data: { data: [], count: 0 },
+              result: { data: [], count: 0 },
+            });
+          }
+  
+          if (hasTargetedData) {
+            // Normalize shape — single pass with map
+            const filteredTargeted = targetedSolutionsResult.data.data.map((eachSolution) => {
+              eachSolution.solutionId = eachSolution._id;
+              eachSolution._id = '';
+              if (solutionType !== messageConstants.common.COURSE) {
+                eachSolution.creator = eachSolution.creator || '';
+              }
+              if (solutionType === messageConstants.common.SURVEY) {
+                eachSolution.isCreator = false;
+              }
+              delete eachSolution.type;
+              delete eachSolution.externalId;
+              return eachSolution;
+            });
+  
+            if (currentScopeOnly) {
+              // O(n) Map lookup — enrich targeted with assigned metadata
+              const mergedDataMap = new Map(
+                mergedData.map((r) => [String(r.solutionId), r])
+              );
+              for (const eachSolution of filteredTargeted) {
+                const match = mergedDataMap.get(String(eachSolution.solutionId));
+                if (match) Object.assign(eachSolution, match);
+              }
+              mergedData = filteredTargeted;
+            } else {
+              // O(n) Set lookup — dedup before push
+              const existingIds = new Set(mergedData.map((r) => String(r.solutionId)));
+              for (const eachSolution of filteredTargeted) {
+                const key = String(eachSolution.solutionId);
+                if (!existingIds.has(key)) {
+                  mergedData.push(eachSolution);
+                  existingIds.add(key);
+                }
+              }
+            }
+          }
         }
-
+  
+        const totalCount = mergedData.length;
+  
+        // ╔══════════════════════════════════════════════════════╗
+        // ║ PHASE 4 — Paginate (pure sync, microseconds)         ║
+        // ╚══════════════════════════════════════════════════════╝
+        const startIndex = pageSize * (pageNo - 1);
+        const paginatedData = mergedData.length > 0
+          ? mergedData.slice(startIndex, startIndex + pageSize)
+          : [];
+  
         return resolve({
           success: true,
           message: messageConstants.apiResponses.TARGETED_SOLUTIONS_FETCHED,
-          data: {
-            data: mergedData,
-            count: totalCount,
-          },
+          data: { data: paginatedData, count: totalCount },
         });
+  
       } catch (error) {
         return reject({
           status: error.status || httpStatusCode.internal_server_error.status,

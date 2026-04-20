@@ -23,6 +23,7 @@ const deletionAuditQueries = require(DB_QUERY_BASE_PATH + '/deletionAuditLogs');
 let kafkaClient = require(ROOT_PATH + '/generics/helpers/kafkaCommunications');
 const observationQueries = require(DB_QUERY_BASE_PATH + '/observations');
 const observationSubmissionsQueries = require(DB_QUERY_BASE_PATH + '/observationSubmissions');
+const tenantCache = require(ROOT_PATH + '/generics/helpers/cache');
 
 module.exports = class adminHelper {
   /**
@@ -528,5 +529,36 @@ module.exports = class adminHelper {
         });
       }
     });
+  }
+
+   /**
+   * clearTenantCache  based on tenantId 
+   * @method
+   * @name clearTenantCache
+   * @param {String} tenantId - tenant id
+   * @returns {Object} returns a object.
+   */
+   static async clearTenantCache(tenantId) {
+     
+    try{
+
+      let removeTenantCache = await tenantCache.clearTenantCache(tenantId);
+      if(removeTenantCache.success){
+        return {
+          message: removeTenantCache.message,
+          success: true,
+        };
+      }  
+      return {
+        message: removeTenantCache.message,
+        success: false,
+      }
+     
+    }catch(error){
+      return {
+        message: error.message,
+        success: false,
+      };
+    }
   }
 };

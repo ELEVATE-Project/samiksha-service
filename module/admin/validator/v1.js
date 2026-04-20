@@ -16,6 +16,9 @@ module.exports = (req) => {
 				.isIn(['program', 'solution'])
 				.withMessage('Invalid resource type. Must be "program" or "solution"')
 		},
+    clearTenantCache: function () {
+      req.checkParams('_id').exists().withMessage('required tenantId');
+    },
   };
 
   if (adminValidator[req.params.method]) {
