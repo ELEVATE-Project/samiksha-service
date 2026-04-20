@@ -14,7 +14,7 @@ set -e
 echo "Starting data setup script..."
 
 # --- 1. Define URL and Files ---
-BASE_URL="https://raw.githubusercontent.com/ELEVATE-Project/project-service/refs/heads/main/documentation/3.4.0/common-files/native/project-with-survey"
+BASE_URL="https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/common-files/native/samiksha-with-project"
 
 ENTITY_FILE="entity_sampleData.js"
 PROJECT_FILE="project_sampleData.js"

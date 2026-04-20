@@ -129,6 +129,7 @@ curl -L -o scheduler/src/.env https://raw.githubusercontent.com/ELEVATE-Project/
 
     ```
     curl -OJL https://raw.githubusercontent.com/ELEVATE-Project/samiksha-service/refs/heads/main/documentation/3.4.0/native/scripts/samiksha-with-project/ubuntu/create-databases.sh
+    ```
 
     2. Make the executable by running the following command:
 
