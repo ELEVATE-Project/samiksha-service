@@ -233,7 +233,8 @@ module.exports = async function (req, res, next) {
     'organizationExtension/update',
     'organizationExtension/create',
     'organizationExtension/updateRelatedOrgs',
-    'programs/fetchProgramDetails'
+    'programs/fetchProgramDetails',
+    "admin/clearTenantCache"
   ];
   let publicApisWithLimitedAccess = ['/solutions/fetchLink']
 

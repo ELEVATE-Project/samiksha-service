@@ -141,6 +141,28 @@ module.exports = class Admin {
     });
   }
 
+   /**
+   * clearTenantCache based on the passed tenantId 
+   * @method
+   * @name clearTenantCache
+   * @param {Object} req - Req Body
+   * @returns {JSON} successObject.
+   */
+   async clearTenantCache(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let result = await adminHelper.clearTenantCache(req.params._id);
+        resolve(result);
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error,
+        });
+      }
+    });
+  }
+
   /**
    * @api {post} /survey/v1/admin/deleteResource/:resourceId?type=solution
    * Deletes a resource (program/solution) after validating admin access.

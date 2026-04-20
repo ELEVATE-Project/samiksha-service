@@ -1478,7 +1478,8 @@ module.exports = class ProgramsHelper {
           // filterQuery['scope.entities'] = { $in: entities };
           let userRoleInfo = _.omit(data, ['filter', 'factors', 'role', 'type','tenantId','orgId']);
 
-          let tenantDetails = await userService.fetchPublicTenantDetails(data.tenantId);
+          let tenantDetails = await userService.getTenantDetails(data.tenantId);
+
 					if (!tenantDetails.success || !tenantDetails?.data?.meta) {
             return resolve({
               success: false,
