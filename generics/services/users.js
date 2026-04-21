@@ -1,6 +1,7 @@
 //dependencies
 const request = require('request');
 const userServiceUrl = process.env.USER_SERVICE_URL;
+const tenantCache = require("../helpers/cache");
 
 /**
  *
@@ -203,6 +204,10 @@ const fetchTenantDetails = function (tenantId, aggregateValidOrgs = false) {
 const fetchPublicTenantDetails = function (tenantId) {
   return new Promise(async (resolve, reject) => {
     try {
+
+      const cached = tenantCache.getCached(`tenant_${tenantId}`);
+      if (cached) return resolve(cached);
+      
       let url = userServiceUrl + messageConstants.endpoints.PUBLIC_BRANDING;
       const options = {
         headers: {
@@ -221,6 +226,7 @@ const fetchPublicTenantDetails = function (tenantId) {
           let response = JSON.parse(data.body);
           if (response.responseCode === httpStatusCode['ok_userService'].message) {
             result['data'] = response.result;
+            tenantCache.setCached(`tenant_${tenantId}`, result);
           } else {
             result.success = false;
           }
