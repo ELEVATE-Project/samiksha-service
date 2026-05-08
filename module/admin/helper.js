@@ -497,6 +497,7 @@ module.exports = class adminHelper {
           const deleteResponse = await this.deletedResourceDetails(
             solutionId,
             resourceType,
+            bodyData.isAPrivateProgram = false,
             bodyData.tenantId,
             bodyData.orgId,
             bodyData.userId
