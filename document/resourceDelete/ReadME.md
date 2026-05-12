@@ -71,17 +71,54 @@ curl --location --request POST 'http://localhost:4301/survey/v1/admin/deleteReso
 
 ```json
 {
-  "message": "Solution and associated resources deleted successfully",
-  "status": 200,
-  "result": {
-    "deletedProgramsCount": 1,
-    "deletedSolutionsCount": 1,
-    "deletedSurveysCount": 0,
-    "deletedSurveySubmissionsCount": 0,
-    "deletedObservationsCount": 0,
-    "deletedObservationSubmissionsCount": 0,
-    "pullProgramFromUserExtensionCount": 0
-  }
+    "message": "Program and associated resources deleted successfull",
+    "status": 200,
+    "result": {
+        "deletedPrograms": {
+            "deletedProgramsIds": [
+                "68a719f02f891a358156c769"
+            ],
+            "deletedProgramsCount": 1
+        },
+        "deletedSolutions": {
+            "deletedSolutionsIds": [
+                "68a719f33ea237998a9e2278",
+                "68a71a303ea237998a9e2305",
+                "68b56f2601d6506597aa0d93",
+                "68b56f7de5dccb1ec9f69080",
+                "68b574ebe5dccb1ec9f69108"
+            ],
+            "deletedSolutionsCount": 5
+        },
+        "deletedSurveys": {
+            "deletedSurveysIds": [
+               "68a719f33ea237998a9e2278",
+               "68a71a303ea237998a9e2305",
+            ],
+            "deletedSurveysCount": 2
+        },
+        "deletedSurveySubmissions": {
+            "deletedSurveySubmissionsIds": [ 
+              "68a719f33ea237998a9e2278",
+              "68a71a303ea237998a9e2305",],
+            "deletedSurveySubmissionsCount": 2
+        },
+        "deletedObservations": {
+            "deletedObservationsIds": [
+              "68b56f7de5dccb1ec9f69080",
+              "68b574ebe5dccb1ec9f69108"
+            ],
+            "deletedObservationsCount": 2
+        },
+        "deletedObservationSubmissions": {
+            "deletedObservationSubmissionsIds": [
+              "68b56f7de5dccb1ec9f69080",
+              "68b574ebe5dccb1ec9f69108"
+            ],
+            "deletedObservationSubmissionsCount": 2
+        },
+        "pullProgramFromUserExtensionCount": 0
+    }
 }
 ```
 
