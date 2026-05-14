@@ -150,12 +150,12 @@ module.exports = class adminHelper {
    * @name deletedResourceDetails
    * @param {String} resourceId - ID of the resource to delete.
    * @param {String} resourceType - Type of the resource ('program' or 'solution').
-   * @param {Object} isAPrivateProgram - If Program is Private `true` else `false`.
+   * @param {Boolean} isAPrivateProgram - If Program is Private `true` else `false`.
    * @param {String} tenantId - Tenant identifier for multitenancy.
    * @param {String} orgId - Organization ID performing the operation.
    * @param {String} [deletedBy='SYSTEM'] - User ID or system name that triggered the deletion.
    *
-   * @returns {Promise<Object>} - Result object summarizing deletion impact.
+   * @returns {Promise<Object>} - Result object summarizing deletion impact with IDs and counts.
    */
 
   static deletedResourceDetails(
@@ -168,18 +168,22 @@ module.exports = class adminHelper {
   ) {
     return new Promise(async (resolve, reject) => {
       try {
-        // Track counters for deleted resource
-        let deletedProgramsCount = 0;
-        let deletedSolutionsCount = 0;
-        let deletedSurveysCount = 0;
-        let deletedSurveySubmissionsCount = 0;
-        let deletedObservationsCount = 0;
-        let deletedObservationSubmissionsCount = 0;
+        // Track IDs and counts for every deleted resource type
+        let deletedPrograms = { deletedProgramsIds: [], deletedProgramsCount: 0 };
+        let deletedSolutions = { deletedSolutionsIds: [], deletedSolutionsCount: 0 };
+        let deletedSurveys = { deletedSurveysIds: [], deletedSurveysCount: 0 };
+        let deletedSurveySubmissions = { deletedSurveySubmissionsIds: [], deletedSurveySubmissionsCount: 0 };
+        let deletedObservations = { deletedObservationsIds: [], deletedObservationsCount: 0 };
+        let deletedObservationSubmissions = {
+          deletedObservationSubmissionsIds: [],
+          deletedObservationSubmissionsCount: 0,
+        };
         let pullSolutionFromProgramComponent = 0;
         let pullProgramFromUserExtensionCount = 0;
 
         let resourceIdsWithType = [];
-        // Handle deletion of a PROGRAM
+
+        // ─── PROGRAM DELETION ──────────────────────────────────────────────────────
         if (resourceType === messageConstants.common.PROGRAM_CHECK) {
           let ProgramFilter;
           if (isAPrivateProgram) {
@@ -204,20 +208,19 @@ module.exports = class adminHelper {
             };
           }
           const programObjectId = typeof resourceId === 'string' ? new ObjectId(resourceId) : resourceId;
-          let programRoleMappingId = await userExtensionsQueries.pullProgramIdFromProgramRoleMapping(
+          const programRoleMappingResult = await userExtensionsQueries.pullProgramIdFromProgramRoleMapping(
             programObjectId,
-            tenantId
+            tenantId,
           );
+          pullProgramFromUserExtensionCount = programRoleMappingResult.modifiedCount || 0;
 
-          pullProgramFromUserExtensionCount = programRoleMappingId.modifiedCount || 0;
-
-          // Extract solution IDs from components
+          // Extract solution IDs from program components
           const solutionComponents = programDetails[0]?.components || [];
-
           const solutionIds = solutionComponents.map((comp) => (typeof comp === 'object' ? comp._id : comp));
 
           const solutionFilter = { _id: { $in: solutionIds }, tenantId };
-          // Fetch solution documents for deletion
+
+          // Fetch solution documents — we need _id and type before deleting
           const solutionDetails = await solutionsQueries.solutionDocuments(solutionFilter, ['_id', 'type']);
 
           if (solutionIds && solutionIds.length) {
@@ -230,18 +233,30 @@ module.exports = class adminHelper {
 
           // Delete solutions and count
           await solutionsQueries.delete(solutionFilter);
+          deletedSolutions.deletedSolutionsIds = solutionDetails.map((s) => s._id.toString());
+          deletedSolutions.deletedSolutionsCount = deletedSolutions.deletedSolutionsIds.length;
 
-          deletedSolutionsCount += solutionDetails.length;
-
-          // Delete associated resources (survey, observation) related to solutions
+          // Delete associated surveys/observations and collect their IDs
           const associatedDeleteResult = await this.deleteAssociatedResources(solutionDetails, tenantId);
-          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
-          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
-          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
-          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
+          deletedSurveys.deletedSurveysIds = associatedDeleteResult.deletedSurveys.deletedSurveysIds;
+          deletedSurveys.deletedSurveysCount = associatedDeleteResult.deletedSurveys.deletedSurveysCount;
+          deletedSurveySubmissions.deletedSurveySubmissionsIds =
+            associatedDeleteResult.deletedSurveySubmissions.deletedSurveySubmissionsIds;
+          deletedSurveySubmissions.deletedSurveySubmissionsCount =
+            associatedDeleteResult.deletedSurveySubmissions.deletedSurveySubmissionsCount;
+          deletedObservations.deletedObservationsIds =
+            associatedDeleteResult.deletedObservations.deletedObservationsIds;
+          deletedObservations.deletedObservationsCount =
+            associatedDeleteResult.deletedObservations.deletedObservationsCount;
+          deletedObservationSubmissions.deletedObservationSubmissionsIds =
+            associatedDeleteResult.deletedObservationSubmissions.deletedObservationSubmissionsIds;
+          deletedObservationSubmissions.deletedObservationSubmissionsCount =
+            associatedDeleteResult.deletedObservationSubmissions.deletedObservationSubmissionsCount;
 
           // Finally delete the program
           await programsQueries.delete(ProgramFilter);
+          deletedPrograms.deletedProgramsIds.push(resourceId.toString());
+          deletedPrograms.deletedProgramsCount++;
 
           // Push deletion event to Kafka
           // {
@@ -249,7 +264,6 @@ module.exports = class adminHelper {
           // 	"messages": "{\"entity\":\"resource\",\"type\":\"solution\",\"eventType\":\"delete\",\"entityId\":\"682c1526ba875600144d93bc\",\"deleted_By\":1,\"tenant_code\":\"shikshagraha\",\"organization_id\":[\"blr\"]}"
           //   }
           await this.pushResourceDeleteKafkaEvent(resourceType, resourceId, deletedBy, tenantId, orgId);
-          deletedProgramsCount++;
 
           // Log deletion
           await this.addDeletionLog(resourceIdsWithType, deletedBy);
@@ -258,12 +272,12 @@ module.exports = class adminHelper {
             success: true,
             message: messageConstants.apiResponses.PROGRAM_RESOURCE_DELETED,
             result: {
-              deletedProgramsCount,
-              deletedSolutionsCount,
-              deletedSurveysCount,
-              deletedSurveySubmissionsCount,
-              deletedObservationsCount,
-              deletedObservationSubmissionsCount,
+              deletedPrograms,
+              deletedSolutions,
+              deletedSurveys,
+              deletedSurveySubmissions,
+              deletedObservations,
+              deletedObservationSubmissions,
               pullProgramFromUserExtensionCount,
             },
           });
@@ -271,6 +285,7 @@ module.exports = class adminHelper {
           // Handle deletion of a SOLUTION
           const solutionFilter = { _id: resourceId, tenantId };
           const solutionDetails = await solutionsQueries.solutionDocuments(solutionFilter, [
+            '_id',
             'type',
             'isExternalProgram',
             'isReusable',
@@ -291,19 +306,31 @@ module.exports = class adminHelper {
           }
 
           // Pull the solution from other components (soft link cleanup)
-          let pullResult = await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
+          const pullResult = await programsQueries.pullSolutionsFromComponents(new ObjectId(resourceId), tenantId);
           pullSolutionFromProgramComponent = pullResult.modifiedCount || 0;
+
           // Delete the solution
           await solutionsQueries.delete(solutionFilter);
-          deletedSolutionsCount++;
+          deletedSolutions.deletedSolutionsIds.push(resourceId.toString());
+          deletedSolutions.deletedSolutionsCount++;
+
           resourceIdsWithType.push({ id: resourceId, type: messageConstants.common.SOLUTION_CHECK });
           // Delete associated resources
           const associatedDeleteResult = await this.deleteAssociatedResources([solutionData], tenantId);
-
-          deletedSurveysCount = associatedDeleteResult.deletedSurveysCount;
-          deletedSurveySubmissionsCount = associatedDeleteResult.deletedSurveySubmissionsCount;
-          deletedObservationsCount = associatedDeleteResult.deletedObservationsCount;
-          deletedObservationSubmissionsCount = associatedDeleteResult.deletedObservationSubmissionsCount;
+          deletedSurveys.deletedSurveysIds = associatedDeleteResult.deletedSurveys.deletedSurveysIds;
+          deletedSurveys.deletedSurveysCount = associatedDeleteResult.deletedSurveys.deletedSurveysCount;
+          deletedSurveySubmissions.deletedSurveySubmissionsIds =
+            associatedDeleteResult.deletedSurveySubmissions.deletedSurveySubmissionsIds;
+          deletedSurveySubmissions.deletedSurveySubmissionsCount =
+            associatedDeleteResult.deletedSurveySubmissions.deletedSurveySubmissionsCount;
+          deletedObservations.deletedObservationsIds =
+            associatedDeleteResult.deletedObservations.deletedObservationsIds;
+          deletedObservations.deletedObservationsCount =
+            associatedDeleteResult.deletedObservations.deletedObservationsCount;
+          deletedObservationSubmissions.deletedObservationSubmissionsIds =
+            associatedDeleteResult.deletedObservationSubmissions.deletedObservationSubmissionsIds;
+          deletedObservationSubmissions.deletedObservationSubmissionsCount =
+            associatedDeleteResult.deletedObservationSubmissions.deletedObservationSubmissionsCount;
 
           // Push Kafka deletion event
           // {
@@ -318,11 +345,11 @@ module.exports = class adminHelper {
             success: true,
             message: messageConstants.apiResponses.SOLUTION_RESOURCE_DELETED,
             result: {
-              deletedSolutionsCount,
-              deletedSurveysCount,
-              deletedSurveySubmissionsCount,
-              deletedObservationsCount,
-              deletedObservationSubmissionsCount,
+              deletedSolutions,
+              deletedSurveys,
+              deletedSurveySubmissions,
+              deletedObservations,
+              deletedObservationSubmissions,
               pullSolutionFromProgramComponent,
             },
           });
@@ -345,18 +372,23 @@ module.exports = class adminHelper {
 
   /**
    * Deletes associated survey and observation resources based on solution details and tenant ID.
+   * Fetches IDs before deleting
    * @method
    * @name deleteAssociatedResources
-   * @param {Array<{ _id: string, type: string }>} solutionDetails - List of solution objects with `_id` and `type` (e.g., SURVEY or OBSERVATION).
+   * @param {Array<{ _id: string, type: string }>} solutionDetails - Solution objects with `_id` and `type`.
    * @param {string} tenantId - Tenant identifier.
+   * @returns {Promise<Object>} - Nested objects with IDs and counts for each resource type.
    */
   static deleteAssociatedResources(solutionDetails, tenantId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let deletedSurveysCount = 0;
-        let deletedSurveySubmissionsCount = 0;
-        let deletedObservationsCount = 0;
-        let deletedObservationSubmissionsCount = 0;
+        let deletedSurveys = { deletedSurveysIds: [], deletedSurveysCount: 0 };
+        let deletedSurveySubmissions = { deletedSurveySubmissionsIds: [], deletedSurveySubmissionsCount: 0 };
+        let deletedObservations = { deletedObservationsIds: [], deletedObservationsCount: 0 };
+        let deletedObservationSubmissions = {
+          deletedObservationSubmissionsIds: [],
+          deletedObservationSubmissionsCount: 0,
+        };
 
         const surveyIds = [];
         const observationIds = [];
@@ -372,29 +404,56 @@ module.exports = class adminHelper {
         if (surveyIds.length > 0) {
           const surveyFilter = { solutionId: { $in: surveyIds }, tenantId };
 
-          let deletedSurvey = await surveyQueries.delete(surveyFilter);
-          deletedSurveysCount += deletedSurvey.deletedCount || 0;
+          // Fetch IDs before deleting — deleteMany does not return them
+          const surveysToDelete = await surveyQueries.surveyDocuments(surveyFilter, ['_id']);
+          if (surveysToDelete?.length) {
+            deletedSurveys.deletedSurveysIds = surveysToDelete.map((s) => s._id.toString());
+            await surveyQueries.delete(surveyFilter);
+            deletedSurveys.deletedSurveysCount = deletedSurveys.deletedSurveysIds.length;
+          }
 
-          let deletedSurveySubmission = await surveySubmissionQueries.delete(surveyFilter);
-          deletedSurveySubmissionsCount += deletedSurveySubmission.deletedCount || 0;
+          // Survey submissions share the same solutionId filter
+          const surveySubmissionsToDelete = await surveySubmissionQueries.surveySubmissionDocuments(surveyFilter, ['_id']);
+          if (surveySubmissionsToDelete?.length) {
+            deletedSurveySubmissions.deletedSurveySubmissionsIds = surveySubmissionsToDelete.map((s) =>
+              s._id.toString(),
+            );
+            await surveySubmissionQueries.delete(surveyFilter);
+            deletedSurveySubmissions.deletedSurveySubmissionsCount =
+              deletedSurveySubmissions.deletedSurveySubmissionsIds.length;
+          }
         }
+
         // Delete observation documents and submissions
-        if (observationIds.length) {
+        if (observationIds.length > 0) {
           const observationFilter = { solutionId: { $in: observationIds }, tenantId };
 
-          let deletedObservation = await observationQueries.delete(observationFilter);
-          deletedObservationsCount = deletedObservation.deletedCount || 0;
+          // Fetch IDs before deleting
+          const observationsToDelete = await observationQueries.observationDocuments(observationFilter, ['_id']);
+          if (observationsToDelete?.length) {
+            deletedObservations.deletedObservationsIds = observationsToDelete.map((o) => o._id.toString());
+            await observationQueries.delete(observationFilter);
+            deletedObservations.deletedObservationsCount = deletedObservations.deletedObservationsIds.length;
+          }
 
-          let deletedObservationSubmissions = await observationSubmissionsQueries.delete(observationFilter);
-          deletedObservationSubmissionsCount = deletedObservationSubmissions.deletedCount || 0;
+          // Observation submissions share the same solutionId filter
+          const observationSubmissionsToDelete = await observationSubmissionsQueries.observationSubmissionsDocuments(observationFilter, ['_id']);
+          if (observationSubmissionsToDelete?.length) {
+            deletedObservationSubmissions.deletedObservationSubmissionsIds = observationSubmissionsToDelete.map((o) =>
+              o._id.toString(),
+            );
+            await observationSubmissionsQueries.delete(observationFilter);
+            deletedObservationSubmissions.deletedObservationSubmissionsCount =
+              deletedObservationSubmissions.deletedObservationSubmissionsIds.length;
+          }
         }
 
         return resolve({
           success: true,
-          deletedSurveysCount,
-          deletedSurveySubmissionsCount,
-          deletedObservationsCount,
-          deletedObservationSubmissionsCount,
+          deletedSurveys,
+          deletedSurveySubmissions,
+          deletedObservations,
+          deletedObservationSubmissions,
         });
       } catch (error) {
         return resolve({
@@ -467,27 +526,31 @@ module.exports = class adminHelper {
   }
 
   /**
-   * Deletes multiple solution resources and aggregates the deletion results.
+   * Deletes multiple solution resources and aggregates IDs and counts across all of them.
    * @method
    * @name deleteSolutionResource
-   * @param {Object} bodyData - Contains the solutionIds, tenantId, orgId, and userId.
+   * @param {Object} bodyData - Contains solutionIds, tenantId, orgId, userId, isAPrivateProgram.
    * @param {string[]} bodyData.solutionIds - Array of solution IDs to delete.
    * @param {string} bodyData.tenantId - Tenant identifier.
    * @param {string} bodyData.orgId - Organization identifier.
    * @param {string} bodyData.userId - Identifier of the user who triggered deletion.
+   * @param {boolean} bodyData.isAPrivateProgram - Whether the parent program is private.
    * @param {string} resourceType - Type of the resource (e.g., 'solution').
-   * @returns {Promise<Object>} - Returns success status or error information.
+   * @returns {Promise<Object>} - Aggregated IDs and counts across all deleted solutions.
    */
   static deleteSolutionResource(bodyData, resourceType) {
     return new Promise(async (resolve, reject) => {
       try {
         // Initialize finalResult to collect aggregated counts across all solutions
         const finalResult = {
-          deletedSolutionsCount: 0,
-          deletedSurveysCount: 0,
-          deletedSurveySubmissionsCount: 0,
-          deletedObservationsCount: 0,
-          deletedObservationSubmissionsCount: 0,
+          deletedSolutions: { deletedSolutionsIds: [], deletedSolutionsCount: 0 },
+          deletedSurveys: { deletedSurveysIds: [], deletedSurveysCount: 0 },
+          deletedSurveySubmissions: { deletedSurveySubmissionsIds: [], deletedSurveySubmissionsCount: 0 },
+          deletedObservations: { deletedObservationsIds: [], deletedObservationsCount: 0 },
+          deletedObservationSubmissions: {
+            deletedObservationSubmissionsIds: [],
+            deletedObservationSubmissionsCount: 0,
+          },
           pullSolutionFromProgramComponent: 0,
         };
 
@@ -505,15 +568,38 @@ module.exports = class adminHelper {
 
           // If the deletion was successful, accumulate the returned stats
           if (deleteResponse?.success) {
-            const result = deleteResponse.result || {};
+            const resourceData = deleteResponse.result || {};
 
-            // Accumulate counts
-            finalResult.deletedSolutionsCount += result.deletedSolutionsCount || 0;
-            finalResult.deletedSurveysCount += result.deletedSurveysCount || 0;
-            finalResult.deletedSurveySubmissionsCount += result.deletedSurveySubmissionsCount || 0;
-            finalResult.deletedObservationsCount += result.deletedObservationsCount || 0;
-            finalResult.deletedObservationSubmissionsCount += result.deletedObservationSubmissionsCount || 0;
-            finalResult.pullSolutionFromProgramComponent += result.pullSolutionFromProgramComponent || 0;
+            // Merge solution IDs and count
+            finalResult.deletedSolutions.deletedSolutionsIds.push(...(resourceData.deletedSolutions?.deletedSolutionsIds || []));
+            finalResult.deletedSolutions.deletedSolutionsCount += resourceData.deletedSolutions?.deletedSolutionsCount || 0;
+
+            // Merge survey IDs and count
+            finalResult.deletedSurveys.deletedSurveysIds.push(...(resourceData.deletedSurveys?.deletedSurveysIds || []));
+            finalResult.deletedSurveys.deletedSurveysCount += resourceData.deletedSurveys?.deletedSurveysCount || 0;
+
+            // Merge survey submission IDs and count
+            finalResult.deletedSurveySubmissions.deletedSurveySubmissionsIds.push(
+              ...(resourceData.deletedSurveySubmissions?.deletedSurveySubmissionsIds || []),
+            );
+            finalResult.deletedSurveySubmissions.deletedSurveySubmissionsCount +=
+              resourceData.deletedSurveySubmissions?.deletedSurveySubmissionsCount || 0;
+
+            // Merge observation IDs and count
+            finalResult.deletedObservations.deletedObservationsIds.push(
+              ...(resourceData.deletedObservations?.deletedObservationsIds || []),
+            );
+            finalResult.deletedObservations.deletedObservationsCount +=
+              resourceData.deletedObservations?.deletedObservationsCount || 0;
+
+            // Merge observation submission IDs and count
+            finalResult.deletedObservationSubmissions.deletedObservationSubmissionsIds.push(
+              ...(resourceData.deletedObservationSubmissions?.deletedObservationSubmissionsIds || []),
+            );
+            finalResult.deletedObservationSubmissions.deletedObservationSubmissionsCount +=
+              resourceData.deletedObservationSubmissions?.deletedObservationSubmissionsCount || 0;
+
+            finalResult.pullSolutionFromProgramComponent += resourceData.pullSolutionFromProgramComponent || 0;
           }
         }
 
