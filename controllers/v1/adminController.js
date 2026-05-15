@@ -203,6 +203,20 @@ module.exports = class Admin {
    * @apiVersion 1.0.0
    * @apiGroup Admin
    * @apiSampleRequest /survey/v1/admin/deleteSolutionResource/683867e60f8595db9c1b6c26?type=solution
+   *   @param {json} Request-Body:
+      {
+        "solutionIds": [
+              "691430ac9f96080d49b9165d",
+              "691431209f96080d49b916b6",
+              "691432449f96080d49b916f8"
+          ],
+           "tenantId": "shikshalokam",
+           "orgId": [
+               "tan90"
+           ],
+           "deletedBy": "1",   user Id
+           "isAPrivateProgram":false
+      }
     * @apiParamExample {json} Response:
     {
     "message": "Solution and associated resources deleted successfully",
