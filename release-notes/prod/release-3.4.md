@@ -1,4 +1,4 @@
-# 🚀 Survey-Service Release 3.4.0 [![Latest](https://img.shields.io/badge/Latest-ffffff00?style=flat&labelColor=ffffff00&color=green)](#)
+# 🚀 Survey-Service Release 3.4.0
 
 ## ✨ Features
 
