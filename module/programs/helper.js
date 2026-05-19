@@ -926,7 +926,6 @@ module.exports = class ProgramsHelper {
           // call user-service to fetch related orgs
           let validOrgs = await userService.fetchTenantDetails(
             userDetails.tenantAndOrgInfo.tenantId,
-            userDetails.userToken,
             true
           )
           if (!validOrgs.success) {

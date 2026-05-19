@@ -6876,6 +6876,51 @@ paths:
                       - location: query
                         param: type
                         msg: Invalid resource type. Must be "program" or "solution"
+  /survey/v1/admin/clearTenantCache/{tenantSlug}:
+    post:
+      tags:
+        - Admin
+      summary: API to clear tenant cache
+      parameters:
+        - name: tenantSlug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: shikshagrahanew
+          description: The slug/code of the tenant whose cache needs to be cleared.
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+          description: >-
+            Every request to the API requires an x-auth-token in the header for
+            authentication. This token is generated when a user logs in and must
+            be included in each subsequent request to verify the user's session
+            and permissions.
+        - name: appname
+          in: header
+          schema:
+            type: string
+          example: mentored
+        - name: internal-access-token
+          in: header
+          schema:
+            type: string
+          example: '{{internal-access-token}}'
+          description: Internal access token required for admin-level operations.
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              examples:
+                SuccessResponse:
+                  value:
+                    message: Cache cleared for  tenant_shikshagrahanew
+                    status: 200
+      description: API can be used to clear the cached data for a specific tenant.
   /v1/library/categories/update/{_id}:
     post:
       description: >+

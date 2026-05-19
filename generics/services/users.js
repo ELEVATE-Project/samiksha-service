@@ -1,6 +1,7 @@
 //dependencies
 const request = require('request');
 const userServiceUrl = process.env.USER_SERVICE_URL;
+const tenantCache = require("../helpers/cache");
 
 /**
  *
@@ -130,32 +131,25 @@ const getOrgDetails = function (organisationIdentifier, userToken, tenantId) {
 /**
  * Fetches the tenant details for a given tenant ID along with org it is associated with.
  * @param {string} tenantId - The code/id of the organization.
- * @param {String} userToken - user token
  * @param {Boolean} aggregateValidOrgs - boolean value to populate valid orgs from response
  * @returns {Promise} A promise that resolves with the organization details or rejects with an error.
  */
 
-const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrgs = false) {
+const fetchTenantDetails = function (tenantId, aggregateValidOrgs = false) {
   return new Promise(async (resolve, reject) => {
     try {
-      let url, headers;
-      if (userToken) {
-        // External request
-        url = userServiceUrl + messageConstants.endpoints.TENANT_READ + '/' + tenantId;
-        headers = {
-          'content-type': 'application/json',
-          'X-auth-token': userToken,
-        };
-      } else {
-        // Internal request
-        url = userServiceUrl + messageConstants.endpoints.TENANT_READ_INTERNAL + '/' + tenantId;
-        headers = {
+      // Internal request
+      let url = userServiceUrl + messageConstants.endpoints.TENANT_READ_INTERNAL + '/' + tenantId;
+      headers = {
+        'content-type': 'application/json',
+        internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
+      };
+
+      const options = {
+        headers: {
           'content-type': 'application/json',
           internal_access_token: process.env.INTERNAL_ACCESS_TOKEN,
-        };
-      }
-      const options = {
-        headers,
+        },
       };
       request.get(url, options, userReadCallback);
       let result = {
@@ -210,6 +204,10 @@ const fetchTenantDetails = function (tenantId, userToken = '', aggregateValidOrg
 const fetchPublicTenantDetails = function (tenantId) {
   return new Promise(async (resolve, reject) => {
     try {
+
+      const cached = tenantCache.getCached(`tenant_${tenantId}`);
+      if (cached) return resolve(cached);
+      
       let url = userServiceUrl + messageConstants.endpoints.PUBLIC_BRANDING;
       const options = {
         headers: {
@@ -228,6 +226,7 @@ const fetchPublicTenantDetails = function (tenantId) {
           let response = JSON.parse(data.body);
           if (response.responseCode === httpStatusCode['ok_userService'].message) {
             result['data'] = response.result;
+            tenantCache.setCached(`tenant_${tenantId}`, result);
           } else {
             result.success = false;
           }

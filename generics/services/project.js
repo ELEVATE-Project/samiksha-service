@@ -41,6 +41,10 @@ const templateLists = function (externalId,userDetails) {
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
       }
       request.post(url, options, projectServiceCallback);
       let result = {
@@ -113,6 +117,10 @@ const programDetails = function (userToken, programId, userDetails, payload = {}
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
       }
       request.get(url, options, projectServiceCallback);
       let result = {
@@ -174,13 +182,17 @@ const programUpdate = function (userToken, programId, reqBody, tenantData, userD
         json: reqBody,
       };
       //add super admin details if role is not has orgadmin
-      if (userDetails?.roles && !userDetails.roles.includes(messageConstants.common.ORG_ADMIN)) {
+      if (userDetails?.roles && !userDetails.roles.includes(messageConstants.common.ORG_ADMIN) && !userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)) {
         _.assign(options.headers, {
           'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
           tenantId: tenantData.tenantId,
           orgId: tenantData.orgId.join(','),
         });
-      }
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN )){
+        _.assign(options.headers, {
+          orgId: tenantData.orgId.join(','),
+        });
+      }      
       request.post(url, options, projectServiceCallback);
       let result = {
         success: true,
@@ -374,6 +386,10 @@ const createChildProjectTemplate = function (projectTemplateExternalIds,userDeta
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
       }
       
       // Make POST request to Project Service
@@ -444,6 +460,10 @@ const createProgram = function (bodyData, userDetails) {
         _.assign(options.headers, {
           'admin-auth-token': process.env.ADMIN_AUTH_TOKEN,
           tenantId: userDetails.tenantAndOrgInfo.tenantId,
+          orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
+        });
+      }else if(userDetails?.roles && userDetails.roles.includes(messageConstants.common.TENANT_ADMIN)){
+        _.assign(options.headers, {
           orgId: userDetails.tenantAndOrgInfo.orgId.join(','),
         });
       }

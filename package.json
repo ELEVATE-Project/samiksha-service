@@ -37,7 +37,7 @@
     "dotenv": "6.2.0",
     "ejs": "3.1.10",
     "elevate-logger": "3.1.0",
-    "elevate-services-health-check": "0.0.9",
+    "elevate-services-health-check": "0.0.10",
     "express": "4.21.2",
     "express-cassandra": "2.9.1",
     "express-fileupload": "0.4.0",
@@ -72,7 +72,8 @@
     "require-all": "2.2.0",
     "uuid": "8.3.2",
     "xml2json": "0.12.0",
-    "yaml-js": "0.1.5"
+    "yaml-js": "0.1.5",
+    "node-cache": "5.1.2"
   },
   "devDependencies": {
     "grunt-apidoc": "0.11.0",
