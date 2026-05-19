@@ -18,6 +18,9 @@
 * **[4589] Deeplink Creation Issue with Org Admin Token**
   Fixed an issue where deeplink creation was not working as expected when using Org Admin tokens through Postman/API calls.
 
+* **[4841] Stale Survey and Observation Solutions Visible After Program Cleanup**
+  Fixed an issue where survey and observation solutions remained visible after program data cleanup, even though they were no longer consumable.
+
 ---
 
 ## 🔄 Migration / Deployment Instructions
