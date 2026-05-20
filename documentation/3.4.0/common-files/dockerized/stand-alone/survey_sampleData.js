@@ -223,7 +223,7 @@ let solutionData = [
     createdFor: ["creator_shiksha"],
     orgId: "default_code",
     tenantId: "default",
-    isExternalProgram: true,
+    isExternalProgram: false,
     parentEntityKey: "state",
     visibleToOrganizations: [],
     visibility: "CURRENT",
@@ -335,7 +335,7 @@ let solutionData = [
     createdFor: ["x"],
     orgId: "default_code",
     tenantId: "default",
-    isExternalProgram: true,
+    isExternalProgram: false,
     parentEntityKey: "state",
     visibleToOrganizations: [],
     visibility: "CURRENT",
@@ -427,7 +427,7 @@ let solutionData = [
     createdFor: [],
     orgId: "default_code",
     tenantId: "default",
-    isExternalProgram: true,
+    isExternalProgram: false,
     parentEntityKey: null,
     visibleToOrganizations: [],
     visibility: "CURRENT",
@@ -482,7 +482,7 @@ let solutionData = [
     type: "survey",
     subType: "survey",
     entities: [],
-    programId: new ObjectId("691ac38fdbb768073d672c7f"),
+    programId: new ObjectId("68ee4b79fb9bee08b93b6d34"),
     programExternalId: "idddoohjhjsss",
     programName: "Testing Functionality SG Program Template on Nov 17",
     programDescription: "Testing Functionality SG Program Template on Nov 17",
@@ -519,7 +519,7 @@ let solutionData = [
     createdFor: [],
     orgId: "default_code",
     tenantId: "default",
-    isExternalProgram: true,
+    isExternalProgram: false,
     parentEntityKey: null,
     visibleToOrganizations: [],
     visibility: "CURRENT",
@@ -772,7 +772,7 @@ let solutionData = [
     createdFor: [null],
     orgId: "default_code",
     tenantId: "default",
-    isExternalProgram: true,
+    isExternalProgram: false,
     scope: {
       professional_role: ["68876746b19aea00144c2af9"],
       professional_subroles: ["688767deb19aea00144c2b08"],
@@ -1100,9 +1100,914 @@ let criteriaData = [
     deleted: false,
     __v: 0,
   },
+  {
+    "_id" : new ObjectId("691b17ae1ce3f5956e9f3199"),
+    "externalId" : "PBL1_1763383206243-1763383214149",
+    "owner" : "1",
+    "timesUsed" : 12,
+    "weightage" : 20,
+    "name" : "Project based learning program",
+    "score" : "",
+    "remarks" : "",
+    "description" : "Project based learning program",
+    "resourceType" : [
+        "Program",
+        "Framework",
+        "Criteria"
+    ],
+    "language" : [
+        "English"
+    ],
+    "keywords" : [
+        "Keyword 1",
+        "Keyword 2"
+    ],
+    "concepts" : [
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        },
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdFor" : [],
+    "rubric" : {
+        "name" : "Project based learning program",
+        "description" : "Project based learning program",
+        "type" : "auto",
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "NA",
+                "expression" : ""
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "NA",
+                "expression" : ""
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "NA",
+                "expression" : ""
+            }
+        }
+    },
+    "evidences" : [
+        {
+            "code" : "OB",
+            "sections" : [
+                {
+                    "code" : "S1",
+                    "questions" : [
+                        new ObjectId("691b17ae1ce3f5956e9f3185"),
+                        new ObjectId("691b17ae1ce3f5956e9f3186"),
+                        new ObjectId("691b17ae1ce3f5956e9f3187"),
+                        new ObjectId("691b17ae1ce3f5956e9f3188"),
+                        new ObjectId("691b17ae1ce3f5956e9f3189"),
+                        new ObjectId("691b17ae1ce3f5956e9f318a"),
+                        new ObjectId("691b17ae1ce3f5956e9f318b"),
+                        new ObjectId("691b17ae1ce3f5956e9f318c"),
+                        new ObjectId("691b17ae1ce3f5956e9f318d"),
+                        new ObjectId("691b17ae1ce3f5956e9f318e")
+                    ]
+                }
+            ]
+        }
+    ],
+    "flag" : "",
+    "criteriaType" : "manual",
+    "frameworkCriteriaId" : new ObjectId("691b17a61ce3f5956e9f3134"),
+    "parentCriteriaId" : new ObjectId("691b17a71ce3f5956e9f3138"),
+    "orgId" : "tripura",
+    "tenantId" : "shikshagrahanew",
+    "updatedAt" : new Date("2025-11-17T12:40:14.150Z"),
+    "createdAt" : new Date("2025-11-17T12:40:06.446Z"),
+    "deleted" : false,
+    "__v" : 0
+}
 ];
 
 let criteriaQuestionsData = [
+  {
+    "_id" : new ObjectId("691b17ae1ce3f5956e9f3199"),
+    "orgId" : "tripura",
+    "tenantId" : "shikshagrahanew",
+    "__v" : 0,
+    "concepts" : [ 
+        {
+            "identifier" : "LPD20100",
+            "name" : "Teacher_Performance",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }, 
+        {
+            "identifier" : "LPD20400",
+            "name" : "Instructional_Programme",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }, 
+        {
+            "identifier" : "LPD20200",
+            "name" : "Teacher_Empowerment",
+            "objectType" : "Concept",
+            "relation" : "associatedTo",
+            "description" : null,
+            "index" : null,
+            "status" : null,
+            "depth" : null,
+            "mimeType" : null,
+            "visibility" : null,
+            "compatibilityLevel" : null
+        }
+    ],
+    "createdAt" : new Date("2025-11-17T12:40:14.160Z"),
+    "createdFor" : [],
+    "criteriaType" : "manual",
+    "deleted" : false,
+    "description" : "Project based learning program",
+    "evidences" : [ 
+        {
+            "code" : "OB",
+            "sections" : [ 
+                {
+                    "code" : "S1",
+                    "questions" : [ 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f3185"),
+                            "externalId" : "Q1_1763383206243-1763383214132",
+                            "question" : [ 
+                                "Name of the school", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "KARNATAKA PUBLIC SCHOOLS GHPS B MATAKERE"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "GHPS BANKAVADI"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "GHPS BADAGA"
+                                }, 
+                                {
+                                    "value" : "R4",
+                                    "label" : "GLPS HOSAKOTE"
+                                }, 
+                                {
+                                    "value" : "R5",
+                                    "label" : "GHPS KATAVALU"
+                                }, 
+                                {
+                                    "value" : "R6",
+                                    "label" : "GLPS MATADA KATTE"
+                                }, 
+                                {
+                                    "value" : "R7",
+                                    "label" : "GHPS SAGARE"
+                                }, 
+                                {
+                                    "value" : "R8",
+                                    "label" : "GLPS JORE HALLA"
+                                }, 
+                                {
+                                    "value" : "R9",
+                                    "label" : "GLPS DEVALAPURA"
+                                }, 
+                                {
+                                    "value" : "R10",
+                                    "label" : "GLPS HULIKURA"
+                                }, 
+                                {
+                                    "value" : "R11",
+                                    "label" : "GHPS BOPPANA HALLI"
+                                }, 
+                                {
+                                    "value" : "R12",
+                                    "label" : "GHPS JAKKA HALLI"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "1",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3143"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.277Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f3186"),
+                            "externalId" : "Q2_1763383206243-1763383214133",
+                            "question" : [ 
+                                "Date of activity conducted", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "date",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true,
+                                "max" : "",
+                                "min" : ""
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "dateFormat" : "DD-MM-YYYY",
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "2",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3149"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.307Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f3187"),
+                            "externalId" : "Q3_1763383206243-1763383214134",
+                            "question" : [ 
+                                "Has the teacher received any orientation/training on Project-Based Learning (PBL)?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "Yes"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "No"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "3",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f314f"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.338Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f3188"),
+                            "externalId" : "Q4_1763383206243-1763383214134",
+                            "question" : [ 
+                                "Does the teacher clearly explain the scientific concept during the class?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "Yes"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "No"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "To some extent"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p1",
+                            "questionNumber" : "4",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3155"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.366Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f3189"),
+                            "externalId" : "Q5_1763383206243-1763383214135",
+                            "question" : [ 
+                                "Is there sufficient teaching-learning material available in the classroom?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : true,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "Yes"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "No"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "Others (Please specify)"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p2",
+                            "questionNumber" : "5",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f315b"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.397Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f318a"),
+                            "externalId" : "Q6_1763383206243-1763383214135",
+                            "question" : [ 
+                                "Does the school have a science lab or a dedicated space for displaying models?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "Yes, a fully equipped science lab"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "Yes, a basic science corner"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "No such space available"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "file" : {
+                                "required" : true,
+                                "type" : [ 
+                                    "image/jpeg", 
+                                    "docx", 
+                                    "pdf", 
+                                    "ppt"
+                                ],
+                                "minCount" : 0,
+                                "maxCount" : 10,
+                                "caption" : "FALSE"
+                            },
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p2",
+                            "questionNumber" : "6",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3161"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.429Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f318b"),
+                            "externalId" : "Q7_1763383206243-1763383214136",
+                            "question" : [ 
+                                "Which digital platforms do students have access to for science learning?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "multiselect",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "DIKSHA"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "YouTube"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "None"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p2",
+                            "questionNumber" : "7",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3167"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.467Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f318c"),
+                            "externalId" : "Q8_1763383206243-1763383214136",
+                            "question" : [ 
+                                "How many student-created science projects/models are currently available/displayed in your school?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "number",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true,
+                                "IsNumber" : "true"
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p3",
+                            "questionNumber" : "8",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f316d"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.499Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f318d"),
+                            "externalId" : "Q9_1763383206243-1763383214137",
+                            "question" : [ 
+                                "Are students actively participating in classroom discussions or science-related activities?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "radio",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [ 
+                                {
+                                    "value" : "R1",
+                                    "label" : "Yes"
+                                }, 
+                                {
+                                    "value" : "R2",
+                                    "label" : "No"
+                                }, 
+                                {
+                                    "value" : "R3",
+                                    "label" : "Few students"
+                                }
+                            ],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p3",
+                            "questionNumber" : "9",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3173"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.531Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }, 
+                        {
+                            "_id" : new ObjectId("691b17ae1ce3f5956e9f318e"),
+                            "externalId" : "Q10_1763383206243-1763383214137",
+                            "question" : [ 
+                                "On a scale of 1 to 10, how clearly were students able to articulate the science concept after the class?", 
+                                ""
+                            ],
+                            "tip" : "",
+                            "hint" : "",
+                            "responseType" : "slider",
+                            "value" : "",
+                            "isCompleted" : false,
+                            "showRemarks" : false,
+                            "remarks" : "",
+                            "visibleIf" : "",
+                            "options" : [],
+                            "sliderOptions" : [],
+                            "children" : [],
+                            "questionGroup" : [ 
+                                "A1"
+                            ],
+                            "questionType" : "auto",
+                            "modeOfCollection" : "onfield",
+                            "usedForScoring" : "",
+                            "fileName" : [],
+                            "validation" : {
+                                "required" : true,
+                                "max" : "10.0",
+                                "min" : "1.0"
+                            },
+                            "accessibility" : "No",
+                            "canBeNotApplicable" : "false",
+                            "instanceQuestions" : [],
+                            "isAGeneralQuestion" : false,
+                            "autoCapture" : false,
+                            "rubricLevel" : "",
+                            "sectionHeader" : "",
+                            "allowAudioRecording" : false,
+                            "page" : "p3",
+                            "questionNumber" : "10",
+                            "weightage" : null,
+                            "prefillFromEntityProfile" : false,
+                            "entityFieldName" : "",
+                            "isEditable" : true,
+                            "showQuestionInPreview" : false,
+                            "createdFromQuestionId" : new ObjectId("691b17ad1ce3f5956e9f3179"),
+                            "orgId" : "tripura",
+                            "tenantId" : "shikshagrahanew",
+                            "reportType" : "default",
+                            "updatedAt" : new Date("2025-11-17T12:40:14.138Z"),
+                            "createdAt" : new Date("2025-11-17T12:40:13.574Z"),
+                            "deleted" : false,
+                            "__v" : 0,
+                            "criteriaId" : new ObjectId("691b17ae1ce3f5956e9f3199")
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "externalId" : "PBL1_1763383206243-1763383214149",
+    "flag" : "",
+    "frameworkCriteriaId" : new ObjectId("691b17a61ce3f5956e9f3134"),
+    "keywords" : [ 
+        "Keyword 1", 
+        "Keyword 2"
+    ],
+    "language" : [ 
+        "English"
+    ],
+    "name" : "Project based learning program",
+    "owner" : "1",
+    "remarks" : "",
+    "resourceType" : [ 
+        "Program", 
+        "Framework", 
+        "Criteria"
+    ],
+    "rubric" : {
+        "name" : "Project based learning program",
+        "description" : "Project based learning program",
+        "type" : "auto",
+        "levels" : {
+            "L1" : {
+                "level" : "L1",
+                "label" : "Level 1",
+                "description" : "NA",
+                "expression" : ""
+            },
+            "L2" : {
+                "level" : "L2",
+                "label" : "Level 2",
+                "description" : "NA",
+                "expression" : ""
+            },
+            "L3" : {
+                "level" : "L3",
+                "label" : "Level 3",
+                "description" : "NA",
+                "expression" : ""
+            }
+        }
+    },
+    "score" : "",
+    "showRemarks" : null,
+    "timesUsed" : 12,
+    "updatedAt" : new Date("2025-11-17T12:40:14.160Z"),
+    "weightage" : 20
+},
   {
     _id: new ObjectId("691c1b17266ef5649ce41042"),
     orgId: "default_code",
@@ -5252,7 +6157,7 @@ let surveyData = [
     description: "This is a survey for school performance",
     createdBy: "3",
     solutionId: new ObjectId("691ac8ae1ce3f5956e9f220a"),
-    programId: new ObjectId("691ac38fdbb768073d672c7f"),
+    programId: new ObjectId("68ee4b79fb9bee08b93b6d34"),
     programExternalId: "idddoohjhjsss",
     solutionExternalId: "797d3540-c383-11f0-829d-c906cd7c8b97-1763362990221",
     startDate: new Date("2025-05-15T07:23:25.039Z"),
@@ -5310,6 +6215,1288 @@ let organizationExtensionData = [
 	},
 ]
 
+
+let programData = [
+	{
+		_id: new ObjectId('68ee4b79fb9bee08b93b6d34'),
+		resourceType: ['program'],
+		language: ['English'],
+		keywords: ['CBSE', 'SQAA'],
+		concepts: [],
+		components: [
+			{
+				_id: new ObjectId('68ee4bb3fb9bee08b93b6d68'),
+				order: 1,
+			},
+		],
+		isAPrivateProgram: false,
+		isDeleted: false,
+		requestForPIIConsent: true,
+		rootOrganisations: [],
+		createdFor: [],
+		deleted: false,
+		status: 'active',
+		owner: '1',
+		createdBy: '1',
+		updatedBy: '1',
+		externalId: 'Testing_for_prTGCEBGFFRYVBDFGJ7DGDGF12SDFGHJ345CVBNMDRGYY',
+		name: 'custom observation as a task check on oct 14th facilitator',
+		description: 'custom observation as a task check on oct 14th facilitator',
+		startDate: new Date('2025-09-08T18:30:00.000Z'),
+		endDate: new Date('2030-09-09T18:29:59.000Z'),
+		imageCompression: {
+			quality: 10,
+		},
+		metaInformation: {
+			state: ['Tripura'],
+			recommendedFor: ['Facilitator'],
+		},
+		tenantId: 'default',
+		orgId: 'default_code',
+		updatedAt: new Date('2025-10-14T13:18:46.936Z'),
+		createdAt: new Date('2025-10-14T13:09:13.649Z'),
+		__v: 0,
+		scope: {
+			professional_role: ['68876746b19aea00144c2af9'],
+			professional_subroles: ['688767deb19aea00144c2b08'],
+			organizations: ['default_code'],
+			state: ['6852c86c7248c20014b38a4d'],
+			district: ['6852c8ae7248c20014b38a57'],
+			block: ['ALL'],
+			cluster: ['ALL'],
+			school: ['ALL'],
+		},
+	},
+	{
+		_id: new ObjectId('68e8c284201642091e0148c1'),
+		resourceType: ['program'],
+		language: ['English'],
+		keywords: ['CBSE', 'SQAA'],
+		concepts: [],
+		components: [
+			{
+				_id: new ObjectId('68e8c635201642091e014914'),
+				order: 1,
+			},
+		],
+		isAPrivateProgram: false,
+		isDeleted: false,
+		requestForPIIConsent: true,
+		rootOrganisations: [],
+		createdFor: [],
+		deleted: false,
+		status: 'active',
+		owner: '1',
+		createdBy: '1',
+		updatedBy: '1',
+		externalId: 'Testing_for_prTGCEBGFFRYVBDFGJ7DGDGF123456',
+		name: 'custom observation as a task check on oct 10th facilitator',
+		description: 'custom observation as a task check on oct 10th facilitator',
+		startDate: new Date('2025-09-08T18:30:00.000Z'),
+		endDate: new Date('2030-09-09T18:29:59.000Z'),
+		imageCompression: {
+			quality: 10,
+		},
+		metaInformation: {
+			state: ['Tripura'],
+			recommendedFor: ['Facilitator'],
+		},
+		tenantId: 'default',
+		orgId: 'default_code',
+		updatedAt: new Date('2025-10-10T08:44:35.535Z'),
+		createdAt: new Date('2025-10-10T08:23:32.295Z'),
+		__v: 0,
+		scope: {
+			professional_role: ['68876746b19aea00144c2af9'],
+			professional_subroles: ['688767deb19aea00144c2b08'],
+			organizations: ['default_code'],
+			state: ['6852c86c7248c20014b38a4d'],
+			district: ['6852c8ae7248c20014b38a57'],
+			block: ['ALL'],
+			cluster: ['ALL'],
+			school: ['ALL'],
+		},
+	},
+	{
+		_id: new ObjectId('68c98d8f38aee0086ee61070'),
+		resourceType: ['program'],
+		language: ['English'],
+		keywords: [],
+		concepts: [],
+		components: [
+			{
+				_id: new ObjectId('68c98d9538aee0086ee61096'),
+				order: 1,
+			},
+		],
+		isAPrivateProgram: false,
+		isDeleted: false,
+		requestForPIIConsent: true,
+		rootOrganisations: [],
+		createdFor: [],
+		deleted: false,
+		status: 'active',
+		owner: '1',
+		createdBy: '1',
+		updatedBy: '1',
+		externalId: 'ProgramTestKey1',
+		name: 'Program name is sep 16 9 30',
+		description: 'Description of the Program',
+		metaInformation: {
+			state: ['Tripura'],
+			recommendedFor: ['functionaries-officials', 'teacher-educators-coordinators'],
+		},
+		imageCompression: {
+			quality: 10,
+		},
+		startDate: new Date('2025-07-29T18:30:00.000Z'),
+		endDate: new Date('2030-01-30T18:29:59.000Z'),
+		tenantId: 'default',
+		orgId: 'default_code',
+		updatedAt: new Date('2025-09-16T17:06:14.752Z'),
+		createdAt: new Date('2025-09-16T16:17:19.239Z'),
+		__v: 0,
+		scope: {
+			professional_role: ['68876746b19aea00144c2af9'],
+			professional_subroles: ['688767deb19aea00144c2b08'],
+			organizations: ['default_code'],
+			state: ['6852c86c7248c20014b38a4d'],
+			district: ['6852c8ae7248c20014b38a57'],
+			block: ['ALL'],
+			cluster: ['ALL'],
+			school: ['ALL'],
+		},
+	},
+	{
+		_id: new ObjectId('68d3b9681e09f9b5b1e0693d'),
+		resourceType: ['program'],
+		language: ['English'],
+		keywords: [],
+		concepts: [],
+		components: [
+			{
+				_id: new ObjectId('68d3b9a72ba17cc3cb238821'),
+				order: 1,
+			},
+		],
+		isAPrivateProgram: false,
+		isDeleted: false,
+		requestForPIIConsent: true,
+		rootOrganisations: [],
+		createdFor: [],
+		deleted: false,
+		status: 'active',
+		owner: '1',
+		createdBy: '1',
+		updatedBy: '1',
+		externalId: 'SUP_as_a_task_test_sept_24_1500',
+		name: 'SUP_as_a_task_test_sept_24_1500 oct 3',
+		description: 'This is the description of the program.',
+		metaInformation: {
+			state: ['Tripura'],
+			recommendedFor: ['functionaries-officials'],
+		},
+		imageCompression: {
+			quality: 10,
+		},
+		startDate: new Date('2025-07-29T18:30:00.000Z'),
+		endDate: new Date('2030-12-30T18:29:59.000Z'),
+		tenantId: 'default',
+		orgId: 'default_code',
+		updatedAt: new Date('2025-10-03T09:20:39.907Z'),
+		createdAt: new Date('2025-09-24T09:27:04.322Z'),
+		__v: 0,
+		scope: {
+			professional_role: ['68876746b19aea00144c2af9'],
+			professional_subroles: ['688767deb19aea00144c2b08'],
+			organizations: ['default_code'],
+			state: ['6852c86c7248c20014b38a4d'],
+			district: ['6852c8ae7248c20014b38a57'],
+			block: ['ALL'],
+			cluster: ['ALL'],
+			school: ['ALL'],
+		},
+	},,
+  {
+    _id: new ObjectId("691c1b06e71d83091cf9c336"),
+    resourceType: ["program"],
+    language: ["English"],
+    keywords: [],
+    concepts: [],
+    components: [
+      {
+        _id: new ObjectId("691c1b10e71d83091cf9c35d"),
+        order: 1,
+      },
+      {
+        _id: new ObjectId("691c1b17266ef5649ce4104c"),
+        order: 2,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c474"),
+        order: 3,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c495"),
+        order: 4,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c4b6"),
+        order: 5,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c4da"),
+        order: 6,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c4fb"),
+        order: 7,
+      },
+      {
+        _id: new ObjectId("691c1f96e71d83091cf9c51c"),
+        order: 8,
+      },
+      {
+        _id: new ObjectId("691c1f96266ef5649ce41171"),
+        order: 9,
+      },
+    ],
+    isAPrivateProgram: false,
+    isDeleted: false,
+    requestForPIIConsent: true,
+    rootOrganisations: [],
+    createdFor: [],
+    deleted: false,
+    status: "active",
+    owner: "1",
+    createdBy: "1",
+    updatedBy: "1",
+    externalId: "Testing_for_creation_sup_18_11",
+    name: "Testing for creation sup 18-11",
+    description: "This is the description of the program.",
+    metaInformation: {
+      state: ["Tripura"],
+      recommendedFor: ["student"],
+    },
+    imageCompression: {
+      quality: 10,
+    },
+    startDate: new Date("2025-11-16T18:30:00.000Z"),
+    endDate: new Date("2030-11-28T18:29:59.000Z"),
+	tenantId: 'default',
+	orgId: 'default_code',
+    updatedAt: new Date("2025-11-18T07:26:14.940Z"),
+    createdAt: new Date("2025-11-18T07:06:46.613Z"),
+    __v: 0,
+    scope: {
+      professional_role: ["6867a3c10d8d24001465c2d1"],
+      professional_subroles: ["6867a1420d8d24001465c28f"],
+      state: ["6863a9941d52e30014093ad9"],
+      district: ["6863aa5f1d52e30014093b41"],
+      block: ["ALL"],
+      cluster: ["ALL"],
+      school: ["ALL"],
+    },
+  },
+  {
+    _id: new ObjectId("691b10a0dbb768073d67328c"),
+    resourceType: ["program"],
+    language: ["English"],
+    keywords: [],
+    concepts: [],
+    components: [
+      {
+        _id: new ObjectId("691b141a1ce3f5956e9f30e8"),
+        order: 1,
+      },
+      {
+        _id: new ObjectId("691b1783dbb768073d67330d"),
+        order: 2,
+      },
+      {
+        _id: new ObjectId("691b1790dbb768073d673366"),
+        order: 3,
+      },
+      {
+        _id: new ObjectId("691b179e7b8c31191b8facee"),
+        order: 4,
+      },
+      {
+        _id: new ObjectId("691b17ae1ce3f5956e9f319d"),
+        order: 5,
+      },
+      {
+        _id: new ObjectId("691b192a1ce3f5956e9f320e"),
+        order: 6,
+      },
+    ],
+    isAPrivateProgram: false,
+    isDeleted: false,
+    requestForPIIConsent: true,
+    rootOrganisations: [],
+    createdFor: [],
+    deleted: false,
+    status: "active",
+    owner: "1",
+    createdBy: "1",
+    updatedBy: "1",
+    externalId: "Testing_for_creation_sup_17_11",
+    name: "Testing for creation sup 17-11",
+    description: "This is the description of the program.",
+    metaInformation: {
+      state: ["Tripura"],
+      recommendedFor: ["student"],
+    },
+    imageCompression: {
+      quality: 10,
+    },
+    startDate: new Date("2025-11-16T18:30:00.000Z"),
+    endDate: new Date("2030-11-28T18:29:59.000Z"),
+	tenantId: 'default',
+	orgId: 'default_code',
+    updatedAt: new Date("2025-11-17T12:46:34.713Z"),
+    createdAt: new Date("2025-11-17T12:10:08.914Z"),
+    __v: 0,
+    scope: {
+      professional_role: ["6867a3c10d8d24001465c2d1"],
+      professional_subroles: ["6867a1420d8d24001465c28f"],
+      state: ["6863a9941d52e30014093ad9"],
+      district: ["6863aa5f1d52e30014093b41"],
+      block: ["ALL"],
+      cluster: ["ALL"],
+      school: ["ALL"],
+    },
+  },
+];
+
+let observationSubmissionData = [
+  {
+    "_id" : new ObjectId("69f323b461214b5a3cb59e4f"),
+    "entityId" : "6852c9217248c20014b3917d",
+    "observationId" : new ObjectId("68259459cfa7cfe32cd8341b"),
+    "createdBy" : "1829",
+    "status" : "started",
+    "evidencesStatus" : [
+        {
+            "externalId" : "OB",
+            "tip" : null,
+            "name" : "Observation",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : false,
+            "notApplicable" : false,
+            "canBeNotAllowed" : false,
+            "remarks" : null,
+            "startTime" : "",
+            "endTime" : "",
+            "isSubmitted" : false,
+            "submissions" : []
+        }
+    ],
+    "evidences" : {
+        "OB" : {
+            "externalId" : "OB",
+            "tip" : null,
+            "name" : "Observation",
+            "description" : null,
+            "modeOfCollection" : "onfield",
+            "canBeNotApplicable" : false,
+            "notApplicable" : false,
+            "canBeNotAllowed" : false,
+            "remarks" : null,
+            "startTime" : "",
+            "endTime" : "",
+            "isSubmitted" : false,
+            "submissions" : []
+        }
+    },
+    "criteria" : [
+        {
+            "_id" : new ObjectId("695f611490c24db418190d18"),
+            "externalId" : "PBL1_1767858452307",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "Project based learning program",
+            "score" : "",
+            "remarks" : "",
+            "description" : "Project based learning program",
+            "rubric" : {
+                "name" : "Project based learning program",
+                "description" : "Project based learning program",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "NA",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f614690c24db418190d8a"),
+            "externalId" : "D1C1_1767858502319",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "criteria 1",
+            "score" : "",
+            "remarks" : "",
+            "description" : "criteria 1",
+            "rubric" : {
+                "name" : "criteria 1",
+                "description" : "criteria 1",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "Fail",
+                        "expression" : ""
+                    },
+                    "L2" : {
+                        "level" : "L2",
+                        "label" : "Level 2",
+                        "description" : "Pass",
+                        "expression" : ""
+                    },
+                    "L3" : {
+                        "level" : "L3",
+                        "label" : "Level 3",
+                        "description" : "",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f614690c24db418190d8b"),
+            "externalId" : "D2C1_1767858502319",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "criteria 2",
+            "score" : "",
+            "remarks" : "",
+            "description" : "criteria 2",
+            "rubric" : {
+                "name" : "criteria 2",
+                "description" : "criteria 2",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "Fail",
+                        "expression" : ""
+                    },
+                    "L2" : {
+                        "level" : "L2",
+                        "label" : "Level 2",
+                        "description" : "Pass",
+                        "expression" : ""
+                    },
+                    "L3" : {
+                        "level" : "L3",
+                        "label" : "Level 3",
+                        "description" : "",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f643dfc437806c2ac1f94"),
+            "externalId" : "PBL1_1767859261677",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "Project based learning program",
+            "score" : "",
+            "remarks" : "",
+            "description" : "Project based learning program",
+            "rubric" : {
+                "name" : "Project based learning program",
+                "description" : "Project based learning program",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "NA",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f64a990c24db418190e35"),
+            "externalId" : "D1C1_1767859369379",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "criteria 1",
+            "score" : "",
+            "remarks" : "",
+            "description" : "criteria 1",
+            "rubric" : {
+                "name" : "criteria 1",
+                "description" : "criteria 1",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "Fail",
+                        "expression" : ""
+                    },
+                    "L2" : {
+                        "level" : "L2",
+                        "label" : "Level 2",
+                        "description" : "Pass",
+                        "expression" : ""
+                    },
+                    "L3" : {
+                        "level" : "L3",
+                        "label" : "Level 3",
+                        "description" : "",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f64a990c24db418190e36"),
+            "externalId" : "D2C1_1767859369379",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "criteria 2",
+            "score" : "",
+            "remarks" : "",
+            "description" : "criteria 2",
+            "rubric" : {
+                "name" : "criteria 2",
+                "description" : "criteria 2",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "Fail",
+                        "expression" : ""
+                    },
+                    "L2" : {
+                        "level" : "L2",
+                        "label" : "Level 2",
+                        "description" : "Pass",
+                        "expression" : ""
+                    },
+                    "L3" : {
+                        "level" : "L3",
+                        "label" : "Level 3",
+                        "description" : "",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f679290c24db418190f20"),
+            "externalId" : "PBL1_1767860081394-1767860114288",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "Project based learning program",
+            "score" : "",
+            "remarks" : "",
+            "description" : "Project based learning program",
+            "rubric" : {
+                "name" : "Project based learning program",
+                "description" : "Project based learning program",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "NA",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "parentCriteriaId" : new ObjectId("695f679190c24db418190ebf"),
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        },
+        {
+            "_id" : new ObjectId("695f679290c24db418190f22"),
+            "externalId" : "PBL1_1767860112889-1767860114292",
+            "owner" : "1",
+            "timesUsed" : 12,
+            "weightage" : 40,
+            "name" : "Project based learning program",
+            "score" : "",
+            "remarks" : "",
+            "description" : "Project based learning program",
+            "rubric" : {
+                "name" : "Project based learning program",
+                "description" : "Project based learning program",
+                "type" : "auto",
+                "levels" : {
+                    "L1" : {
+                        "level" : "L1",
+                        "label" : "Level 1",
+                        "description" : "NA",
+                        "expression" : ""
+                    }
+                }
+            },
+            "flag" : "",
+            "criteriaType" : "manual",
+            "parentCriteriaId" : new ObjectId("695f679190c24db418190ec0"),
+            "orgId" : "default_code",
+            "tenantId" : "default",
+            "deleted" : false
+        }
+    ],
+    "themes" : [
+        {
+            "name" : "Observation Theme",
+            "type" : "theme",
+            "label" : "theme",
+            "externalId" : "OB",
+            "weightage" : 40,
+            "criteria" : [
+                {
+                    "criteriaId" : new ObjectId("695f611490c24db418190d18"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f614690c24db418190d8b"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f614690c24db418190d8a"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f643dfc437806c2ac1f94"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f64a990c24db418190e35"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f64a990c24db418190e36"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f679290c24db418190f20"),
+                    "weightage" : 40
+                },
+                {
+                    "criteriaId" : new ObjectId("695f679290c24db418190f22"),
+                    "weightage" : 40
+                }
+            ]
+        }
+    ],
+    "entityExternalId" : "16070400105",
+    "entityInformation" : {
+        "targetedEntityTypes" : [],
+        "externalId" : "16070400105",
+        "name" : "BAMPUR HIGH SCHOOL",
+        "registryDetails" : {
+            "code" : "16070400105",
+            "locationId" : "16070400105"
+        }
+    },
+    "observationInformation" : {
+        "name" : "Sanity testing Observation without Rubric on jan8 SUP Testing 3 non-continuous",
+        "description" : "The Teacher will observe the activity and subsequently fill out a form to track its progress. This process will help identify how many schools have completed the activity, specify which activities have been accomplished in each school, and, if completed, allow stakeholders to provide feedback on the activity.",
+        "createdBy" : "1829",
+        "frameworkId" : new ObjectId("68ee4b7940fd155dceef086a"),
+    "frameworkExternalId": "fb34d196-a8fe-11f0-9793-553f35f97dd1",
+        "solutionId" : new ObjectId("691c1b17266ef5649ce4104c"),
+        "programId" : new ObjectId("691c1b06e71d83091cf9c336"),
+        "programExternalId" : "Testing_SL_asfdsdfd_jan08as2",
+        "solutionExternalId" : "27fc4692-ec6a-11f0-a561-958e99b15c3e-OBSERVATION-TEMPLATE_CHILD",
+        "startDate" : new Date("2026-04-30T09:41:01.943Z"),
+        "endDate" : new Date("2027-04-30T09:41:01.943Z"),
+        "status" : "published",
+        "entityTypeId" :null,
+        "entityType" : "school",
+        "createdFor" : [
+            "1829"
+        ],
+        "rootOrganisations" : [],
+        "isAPrivateProgram" : false,
+        "link" : "39de14c785695422a912774a0704c21b",
+        "isExternalProgram" : true,
+        "userProfile" : {
+            "id" : "1829",
+            "email_verified" : "false",
+            "name" : "user student",
+            "username" : "userstuden_7xjqtnwrvroyh4",
+            "phone_code" : null,
+            "about" : null,
+            "share_link" : null,
+            "status" : "ACTIVE",
+            "image" : null,
+            "has_accepted_terms_and_conditions" : false,
+            "languages" : null,
+            "preferred_language" : {
+                "value" : "en",
+                "label" : "English"
+            },
+            "tenant_code" : "shikshalokam",
+            "created_at" : "2025-09-04T13:36:47.193Z",
+            "updated_at" : "2025-09-04T13:36:47.193Z",
+            "deleted_at" : null,
+            "organizations" : [
+                {
+                    "id" : "33",
+                    "name" : "tan90",
+                    "code" : "tan90",
+                    "description" : "Tan90 specializes in providing educational STEAM",
+                    "status" : "ACTIVE",
+                    "related_orgs" : [],
+                    "tenant_code" : "shikshalokam",
+                    "meta" : null,
+                    "created_by" : 1,
+                    "updated_by" : 1709,
+                    "roles" : [
+                        {
+                            "id" : "23",
+                            "title" : "mentee",
+                            "label" : "mentee",
+                            "user_type" : 0,
+                            "status" : "ACTIVE",
+                            "organization_id" : "10",
+                            "visibility" : "PUBLIC",
+                            "tenant_code" : "shikshalokam"
+                        },
+                        {
+                            "id" : "41",
+                            "title" : "learner",
+                            "label" : "Learner",
+                            "user_type" : 0,
+                            "status" : "ACTIVE",
+                            "organization_id" : "10",
+                            "visibility" : "PUBLIC",
+                            "tenant_code" : "shikshalokam"
+                        }
+                    ]
+                }
+            ],
+            "permissions" : [
+                {
+                    "module" : "user",
+                    "request_type" : [
+                        "POST",
+                        "DELETE",
+                        "GET",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "form",
+                    "request_type" : [
+                        "POST"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "cloud-services",
+                    "request_type" : [
+                        "POST",
+                        "DELETE",
+                        "GET",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "organization",
+                    "request_type" : [
+                        "POST",
+                        "GET"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "entity-type",
+                    "request_type" : [
+                        "POST"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "entity",
+                    "request_type" : [
+                        "GET"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "account",
+                    "request_type" : [
+                        "GET",
+                        "POST"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "user-role",
+                    "request_type" : [
+                        "GET"
+                    ],
+                    "service" : "user"
+                },
+                {
+                    "module" : "organization-feature",
+                    "request_type" : [
+                        "GET"
+                    ],
+                    "service" : "user"
+                }
+            ],
+            "block" : {
+                "value" : "6852c8de7248c20014b38a9d",
+                "label" : "AGARTALA MUNICIPAL COORPORATION",
+                "externalId" : "160101"
+            },
+            "cluster" : {
+                "value" : "6852c9027248c20014b38c34",
+                "label" : "ACHARYA PRAFULLA CHANDRA H/S SCHOOL",
+                "externalId" : "1601010004"
+            },
+            "district" : {
+                "value" : "6852c8ae7248c20014b38a57",
+                "label" : "West Tripura",
+                "externalId" : "westTripura"
+            },
+            "professional_role" : {
+                "value" : "6825939a97b5680013e6a166",
+                "label" : "Student",
+                "externalId" : "student"
+            },
+            "professional_subroles" : [
+                {
+                    "value" : "68259c4397b5680013e6a1fb",
+                    "label" : "Student (Preschool- Class 2)",
+                    "externalId" : "student-preschool-class-2"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a1fc",
+                    "label" : "Student (Class 1-5)",
+                    "externalId" : "student-class-1-5"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a1fe",
+                    "label" : "Student (Class 6-8)",
+                    "externalId" : "student-class-6-8"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a1ff",
+                    "label" : "Student (Class 6-10)",
+                    "externalId" : "student-class-6-10"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a200",
+                    "label" : "Student (Class 9-10)",
+                    "externalId" : "student-class-9-10"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a1fd",
+                    "label" : "Student (Class 3-5)",
+                    "externalId" : "student-class-3-5"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a202",
+                    "label" : "Student (Class 8-10)",
+                    "externalId" : "student-class-8-10"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a203",
+                    "label" : "Student (Higher Education)",
+                    "externalId" : "student-higher-education"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a201",
+                    "label" : "Student (Class 11-12)",
+                    "externalId" : "student-class-11-12"
+                },
+                {
+                    "value" : "68259c4397b5680013e6a204",
+                    "label" : "Student (pre-service teacher))",
+                    "externalId" : "student-pre-service-teacher"
+                }
+            ],
+            "state" : {
+                "value" : "6852c86c7248c20014b38a4d",
+                "label" : "Tripura",
+                "externalId" : "16"
+            }
+        },
+        "orgId" : "default_code",
+        "tenantId" : "default",
+        "updatedAt" : new Date("2026-04-30T09:41:02.031Z"),
+        "createdAt" : new Date("2026-01-08T08:15:14.310Z")
+    },
+    "feedback" : [],
+    "solutionId" : new ObjectId("691c1b17266ef5649ce4104c"),
+    "solutionExternalId" : "27fc4692-ec6a-11f0-a561-958e99b15c3e-OBSERVATION-TEMPLATE_CHILD",
+    "submissionsUpdatedHistory" : [],
+    "entityType" : "school",
+    "programId" : new ObjectId("691c1b06e71d83091cf9c336"),
+    "programExternalId" : "Testing_SL_asfdsdfd_jan08as2",
+    "submissionNumber" : 1,
+    "pointsBasedMaxScore" : 0,
+    "pointsBasedScoreAchieved" : 0,
+    "pointsBasedPercentageScore" : 0,
+    "isAPrivateProgram" : false,
+    "scoringSystem" : null,
+    "isRubricDriven" : false,
+    "userProfile" : {
+        "id" : "1829",
+        "email_verified" : "false",
+        "name" : "user student",
+        "username" : "userstuden_7xjqtnwrvroyh4",
+        "phone_code" : null,
+        "about" : null,
+        "share_link" : null,
+        "status" : "ACTIVE",
+        "image" : null,
+        "has_accepted_terms_and_conditions" : false,
+        "languages" : null,
+        "preferred_language" : {
+            "value" : "en",
+            "label" : "English"
+        },
+        "tenant_code" : "shikshalokam",
+        "created_at" : "2025-09-04T13:36:47.193Z",
+        "updated_at" : "2025-09-04T13:36:47.193Z",
+        "deleted_at" : null,
+        "organizations" : [
+            {
+                "id" : "33",
+                "name" : "tan90",
+                "code" : "tan90",
+                "description" : "Tan90 specializes in providing educational STEAM",
+                "status" : "ACTIVE",
+                "related_orgs" : [],
+                "tenant_code" : "shikshalokam",
+                "meta" : null,
+                "created_by" : 1,
+                "updated_by" : 1709,
+                "roles" : [
+                    {
+                        "id" : "23",
+                        "title" : "mentee",
+                        "label" : "mentee",
+                        "user_type" : 0,
+                        "status" : "ACTIVE",
+                        "organization_id" : "10",
+                        "visibility" : "PUBLIC",
+                        "tenant_code" : "shikshalokam"
+                    },
+                    {
+                        "id" : "41",
+                        "title" : "learner",
+                        "label" : "Learner",
+                        "user_type" : 0,
+                        "status" : "ACTIVE",
+                        "organization_id" : "10",
+                        "visibility" : "PUBLIC",
+                        "tenant_code" : "shikshalokam"
+                    }
+                ]
+            }
+        ],
+        "permissions" : [
+            {
+                "module" : "user",
+                "request_type" : [
+                    "POST",
+                    "DELETE",
+                    "GET",
+                    "PUT",
+                    "PATCH"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "form",
+                "request_type" : [
+                    "POST"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "cloud-services",
+                "request_type" : [
+                    "POST",
+                    "DELETE",
+                    "GET",
+                    "PUT",
+                    "PATCH"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "organization",
+                "request_type" : [
+                    "POST",
+                    "GET"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "entity-type",
+                "request_type" : [
+                    "POST"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "entity",
+                "request_type" : [
+                    "GET"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "account",
+                "request_type" : [
+                    "GET",
+                    "POST"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "user-role",
+                "request_type" : [
+                    "GET"
+                ],
+                "service" : "user"
+            },
+            {
+                "module" : "organization-feature",
+                "request_type" : [
+                    "GET"
+                ],
+                "service" : "user"
+            }
+        ],
+        "block" : {
+            "value" : "6852c8de7248c20014b38a9d",
+            "label" : "AGARTALA MUNICIPAL COORPORATION",
+            "externalId" : "160101"
+        },
+        "cluster" : {
+            "value" : "6852c9027248c20014b38c34",
+            "label" : "ACHARYA PRAFULLA CHANDRA H/S SCHOOL",
+            "externalId" : "1601010004"
+        },
+        "district" : {
+            "value" : "6852c8ae7248c20014b38a57",
+            "label" : "West Tripura",
+            "externalId" : "westTripura"
+        },
+        "professional_role" : {
+            "value" : "6825939a97b5680013e6a166",
+            "label" : "Student",
+            "externalId" : "student"
+        },
+        "professional_subroles" : [
+            {
+                "value" : "68259c4397b5680013e6a1fb",
+                "label" : "Student (Preschool- Class 2)",
+                "externalId" : "student-preschool-class-2"
+            },
+            {
+                "value" : "68259c4397b5680013e6a1fc",
+                "label" : "Student (Class 1-5)",
+                "externalId" : "student-class-1-5"
+            },
+            {
+                "value" : "68259c4397b5680013e6a1fe",
+                "label" : "Student (Class 6-8)",
+                "externalId" : "student-class-6-8"
+            },
+            {
+                "value" : "68259c4397b5680013e6a1ff",
+                "label" : "Student (Class 6-10)",
+                "externalId" : "student-class-6-10"
+            },
+            {
+                "value" : "68259c4397b5680013e6a200",
+                "label" : "Student (Class 9-10)",
+                "externalId" : "student-class-9-10"
+            },
+            {
+                "value" : "68259c4397b5680013e6a1fd",
+                "label" : "Student (Class 3-5)",
+                "externalId" : "student-class-3-5"
+            },
+            {
+                "value" : "68259c4397b5680013e6a202",
+                "label" : "Student (Class 8-10)",
+                "externalId" : "student-class-8-10"
+            },
+            {
+                "value" : "68259c4397b5680013e6a203",
+                "label" : "Student (Higher Education)",
+                "externalId" : "student-higher-education"
+            },
+            {
+                "value" : "68259c4397b5680013e6a201",
+                "label" : "Student (Class 11-12)",
+                "externalId" : "student-class-11-12"
+            },
+            {
+                "value" : "68259c4397b5680013e6a204",
+                "label" : "Student (pre-service teacher))",
+                "externalId" : "student-pre-service-teacher"
+            }
+        ],
+        "state" : {
+            "value" : "6852c86c7248c20014b38a4d",
+            "label" : "Tripura",
+            "externalId" : "16"
+        }
+    },
+    "programInformation" : {
+        "resourceType" : [
+            "program"
+        ],
+        "language" : [
+            "English"
+        ],
+        "keywords" : [
+            "CBSE",
+            "SQAA"
+        ],
+        "concepts" : [],
+        "isDeleted" : false,
+        "requestForPIIConsent" : true,
+        "rootOrganisations" : [],
+        "createdFor" : [],
+        "deleted" : false,
+        "status" : "active",
+        "owner" : "1",
+        "createdBy" : "1",
+        "updatedBy" : "1",
+        "externalId" : "Testing_SL_asfdsdfd_jan08as2",
+        "name" : "Sanity Testing SL Program Template SUP testing Jan 08 2",
+        "description" : "Sanity Testing SL Program Template SUP testing Jan 08 2",
+        "startDate" : "2025-11-24T18:30:00.000Z",
+        "endDate" : "2030-11-04T18:29:59.000Z",
+        "imageCompression" : {
+            "quality" : 10
+        },
+        "metaInformation" : {
+            "state" : [
+                "Tripura"
+            ],
+            "recommendedFor" : [
+                "student",
+                "sh",
+                "teacher",
+                "functionaries-officials"
+            ]
+        },
+        "tenantId" : "default",
+        "orgId" : "default_code",
+        "updatedAt" : "2026-01-09T03:48:40.897Z",
+        "createdAt" : "2026-01-08T06:56:48.927Z",
+        "__v" : 0,
+        "scope" : {
+            "professional_role" : [
+                "6825939a97b5680013e6a166",
+                "682593c697b5680013e6a170",
+                "682593bd97b5680013e6a16c",
+                "6825950197b5680013e6a17c"
+            ],
+            "professional_subroles" : [
+                "68259c4397b5680013e6a1fb",
+                "6825a95997b5680013e84292",
+                "6825a7a597b5680013e841d0",
+                "6825ad1f97b5680013e84519"
+            ],
+            "organizations" : [
+                "tan90",
+                "sot",
+                "slorg"
+            ],
+            "state" : [
+                "6852c86c7248c20014b38a4d"
+            ],
+            "district" : [
+                "ALL"
+            ],
+            "block" : [
+                "ALL"
+            ],
+            "cluster" : [
+                "ALL"
+            ],
+            "school" : [
+                "ALL"
+            ]
+        }
+    },
+    "orgId" : "default_code",
+    "tenantId" : "default",
+    "isExternalProgram" : true,
+    "deleted" : false,
+    "title" : "Observation 1",
+    "updatedAt" : new Date("2026-04-30T09:41:08.265Z"),
+    "createdAt" : new Date("2026-04-30T09:41:08.265Z"),
+    "__v" : 0
+}
+]
+
 module.exports = {
   solutionData,
   criteriaData,
@@ -5318,5 +7505,7 @@ module.exports = {
   frameworkData,
   surveyData,
   observationData,
-  organizationExtensionData
+  organizationExtensionData,
+  programData,
+  observationSubmissionData
 };

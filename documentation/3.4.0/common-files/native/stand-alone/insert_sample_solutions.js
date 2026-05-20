@@ -127,7 +127,8 @@ async function main({ dataToBeInserted }) {
 		{ name: "observations", data: dataToBeInserted.observationData, db : samikshaDB},
     	{ name: "surveys", data: dataToBeInserted.surveyData, db : samikshaDB},
     	{ name: "organizationExtension", data: dataToBeInserted.organizationExtensionData, db : samikshaDB},
-
+		{ name: "programs", data: dataToBeInserted.programData, db : samikshaDB},
+    	{ name: "observationSubmissions", data: dataToBeInserted.observationSubmissionData, db : samikshaDB},
 	]
 
 	console.log(`\n=================================================`)

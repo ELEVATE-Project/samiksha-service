@@ -39,7 +39,7 @@ To set up the Samiksha application, ensure you have Docker and Docker Compose in
 > **Caution:** Before proceeding, please ensure that the ports given here are available and open. It is essential to verify their availability prior to moving forward. You can run below command in your terminal to check this
 
 ```
-for %p in (3001 3002 6000 5001 4000 9092 5432 7007 2181 27017 3569 4301) do @(
+for %p in (3001 3002 6001 5001 4000 9092 5432 7007 2181 27017 3569 4301) do @(
   netstat -ano | findstr /R /C:":%p " /C:":%p$" >nul
   if errorlevel 1 (
     echo Port %p is available
