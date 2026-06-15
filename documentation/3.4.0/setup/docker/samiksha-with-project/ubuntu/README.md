@@ -240,8 +240,8 @@ For a comprehensive guide on setting up and using the SUP, please refer to:
 
 # Team
 
-<a href="https://github.com/ELEVATE-Project/project-service/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ELEVATE-Project/project-service" />
+<a href="https://github.com/ELEVATE-Project/samiksha-service/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ELEVATE-Project/samiksha-service" />
 </a>
 
 ---
