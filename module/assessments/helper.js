@@ -364,6 +364,11 @@ module.exports = class AssessmentsHelper {
                 ) {
                   let eachQuestion = eachSection.questions[pointerToEachSectionQuestion];
 
+                  // Store question sectionHeader as it will be used as the page question header, and clear it
+                  // as it is showing on top of each question label while rendering
+                  let pageQuestionHeader = eachQuestion.sectionHeader;
+                  eachQuestion.sectionHeader = '';
+
                   if (eachQuestion.page && eachQuestion.page !== '') {
                     let pageName = eachQuestion.page.toLowerCase();
 
@@ -391,12 +396,31 @@ module.exports = class AssessmentsHelper {
                       pageQuestionsObj[pageName] = _.merge(pageQuestionsObj[pageName], defaultQuestion);
 
                       pageQuestionsObj[pageName]['responseType'] = 'pageQuestions';
+
+                      // Only set question if pageQuestionHeader (stored sectionHeader) has a valid (non-blank, non-null) value
+                      // to avoid overwriting with empty values and preserve the default question value from defaultQuestion merge above
+                       if (pageQuestionHeader != null && pageQuestionHeader !== '' && String(pageQuestionHeader).trim() !== '') {
+                         pageQuestionsObj[pageName]['question'] = String(pageQuestionHeader).trim();
+                      }
+
                       pageQuestionsObj[pageName]['page'] = pageName;
                       pageQuestionsObj[pageName]['pageQuestions'] = [];
                     }
 
                     pageQuestionsObj[pageName].pageQuestions.push(eachQuestion);
 
+                    // Check if instanceQuestions exists and is a non-empty array
+                    if (eachQuestion.instanceQuestions && 
+                      Array.isArray(eachQuestion.instanceQuestions) && 
+                      eachQuestion.instanceQuestions.length > 0) {
+
+                      // Clear sectionHeader for each instanceQuestion
+                      eachQuestion.instanceQuestions.forEach((instanceQuestion) => {
+                        if (instanceQuestion && typeof instanceQuestion === 'object') {
+                            instanceQuestion.sectionHeader = '';
+                          }
+                        });
+                    }
                     delete eachSection.questions[pointerToEachSectionQuestion];
                   }
                 }

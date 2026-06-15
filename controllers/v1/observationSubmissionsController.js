@@ -970,12 +970,24 @@ module.exports = class ObservationSubmissions extends Abstract {
    * @param {Object} req - requested data.
    * @param {String} req.query.entityId - entity id.
    * @param {String} req.params._id - observation id.
+   * @param {String} [req.query.filterAnswerValue] - Optional filter value to search in submission answers.
    * @returns {JSON} consists of list of observation submissions.
    */
   async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
-        let submissionDocument = await observationSubmissionsHelper.list(req.query.entityId, req.params._id,req.userDetails.tenantData);
+        // Extract filterAnswerValue from query parameters if provided
+        const filterAnswerValue =
+          req.query.filterAnswerValue != null && String(req.query.filterAnswerValue).trim() !== ''
+            ? String(req.query.filterAnswerValue).trim()
+            : null;
+
+        let submissionDocument = await observationSubmissionsHelper.list(
+          req.query.entityId,
+          req.params._id,
+          req.userDetails.tenantData,
+          filterAnswerValue
+        );
         return resolve(submissionDocument);
       } catch (error) {
         return reject({
